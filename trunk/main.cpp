@@ -120,6 +120,15 @@ void save_main_config()
 	fclose(fp);
 }
 
+// wait_gtk_events: Waits for all pending gtk events
+// to be handled before continuing execution
+// ---------------------------------------------- >>
+void wait_gtk_events()
+{
+	while(gtk_events_pending())
+		gtk_main_iteration();
+}
+
 int main(int argc, char *argv[])
 {
 	gtk_init(&argc, &argv);

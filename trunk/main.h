@@ -66,3 +66,4 @@ string str_upper(string str);
 void print(bool debug, char *message, ...);
 void log_message(char *message, ...);
 void message_box(string message, GtkMessageType type);
+void wait_gtk_events();
