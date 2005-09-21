@@ -30,3 +30,97 @@ void console_print(string message)
 	gtk_text_buffer_get_end_iter(console_log, &end);
 	gtk_text_buffer_insert(console_log, &end, message.c_str(), -1);
 }
+
+void console_parsecommand()
+{
+	if (cmd_line == "")
+		return;
+
+	bool parsed = false;
+	Tokenizer tz;
+	tz.open_string(cmd_line, 0, 0);
+
+	string token = tz.get_token();
+
+	console_print(cmd_line);
+
+	// Check for cvar
+	CVar* cvar = get_cvar(token);
+	if (cvar)
+	{
+		bool changed = false;
+
+		// Check if we want to change the value
+		if (tz.peek_token() != "!END")
+		{
+			if (cvar->type == CVAR_INTEGER)
+				*((CIntCVar *)cvar) = tz.get_integer();
+
+			if (cvar->type == CVAR_BOOLEAN)
+				*((CBoolCVar *)cvar) = !!(tz.get_integer());
+
+			if (cvar->type == CVAR_FLOAT)
+				*((CFloatCVar *)cvar) = tz.get_float();
+
+			if (cvar->type == CVAR_STRING)
+				*((CStringCVar *)cvar) = tz.get_token();
+
+			changed = true;
+		}
+
+		// Display the value
+		string msg = "- \"";
+		msg += cvar->name;
+
+		if (changed)
+			msg += "\" set to ";
+		else
+			msg += "\" is ";
+
+		char val[16] = "";
+
+		if (cvar->type == CVAR_INTEGER)
+			sprintf(val, "\"%d\"", cvar->GetValue().Int);
+
+		if (cvar->type == CVAR_STRING)
+			sprintf(val, "\"%s\"", ((CStringCVar *)cvar)->value.c_str());
+
+		if (cvar->type == CVAR_BOOLEAN)
+			sprintf(val, "\"%d\"", cvar->GetValue().Bool);
+
+		if (cvar->type == CVAR_FLOAT)
+			sprintf(val, "\"%1.2f\"", cvar->GetValue().Float);
+
+		console_print(msg + val);
+
+		parsed = true;
+	}
+
+	// "cvarlist" command
+	if (token == "cvarlist")
+	{
+		console_print("- All CVars:");
+
+		vector<string> l_cvars = get_cvar_list();
+
+		for (DWORD s = 0; s < l_cvars.size(); s++)
+		{
+			char temp[128] = "";
+			sprintf(temp, "\"%s\"", l_cvars[s].c_str());
+			console_print(temp);
+		}
+
+		parsed = true;
+	}
+
+	// Unknown command
+	if (!parsed)
+	{
+		char temp[276] = "";
+		sprintf(temp, "- Unknown Command \"%s\"", cmd_line.c_str());
+		console_print(temp);
+	}
+
+	// Finish up
+	cmd_line = "";
+}
