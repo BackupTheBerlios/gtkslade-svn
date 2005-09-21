@@ -9,6 +9,7 @@ extern GtkTextBuffer *console_log;
 void setup_console_window()
 {
 	console_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	gtk_window_set_title(GTK_WINDOW(console_window), "SLADE Console");
 
 	GtkWidget *vbox = gtk_vbox_new(false, 0);
 	gtk_container_set_border_width(GTK_CONTAINER(vbox), 4);
