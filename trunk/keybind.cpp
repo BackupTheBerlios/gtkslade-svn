@@ -171,3 +171,9 @@ void BindList::clear(string name)
 		}
 	}
 }
+
+void BindList::clear_all()
+{
+	for (int a = 0; a < keys.size(); a++)
+		clear(keys[a].name);
+}

@@ -293,6 +293,32 @@ void draw_sectors()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
+void draw_things()
+{
+	rgba_t colour;
+
+	for (DWORD t = 0; t < map.n_things; t++)
+	{
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		colour.set(180, 180, 180, 255);
+		int r = (16 * zoom) / MAJOR_UNIT;
+		draw_rect(rect_t(s_x(map.things[t]->x), s_y(-map.things[t]->y), r*2, r*2, RECT_CENTER), colour, true);
+		colour.set(0, 0, 0, 100);
+		draw_rect(rect_t(s_x(map.things[t]->x), s_y(-map.things[t]->y), r*2, r*2, RECT_CENTER), colour, false);
+
+		if (move_list.exists(t))
+		{
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+			draw_rect(rect_t(s_x(map.things[t]->x), s_y(-map.things[t]->y), r*2, r*2, RECT_CENTER), col_moving, true);
+		}
+		else if (vector_exists(selected_items, t))
+		{
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+			draw_rect(rect_t(s_x(map.things[t]->x), s_y(-map.things[t]->y), r*2, r*2, RECT_CENTER), col_selection, true);
+		}
+	}
+}
+
 // draw_hilight: Draws the currently hilighted item
 // --------------------------------------------- >>
 void draw_hilight()
@@ -343,19 +369,18 @@ void draw_hilight()
 		}
 	}
 
-	/*
 	if (edit_mode == 3)
 	{
-		int r = (map.things[hilight_item]->radius * zoom) / MAJOR_UNIT;
+		//int r = (map.things[hilight_item]->radius * zoom) / MAJOR_UNIT;
+		int r = (17 * zoom) / MAJOR_UNIT;
 		point2_t p;
 		p.set(s_x(map.things[hilight_item]->x), s_y(-map.things[hilight_item]->y));
 
-		if (map.things[hilight_item]->radius == -1)
-			r = 8 * zoom / MAJOR_UNIT;
+		//if (map.things[hilight_item]->radius == -1)
+		//	r = 8 * zoom / MAJOR_UNIT;
 
 		draw_rect(rect_t(p.x - r, p.y - r, p.x + r, p.y + r), col_hilight, true);
 	}
-	*/
 }
 
 // draw_drawlines: Draws dashed lines for line drawing
@@ -501,13 +526,11 @@ void update_map()
 		draw_sectors();
 	}
 
-	/*
 	if (edit_mode == 3) // Things
 	{
 		draw_basic_lines();
 		draw_things();
 	}
-	*/
 
 	glEndList();
 }

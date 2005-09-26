@@ -4,9 +4,11 @@
 #include "draw.h"
 #include "edit.h"
 #include "editor_window.h"
+#include "console_window.h"
 #include "keybind.h"
 #include "input.h"
 #include "linedraw.h"
+#include "info_bar.h"
 
 GtkWidget	*editor_window = NULL;
 GtkWidget	*map_area = NULL;
@@ -19,7 +21,7 @@ int vid_width;
 int vid_height;
 
 extern Map map;
-extern int hilight_item;
+extern int hilight_item, edit_mode;
 extern BindList binds;
 extern bool line_draw;
 
@@ -329,6 +331,137 @@ gboolean key_release_event(GtkWidget *widget, GdkEventKey *event, gpointer data)
 	return false;
 }
 
+
+// MENU STUFF
+
+static void menu_action(GtkAction *action)
+{
+	string act = gtk_action_get_name(action);
+
+	
+	if (act == "ModeVerts")
+		change_edit_mode(0);
+	else if (act == "ModeLines")
+		change_edit_mode(1);
+	else if (act == "ModeSectors")
+		change_edit_mode(2);
+	else if (act == "ModeThings")
+		change_edit_mode(3);
+	else if (act == "Mode3d")
+		message_box("Not implemented yet", GTK_MESSAGE_INFO);
+	else if (act == "ShowConsole")
+		popup_console();
+}
+
+/*
+static void menu_mode_select(GtkAction *action, GtkRadioAction *current)
+{
+	//g_message ("Radio action \"%s\" selected", gtk_action_get_name(GTK_ACTION(current)));
+}
+*/
+
+static GtkActionEntry entries[] = {
+	{ "FileMenu", NULL, "_File" },
+	{ "EditMenu", NULL, "_Edit" },
+	{ "EditLineMenu", NULL, "_Lines" },
+	{ "EditSectorMenu", NULL, "_Sectors" },
+	{ "ModeMenu", NULL, "_Mode"  },
+	{ "ViewMenu", NULL, "_View"  },
+	{ "HelpMenu", NULL, "_Help" },
+	
+	// File menu
+	{ "Save", GTK_STOCK_SAVE, "_Save", "<control>S", "Save map", G_CALLBACK(menu_action) },
+	{ "SaveAs", GTK_STOCK_SAVE_AS, "Save _As...", NULL, "Save map to a new file", G_CALLBACK(menu_action) },
+	{ "Close", GTK_STOCK_CLOSE, "_Close", NULL, "Quit", G_CALLBACK(menu_action) },
+
+	// Line edit menu
+	{ "AlignX", NULL, "Align Textures _X", NULL, "Align selected wall textures along the x axis", G_CALLBACK(menu_action) },
+	{ "AlignY", NULL, "Align Textures _Y", NULL, "Align selected wall textures along the y axis", G_CALLBACK(menu_action) },
+
+	// Sector edit menu
+	{ "MergeSectors", NULL, "_Merge Sectors", NULL, "Merge selected sectors", G_CALLBACK(menu_action) },
+	{ "JoinSectors", NULL, "_Join Sectors", NULL, "Join selected sectors", G_CALLBACK(menu_action) },
+	{ "CreateDoor", NULL, "Create _Door", NULL, "Create door(s) from selected sector(s)", G_CALLBACK(menu_action) },
+	{ "CreateStairs", NULL, "Create _Stairs", NULL, "Create stairs from selected sectors", G_CALLBACK(menu_action) },
+
+	// Mode menu
+	{ "ModeVerts", "slade-mode-verts", "_Vertices", NULL, "Vertices Mode", G_CALLBACK(menu_action) },
+	{ "ModeLines", "slade-mode-lines", "_Lines", NULL, "Lines Mode", G_CALLBACK(menu_action) },
+	{ "ModeSectors", "slade-mode-sectors", "_Sectors", NULL, "Sector Mode", G_CALLBACK(menu_action) },
+	{ "ModeThings", "slade-mode-things", "_Things", NULL, "Things Mode", G_CALLBACK(menu_action) },
+	{ "Mode3d", "slade-mode-3d", "_3d Mode", NULL, "3d Mode", G_CALLBACK(menu_action) },
+
+	// View menu
+	{ "ShowConsole", NULL, "Show _Console", NULL, "Shows the SLADE console window", G_CALLBACK(menu_action) },
+
+	// Help menu
+	{ "About", GTK_STOCK_ABOUT, "_About SLADE", NULL, "", G_CALLBACK(menu_action) },
+	{ "Help", GTK_STOCK_HELP, "_Help", NULL, "", G_CALLBACK(menu_action) },
+};
+static guint n_entries = G_N_ELEMENTS(entries);
+
+/*
+static GtkRadioActionEntry mode_entries[] = {
+	
+};
+static guint n_mode_entries = G_N_ELEMENTS(mode_entries);
+*/
+
+static const gchar *ui_info = 
+"<ui>"
+"  <menubar name='MenuBar'>"
+"   <menu action='FileMenu'>"
+"     <menuitem action='Save'/>"
+"     <menuitem action='SaveAs'/>"
+"     <separator/>"
+"     <menuitem action='Close'/>"
+"   </menu>"
+"   <menu action='EditMenu'>"
+"    <menu action='EditLineMenu'>"
+"     <menuitem action='AlignX'/>"
+"     <menuitem action='AlignY'/>"
+"    </menu>"
+"    <menu action='EditSectorMenu'>"
+"     <menuitem action='MergeSectors'/>"
+"     <menuitem action='JoinSectors'/>"
+"     <separator/>"
+"     <menuitem action='CreateDoor'/>"
+"     <menuitem action='CreateStairs'/>"
+"    </menu>"
+"   </menu>"
+"   <menu action='ModeMenu'>"
+"    <menuitem action='ModeVerts'/>"
+"    <menuitem action='ModeLines'/>"
+"    <menuitem action='ModeSectors'/>"
+"    <menuitem action='ModeThings'/>"
+"    <menuitem action='Mode3d'/>"
+"   </menu>"
+"   <menu action='ViewMenu'>"
+"    <menuitem action='ShowConsole'/>"
+"   </menu>"
+"   <menu action='HelpMenu' position='bot'>"
+"    <menuitem action='About'/>"
+"    <menuitem action='Help'/>"
+"   </menu>"
+"  </menubar>"
+"  <toolbar  name='ToolBar'>"
+"    <toolitem action='Save'/>"
+"    <toolitem action='SaveAs'/>"
+"    <toolitem action='Close'/>"
+"    <separator action='Sep1'/>"
+"    <toolitem action='ModeVerts'/>"
+"    <toolitem action='ModeLines'/>"
+"    <toolitem action='ModeSectors'/>"
+"    <toolitem action='ModeThings'/>"
+"    <toolitem action='Mode3d'/>"
+"  </toolbar>"
+"</ui>";
+
+gboolean tbar_keypress(GtkWidget *widget, GdkEventKey *event, gpointer data)
+{
+	return true;
+}
+
 // setup_editor_window: Sets up the main editor window
 // ------------------------------------------------ >>
 void setup_editor_window()
@@ -348,15 +481,37 @@ void setup_editor_window()
 	}
 
 	editor_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	gtk_widget_set_size_request(editor_window, 640, 480);
+	gtk_window_set_title(GTK_WINDOW(editor_window), "SLADE");
+	gtk_widget_set_size_request(editor_window, 800, 600);
 	gtk_widget_set_double_buffered(editor_window, true);
 
 	GtkWidget *main_vbox = gtk_vbox_new(false, 0);
 	gtk_container_add(GTK_CONTAINER(editor_window), main_vbox);
 
-	// Menu
-	GtkWidget *temp = gtk_label_new("Menu goes here");
-	gtk_box_pack_start(GTK_BOX(main_vbox), temp, false, false, 0);
+	// Menu and Toolbar
+	GtkUIManager *ui = gtk_ui_manager_new();
+	GtkActionGroup *actions = gtk_action_group_new ("Actions");
+	GError *error = NULL;
+
+	gtk_action_group_add_actions(actions, entries, n_entries, NULL);
+	//gtk_action_group_add_radio_actions(actions, mode_entries, n_mode_entries, 1, G_CALLBACK(menu_mode_select), NULL);
+
+	gtk_ui_manager_insert_action_group(ui, actions, 0);
+	gtk_window_add_accel_group(GTK_WINDOW(editor_window), gtk_ui_manager_get_accel_group(ui));
+
+	if (!gtk_ui_manager_add_ui_from_string (ui, ui_info, -1, &error))
+	{
+		printf("Building menus failed: %s", error->message);
+		g_error_free(error);
+	}
+
+	gtk_box_pack_start (GTK_BOX(main_vbox), gtk_ui_manager_get_widget(ui, "/MenuBar"), false, false, 0);
+
+	GtkWidget *toolbar = gtk_ui_manager_get_widget(ui, "/ToolBar");
+	gtk_toolbar_set_style(GTK_TOOLBAR(toolbar), GTK_TOOLBAR_ICONS);
+	gtk_toolbar_set_icon_size(GTK_TOOLBAR(toolbar), GTK_ICON_SIZE_MENU);
+	g_signal_connect(G_OBJECT(toolbar), "key-press-event", G_CALLBACK(tbar_keypress), NULL);
+	gtk_box_pack_start (GTK_BOX(main_vbox), toolbar, false, false, 0);
 
 	// Map area
 	map_area = gtk_drawing_area_new();
@@ -385,9 +540,10 @@ void setup_editor_window()
 	glcontext = gtk_widget_get_gl_context(map_area);
 
 	// Info area
-	temp = gtk_label_new("Info here");
-	gtk_widget_set_size_request(temp, -1, 128);
-	gtk_box_pack_start(GTK_BOX(main_vbox), temp, false, false, 0);
+	GtkWidget *infobar = get_info_bar();
+	gtk_widget_set_size_request(infobar, -1, 128);
+	gtk_box_pack_start(GTK_BOX(main_vbox), infobar, false, false, 0);
+	change_infobar_page();
 
 	gtk_widget_show_all(editor_window);
 }

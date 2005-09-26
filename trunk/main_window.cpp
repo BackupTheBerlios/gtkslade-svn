@@ -20,10 +20,9 @@ bool setup_game_combo(GtkWidget *combo)
 
 	if (dir)
 	{
-		gchar dir_name[256] = "";
-		sprintf(dir_name, "%s", g_dir_read_name(dir));
+		const gchar* dir_name = g_dir_read_name(dir);
 
-		while (g_ascii_strcasecmp(dir_name, "(null)") != 0)
+		while (dir_name)
 		{
 			Tokenizer tokenizer;
 			string filename = "games/";
@@ -41,7 +40,7 @@ bool setup_game_combo(GtkWidget *combo)
 				gtk_combo_box_append_text(GTK_COMBO_BOX(combo), tokenizer.get_token().c_str());
 			}
 
-			sprintf(dir_name, "%s", g_dir_read_name(dir));
+			dir_name = g_dir_read_name(dir);
 		}
 
 		return true;

@@ -1,19 +1,111 @@
 
 #include "main.h"
 #include "map.h"
+#include "misc.h"
+#include "checks.h"
+#include "editor_window.h"
+
+linedef_t line;
+
+vector<int> set_flags;
+vector<int> unset_flags;
+int			special = -1;
+int			tag = -1;
 
 extern Map map;
 extern GtkWidget *editor_window;
+extern vector<int> selected_items;
+extern int hilight_item;
+
+void special_changed(GtkWidget *w, gpointer data)
+{
+	string text = gtk_entry_get_text(GTK_ENTRY(w));
+
+	if (text != "")
+		special = atoi(text.c_str());
+	else
+		special = -1;
+}
+
+void tag_changed(GtkWidget *w, gpointer data)
+{
+	string text = gtk_entry_get_text(GTK_ENTRY(w));
+
+	if (text != "")
+		tag = atoi(text.c_str());
+	else
+		tag = -1;
+}
+
+void find_unused_click(GtkWidget *w, gpointer data)
+{
+	GtkWidget *entry = GTK_WIDGET(data);
+	gtk_entry_set_text(GTK_ENTRY(data), parse_string("%d", get_free_tag()).c_str());
+}
+
+void flag_click(GtkWidget *w, gpointer data)
+{
+	int flag = (int)data;
+
+	if (gtk_toggle_button_get_inconsistent(GTK_TOGGLE_BUTTON(w)))
+		gtk_toggle_button_set_inconsistent(GTK_TOGGLE_BUTTON(w), false);
+
+	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(w)))
+	{
+		vector_add_nodup(set_flags, flag);
+
+		if (vector_exists(unset_flags, flag))
+			unset_flags.erase(find(unset_flags.begin(), unset_flags.end(), flag));
+	}
+	else
+	{
+		vector_add_nodup(unset_flags, flag);
+		
+		if (vector_exists(set_flags, flag))
+			set_flags.erase(find(set_flags.begin(), set_flags.end(), flag));
+	}
+}
 
 GtkWidget* setup_flag_checkbox(string name, int flag)
 {
 	GtkWidget *cbox = gtk_check_button_new_with_label(name.c_str());
+
+	if (selected_items.size() == 0 && hilight_item != -1)
+	{
+		if (map.lines[hilight_item]->flags & flag)
+			gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(cbox), true);
+	}
+	else
+	{
+		int count = 0;
+
+		for (int a = 0; a < selected_items.size(); a++)
+		{
+			if (map.lines[selected_items[a]]->flags & flag)
+				count++;
+		}
+
+		if (count == selected_items.size())
+			gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(cbox), true);
+		else if (count != 0)
+			gtk_toggle_button_set_inconsistent(GTK_TOGGLE_BUTTON(cbox), true);
+	}
+
+	g_signal_connect(G_OBJECT(cbox), "clicked", G_CALLBACK(flag_click), (gpointer)flag);
 
 	return cbox;
 }
 
 GtkWidget* setup_line_edit_props()
 {
+	if (selected_items.size() == 0 && hilight_item != -1)
+		memcpy(&line, map.lines[hilight_item], sizeof(linedef_t));
+	else
+	{
+		// Stuff
+		memcpy(&line, map.lines[selected_items[0]], sizeof(linedef_t));
+	}
+
 	GtkWidget *props_page = gtk_vbox_new(false, 0);
 
 	// Flags
@@ -64,6 +156,7 @@ GtkWidget* setup_line_edit_props()
 	gtk_box_pack_start(GTK_BOX(hbox), label, true, true, 0);
 
 	GtkWidget *entry = gtk_entry_new();
+	g_signal_connect(G_OBJECT(entry), "changed", G_CALLBACK(special_changed), NULL);
 	gtk_widget_set_size_request(entry, 32, -1);
 	gtk_box_pack_start(GTK_BOX(hbox), entry, false, false, 4);
 
@@ -72,6 +165,9 @@ GtkWidget* setup_line_edit_props()
 	gtk_box_pack_start(GTK_BOX(hbox), button, false, false, 0);
 
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, false, false, 0);
+
+	if (selected_items.size() == 0 && hilight_item != -1)
+		gtk_entry_set_text(GTK_ENTRY(entry), parse_string("%d", map.lines[hilight_item]->type).c_str());
 
 	if (map.hexen)
 	{
@@ -88,14 +184,19 @@ GtkWidget* setup_line_edit_props()
 		gtk_box_pack_start(GTK_BOX(hbox), label, true, true, 0);
 
 		GtkWidget *entry = gtk_entry_new();
+		g_signal_connect(G_OBJECT(entry), "changed", G_CALLBACK(tag_changed), NULL);
 		gtk_widget_set_size_request(entry, 32, -1);
 		gtk_box_pack_start(GTK_BOX(hbox), entry, false, false, 4);
 
 		GtkWidget *button = gtk_button_new_with_label("Find Unused");
+		g_signal_connect(G_OBJECT(button), "clicked", G_CALLBACK(find_unused_click), entry);
 		gtk_widget_set_size_request(button, 96, -1);
 		gtk_box_pack_start(GTK_BOX(hbox), button, false, false, 0);
 
 		gtk_box_pack_start(GTK_BOX(vbox), hbox, false, false, 0);
+
+		if (selected_items.size() == 0 && hilight_item != -1)
+			gtk_entry_set_text(GTK_ENTRY(entry), parse_string("%d", map.lines[hilight_item]->sector_tag).c_str());
 	}
 
 	gtk_container_add(GTK_CONTAINER(frame), vbox);
@@ -120,6 +221,57 @@ GtkWidget* setup_line_edit()
 	return tabs;
 }
 
+void apply_line_edit()
+{
+	// Set changed flags
+	for (int a = 0; a < set_flags.size(); a++)
+	{
+		if (selected_items.size() == 0 && hilight_item != -1)
+			map.lines[hilight_item]->set_flag(set_flags[a]);
+		else if (selected_items.size() > 0)
+		{
+			for (int i = 0; i < selected_items.size(); i++)
+				map.lines[selected_items[i]]->set_flag(set_flags[a]);
+		}
+	}
+
+	// Unset changed flags
+	for (int a = 0; a < unset_flags.size(); a++)
+	{
+		if (selected_items.size() == 0 && hilight_item != -1)
+			map.lines[hilight_item]->clear_flag(unset_flags[a]);
+		else if (selected_items.size() > 0)
+		{
+			for (int i = 0; i < selected_items.size(); i++)
+				map.lines[selected_items[i]]->clear_flag(unset_flags[a]);
+		}
+	}
+
+	// Special
+	if (special != -1)
+	{
+		if (selected_items.size() == 0 && hilight_item != -1)
+			map.lines[hilight_item]->type = special;
+		else if (selected_items.size() > 0)
+		{
+			for (int i = 0; i < selected_items.size(); i++)
+				map.lines[selected_items[i]]->type = special;
+		}
+	}
+
+	// Sector tag
+	if (tag != -1)
+	{
+		if (selected_items.size() == 0 && hilight_item != -1)
+			map.lines[hilight_item]->sector_tag = tag;
+		else if (selected_items.size() > 0)
+		{
+			for (int i = 0; i < selected_items.size(); i++)
+				map.lines[selected_items[i]]->sector_tag = tag;
+		}
+	}
+}
+
 void open_line_edit()
 {
 	GtkWidget *dialog = gtk_dialog_new_with_buttons("Edit Line",
@@ -135,7 +287,13 @@ void open_line_edit()
 	gtk_window_set_position(GTK_WINDOW(dialog), GTK_WIN_POS_CENTER_ON_PARENT);
 	gtk_widget_show_all(dialog);
 
-	gtk_dialog_run(GTK_DIALOG(dialog));
+	int response = gtk_dialog_run(GTK_DIALOG(dialog));
+
+	if (response == GTK_RESPONSE_ACCEPT)
+	{
+		apply_line_edit();
+		force_map_redraw(true, false);
+	}
 
 	gtk_widget_destroy(dialog);
 }

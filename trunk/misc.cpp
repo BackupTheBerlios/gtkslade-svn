@@ -18,3 +18,21 @@ void remove_duplicates_intvector(vector<int> *vec)
 		}
 	}
 }
+
+string parse_string(char *str, ...)
+{
+	char text[512] = "";
+	va_list ap;
+
+	va_start(ap, str);
+	vsprintf(text, str, ap);
+	va_end(ap);
+
+	string ret = text;
+	return ret;
+}
+
+void widget_set_font(GtkWidget *w, string font)
+{
+	gtk_widget_modify_font(w, pango_font_description_from_string(font.c_str()));
+}

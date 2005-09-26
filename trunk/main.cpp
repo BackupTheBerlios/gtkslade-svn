@@ -4,6 +4,9 @@
 #include "main_window.h"
 #include "editor_window.h"
 #include "console.h"
+#include "colours.h"
+
+CVAR(String, col_config, "Blue", CVAR_SAVE)
 
 extern WadList wads;
 extern Map map;
@@ -129,15 +132,37 @@ void wait_gtk_events()
 		gtk_main_iteration();
 }
 
+void setup_icons()
+{
+	GtkIconFactory *icons = gtk_icon_factory_new();
+
+	gtk_icon_factory_add(icons, "slade-mode-verts",
+		gtk_icon_set_new_from_pixbuf(gdk_pixbuf_new_from_file("res/tb_verts16.png", NULL)));
+	gtk_icon_factory_add(icons, "slade-mode-lines",
+		gtk_icon_set_new_from_pixbuf(gdk_pixbuf_new_from_file("res/tb_lines16.png", NULL)));
+	gtk_icon_factory_add(icons, "slade-mode-sectors",
+		gtk_icon_set_new_from_pixbuf(gdk_pixbuf_new_from_file("res/tb_sectors16.png", NULL)));
+	gtk_icon_factory_add(icons, "slade-mode-things",
+		gtk_icon_set_new_from_pixbuf(gdk_pixbuf_new_from_file("res/tb_things16.png", NULL)));
+	gtk_icon_factory_add(icons, "slade-mode-3d",
+		gtk_icon_set_new_from_pixbuf(gdk_pixbuf_new_from_file("res/tb_3d16.png", NULL)));
+
+	gtk_icon_factory_add_default(icons);
+}
+
 int main(int argc, char *argv[])
 {
 	gtk_init(&argc, &argv);
 	//gtk_gl_init(&argc, &argv);
 
 	init_console();
-	popup_console();
+	setup_icons();
 
 	load_main_config();
+
+	load_colour_configs("config/colours.cfg");
+	string ccfg = col_config;
+	set_colour_config(ccfg);
 
 	wads.open_iwad("D:/Games/Doom/doom2.wad");
 	map.open(wads.get_iwad(), "MAP01");
@@ -156,3 +181,10 @@ int main(int argc, char *argv[])
 
 	return 0;
 }
+
+#ifndef DEBUG
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+{
+	return main(nCmdShow, &lpCmdLine);
+}
+#endif

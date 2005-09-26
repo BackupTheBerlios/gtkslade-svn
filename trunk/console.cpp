@@ -1,6 +1,9 @@
 
 #include "main.h"
 #include "console.h"
+#include "colours.h"
+#include "misc.h"
+#include "editor_window.h"
 
 GtkTextBuffer	*console_log;
 string			cmd_line;
@@ -64,6 +67,15 @@ void console_parsecommand()
 
 			if (cvar->type == CVAR_STRING)
 				*((CStringCVar *)cvar) = tz.get_token();
+
+			// If col_config is changed
+			if (cvar->name == "col_config")
+			{
+				string ccfg = ((CStringCVar *)cvar)->value;
+				set_colour_config(ccfg);
+				console_print(parse_string("Colour config \"%s\" applied", ccfg.c_str()));
+				force_map_redraw(true, true);
+			}
 
 			changed = true;
 		}

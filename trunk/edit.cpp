@@ -4,6 +4,8 @@
 #include "checks.h"
 #include "edit_move.h"
 #include "undoredo.h"
+#include "editor_window.h"
+#include "info_bar.h"
 
 // VARIABLES ----------------------------- >>
 float	zoom = 16;			// Zoom level (pixels per 32 map units)
@@ -387,13 +389,20 @@ void get_hilight_item(int x, int y)
 	if (lock_hilight)
 		return;
 
+	int old_hilight = hilight_item;
+
 	clear_hilights();
 
 	if (edit_mode == 0)
 		hilight_item = get_nearest_vertex(x, y);
 
 	if (edit_mode == 1)
+	{
 		hilight_item = get_nearest_line(m_x(x), -m_y(y));
+
+		if (old_hilight != hilight_item)
+			update_line_info_bar(hilight_item);
+	}
 	
 	if (edit_mode == 2)
 		hilight_item = determine_sector(m_x(x), -m_y(y));
@@ -1015,4 +1024,13 @@ void merge_overlapping_lines(vector<int> lines)
 	}
 
 	map_changelevel(3);
+}
+
+void change_edit_mode(int mode)
+{
+	edit_mode = mode;
+	hilight_item = -1;
+	clear_selection();
+	force_map_redraw(true, false);
+	change_infobar_page();
 }

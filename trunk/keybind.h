@@ -22,4 +22,5 @@ public:
 	void unset(string key);
 	bool pressed(string name);
 	void clear(string name);
+	void clear_all();
 };

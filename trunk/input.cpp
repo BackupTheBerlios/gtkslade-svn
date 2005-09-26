@@ -15,9 +15,9 @@ extern bool line_draw;
 extern point2_t mouse;
 extern rect_t sel_box;
 
-// change_edit_mode: Cycles the edit mode
+// cycle_edit_mode: Cycles the edit mode
 // ----------------------------------- >>
-void change_edit_mode()
+void cycle_edit_mode()
 {
 	if (++edit_mode > 3)
 		edit_mode = 0;
@@ -130,47 +130,23 @@ void keys_edit()
 
 	// Vertices mode
 	if (binds.pressed("mode_vertices"))
-	{
-		clear_selection();
-		edit_mode = 0;
-		force_map_redraw(true);
-	}
+		change_edit_mode(0);
 	
 	// Linedefs mode
 	if (binds.pressed("mode_linedefs"))
-	{
-		clear_selection();
-		hilight_item = -1;
-		edit_mode = 1;
-		force_map_redraw(true);
-	}
+		change_edit_mode(1);
 	
 	// Sectors mode
 	if (binds.pressed("mode_sectors"))
-	{
-		clear_selection();
-		hilight_item = -1;
-		edit_mode = 2;
-		force_map_redraw(true);
-	}
+		change_edit_mode(2);
 	
 	// Things mode
 	if (binds.pressed("mode_things"))
-	{
-		clear_selection();
-		hilight_item = -1;
-		edit_mode = 3;
-		force_map_redraw(true);
-	}
+		change_edit_mode(3);
 
 	// Change mode
 	if (binds.pressed("mode_change"))
-	{
-		clear_selection();
-		hilight_item = -1;
-		change_edit_mode();
-		force_map_redraw(true);
-	}
+		cycle_edit_mode();
 
 	// Increase grid size
 	if (binds.pressed("view_increasegrid"))
@@ -387,7 +363,11 @@ void keys_edit()
 		binds.clear("edit_undo");
 	}
 
+	// Edit item
 	if (binds.pressed("edit_edititem"))
+	{
 		edit_item();
+		binds.clear("edit_edititem");
+	}
 }
 

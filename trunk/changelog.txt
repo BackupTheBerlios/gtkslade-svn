@@ -1,0 +1,24 @@
+Gtk-SLADE changelog
+-------------------
+
+Goes in bottom-up order
+
+*: Fixed
++: Added
+-: Removed
+~: Changed
+
+
+[27/09/05]
++ Basic line information shows up (minus the special name and side info)
++ Colour configuration can be changed via the console
++ Added back the SLADE colour configurations
++ The main linedef edit dialog works now (except 'change special' which needs game configs)
++ Implemented basic thing drawing (grey squares until I get game configs and textures loading)
++ Added a menu and toolbar to the editor window, with some nice icons I made ;)
+~ Moved back to GTK 2.6 until there is a decent 2.8 win32 port (the official one has much too small fonts)
+* Fixed a linux crash in setup_game_combo
+
+[22/09/05]
++ Added console command parsing. Now it's just as functional as the original SLADE 3d mode console ;)
++ Added a function to wait for all gtk events, needed for the console and eventually for the splash screen and any progress bars.
