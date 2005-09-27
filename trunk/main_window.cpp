@@ -133,6 +133,7 @@ bool setup_main_window(GtkWidget *window)
 GtkWidget* open_main_window()
 {
 	GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	gtk_window_set_title(GTK_WINDOW(window), "SLADE");
 	g_signal_connect(G_OBJECT(window), "destroy", G_CALLBACK(destroy), NULL);
 
 	if (setup_main_window(window))

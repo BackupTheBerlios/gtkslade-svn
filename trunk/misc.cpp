@@ -36,3 +36,11 @@ void widget_set_font(GtkWidget *w, string font)
 {
 	gtk_widget_modify_font(w, pango_font_description_from_string(font.c_str()));
 }
+
+string bool_yesno(bool val)
+{
+	if (val)
+		return "Yes";
+	else
+		return "No";
+}

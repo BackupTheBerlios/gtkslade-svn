@@ -70,4 +70,47 @@ struct thing_t
 		if (angle < 0)
 			angle = 315;
 	}
+
+	string angle_string()
+	{
+		if (angle == 0) // east
+			return "East";
+		else if (angle == 45) // northeast
+			return "Northeast";
+		else if (angle == 90) // north
+			return "North";
+		else if (angle == 135) // northwest
+			return "Northwest";
+		else if (angle == 180) // west
+			return "West";
+		else if (angle == 225) // southwest
+			return "Southwest";
+		else if (angle == 270) // south
+			return "South";
+		else if (angle == 315) // southeast
+			return "Southeast";
+		else // Invalid angle
+			return "Invalid Angle";
+	}
+
+	string difficulty_string()
+	{
+		if (!(flags & THING_EASY)
+			&& !(flags & THING_MEDIUM)
+			&& !(flags & THING_HARD))
+			return "None";
+
+		string str;
+
+		if (flags & THING_EASY)
+			str += "Easy ";
+
+		if (flags & THING_MEDIUM)
+			str += "Med ";
+
+		if (flags & THING_HARD)
+			str += "Hard";
+
+		return str;
+	}
 };

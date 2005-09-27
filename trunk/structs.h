@@ -1,26 +1,30 @@
+
 // rgba_t: A 32-bit colour definition
 struct rgba_t
 {
 	BYTE r, g, b, a;
+	char blend;
 
 	// Constructors
-	rgba_t() { r = 0; g = 0; b = 0; a = 0; }
+	rgba_t() { r = 0; g = 0; b = 0; a = 0; blend = -1; }
 	
-	rgba_t(BYTE R, BYTE G, BYTE B, BYTE A)
+	rgba_t(BYTE R, BYTE G, BYTE B, BYTE A, char BLEND = -1)
 	{
 		r = R;
 		g = G;
 		b = B;
 		a = A;
+		blend = BLEND;
 	}
 
 	// Functions
-	void set(BYTE R, BYTE G, BYTE B, BYTE A)
+	void set(BYTE R, BYTE G, BYTE B, BYTE A, char BLEND = -1)
 	{
 		r = R;
 		g = G;
 		b = B;
 		a = A;
+		blend = BLEND;
 	}
 
 	void set(rgba_t colour)
@@ -29,13 +33,26 @@ struct rgba_t
 		g = colour.g;
 		b = colour.b;
 		a = colour.a;
+		blend = colour.blend;
 	}
 
 	float fr() { return (float)r / 255.0f; }
 	float fg() { return (float)g / 255.0f; }
 	float fb() { return (float)b / 255.0f; }
 	float fa() { return (float)a / 255.0f; }
+
+	void set_blend()
+	{
+		if (blend == 0)
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		else if (blend == 1)
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+	}
 };
+
+#define COL_BLEND_DONTCARE	-1
+#define COL_BLEND_NORMAL	0
+#define COL_BLEND_ADD		1
 
 // point2_t: A 2d point
 struct point2_t

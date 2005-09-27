@@ -541,7 +541,7 @@ void setup_editor_window()
 
 	// Info area
 	GtkWidget *infobar = get_info_bar();
-	gtk_widget_set_size_request(infobar, -1, 128);
+	gtk_widget_set_size_request(infobar, -1, 144);
 	gtk_box_pack_start(GTK_BOX(main_vbox), infobar, false, false, 0);
 	change_infobar_page();
 

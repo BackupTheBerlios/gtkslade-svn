@@ -1,6 +1,7 @@
 
 #include "main.h"
 #include "info_bar.h"
+#include "misc.h"
 
 GtkWidget *infobar;
 
@@ -19,15 +20,15 @@ GtkWidget *get_info_bar()
 
 	// Vertices
 	temp = gtk_label_new("Vertex info");
-	gtk_notebook_append_page(GTK_NOTEBOOK(infobar), temp, NULL);
+	gtk_notebook_append_page(GTK_NOTEBOOK(infobar), get_vertex_info_bar(), NULL);
 
 	// Sectors
 	temp = gtk_label_new("Sector info");
-	gtk_notebook_append_page(GTK_NOTEBOOK(infobar), temp, NULL);
+	gtk_notebook_append_page(GTK_NOTEBOOK(infobar), get_sector_info_bar(), NULL);
 
 	// Things
 	temp = gtk_label_new("Thing info");
-	gtk_notebook_append_page(GTK_NOTEBOOK(infobar), temp, NULL);
+	gtk_notebook_append_page(GTK_NOTEBOOK(infobar), get_thing_info_bar(), NULL);
 
 	return infobar;
 }
@@ -45,4 +46,11 @@ void change_infobar_page()
 		mode = edit_mode;
 
 	gtk_notebook_set_current_page(GTK_NOTEBOOK(infobar), mode);
+}
+
+void setup_label(GtkWidget **label, char* text)
+{
+	*label = gtk_label_new(text);
+	gtk_misc_set_alignment(GTK_MISC(*label), 0.0, 0.5);
+	widget_set_font(*label, "Sans 8");
 }

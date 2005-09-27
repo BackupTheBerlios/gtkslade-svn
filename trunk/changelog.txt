@@ -10,6 +10,9 @@ Goes in bottom-up order
 
 
 [27/09/05]
++ Added the rest of the infobar stuff (minus stuff that needs textures/game configs)
++ Added 'blend' variable to rgba_t, now blend modes can be specified for colour config colours:
+	-1 = doesn't matter, 0 = normal, 1 = additive
 + Basic line information shows up (minus the special name and side info)
 + Colour configuration can be changed via the console
 + Added back the SLADE colour configurations

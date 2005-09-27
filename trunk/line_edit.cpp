@@ -85,9 +85,10 @@ GtkWidget* setup_flag_checkbox(string name, int flag)
 				count++;
 		}
 
-		if (count == selected_items.size())
+		if (count > 0)
 			gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(cbox), true);
-		else if (count != 0)
+
+		if (count != selected_items.size())
 			gtk_toggle_button_set_inconsistent(GTK_TOGGLE_BUTTON(cbox), true);
 	}
 

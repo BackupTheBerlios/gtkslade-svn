@@ -17,13 +17,6 @@ GtkWidget *label_tag = NULL;
 
 extern Map map;
 
-void setup_label(GtkWidget **label, char* text)
-{
-	*label = gtk_label_new(text);
-	gtk_misc_set_alignment(GTK_MISC(*label), 0.0, 0.5);
-	widget_set_font(*label, "Sans 8");
-}
-
 GtkWidget *get_line_info_bar()
 {
 	// Main frame
@@ -35,7 +28,7 @@ GtkWidget *get_line_info_bar()
 	setup_label(&label_special, "Special:");
 	setup_label(&label_tag, "Sector Tag:");
 
-	GtkWidget *vbox = gtk_vbox_new(true, 0);
+	GtkWidget *vbox = gtk_vbox_new(false, 0);
 	gtk_container_set_border_width(GTK_CONTAINER(vbox), 4);
 	gtk_container_add(GTK_CONTAINER(frame_main), vbox);
 	gtk_box_pack_start(GTK_BOX(vbox), label_length, false, false, 0);

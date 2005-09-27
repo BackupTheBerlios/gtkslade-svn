@@ -5,17 +5,17 @@
 #include "edit.h"
 #include "edit_move.h"
 
-rgba_t	col_hilight(255, 255, 0, 160);
-rgba_t	col_selection(0, 140, 220, 255);
-rgba_t	col_moving(255, 0, 0, 255);
-rgba_t	col_tagged(0, 255, 0, 255);
-rgba_t	col_grid(0, 0, 255, 80);
-rgba_t	col_64grid(200, 200, 200, 65);
-rgba_t	col_vertex(0, 180, 0, 255);
-rgba_t	col_background(0, 0, 0, 255);
-rgba_t	col_selbox(0, 140, 220, 100);
-rgba_t	col_selbox_line(100, 180, 220, 200);
-rgba_t	col_linedraw(0, 255, 0, 255);
+rgba_t	col_hilight(255, 255, 0, 160, 1);
+rgba_t	col_selection(0, 140, 220, 255, 1);
+rgba_t	col_moving(255, 0, 0, 255, 1);
+rgba_t	col_tagged(0, 255, 0, 255, 1);
+rgba_t	col_grid(0, 0, 255, 80, 0);
+rgba_t	col_64grid(200, 200, 200, 65, 0);
+rgba_t	col_vertex(0, 180, 0, 255, 1);
+rgba_t	col_background(0, 0, 0, 255, 0);
+rgba_t	col_selbox(0, 140, 220, 100, 1);
+rgba_t	col_selbox_line(100, 180, 220, 200, 1);
+rgba_t	col_linedraw(0, 255, 0, 255, 0);
 
 CVAR(Float, line_size, 1.5, CVAR_SAVE)
 CVAR(Bool, thing_sprites, false, CVAR_SAVE)
@@ -55,6 +55,7 @@ void draw_point(int x, int y, int size, rgba_t col)
 	glDisable(GL_TEXTURE_2D);
 
 	set_colour(col);
+	col.set_blend();
 	glPointSize((float)size);
 
 	glBegin(GL_POINTS);
@@ -74,6 +75,7 @@ void draw_line(rect_t rect, rgba_t col, bool aa)
 		glDisable(GL_LINE_SMOOTH);
 
 	set_colour(col);
+	col.set_blend();
 	
 	glBegin(GL_LINES);
 		glVertex2d(rect.tl.x, rect.tl.y);
@@ -88,6 +90,7 @@ void draw_rect(rect_t rect, rgba_t col, bool fill)
 	glDisable(GL_TEXTURE_2D);
 
 	set_colour(col);
+	col.set_blend();
 
 	if (fill)
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

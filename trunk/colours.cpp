@@ -39,9 +39,9 @@ extern rgba_t col_64grid;
 //extern rgba_t col_menuhead_text;
 //extern rgba_t col_menubuttons;
 //extern rgba_t col_menuselect;
-//extern rgba_t col_3d_crosshair;
-//extern rgba_t col_3d_hilight;
-//extern rgba_t col_3d_hilight_line;
+rgba_t col_3d_crosshair;
+rgba_t col_3d_hilight;
+rgba_t col_3d_hilight_line;
 
 
 void add_colour_config(string name)
@@ -69,11 +69,15 @@ void parse_rgba(Tokenizer *mr, rgba_t* col)
 	// Read opening brace
 	mr->check_token("{");
 
-	// Read rgb
+	// Read rgba
 	col->r = mr->get_integer();
 	col->g = mr->get_integer();
 	col->b = mr->get_integer();
 	col->a = mr->get_integer();
+
+	// Read blend if specified
+	if (mr->peek_token() != "}")
+		col->blend = mr->get_integer();
 
 	// Read closing brace
 	mr->check_token("}");
@@ -156,18 +160,8 @@ void set_colour_config(string name)
 	SETCOL(selbox_line);
 	SETCOL(grid);
 	SETCOL(64grid);
-	//SETCOL(boxhead);
-	//SETCOL(boxbody);
-	//SETCOL(boxhead_text);
-	//SETCOL(boxbody_text);
-	//SETCOL(popupmenu);
-	//SETCOL(menu);
-	//SETCOL(menuhead_text);
-	//SETCOL(menubuttons);
-	//SETCOL(menuselect);
-	//SETCOL(cursor);
 	SETCOL(tagged);
-	//SETCOL(3d_crosshair);
-	//SETCOL(3d_hilight);
-	//SETCOL(3d_hilight_line);
+	SETCOL(3d_crosshair);
+	SETCOL(3d_hilight);
+	SETCOL(3d_hilight_line);
 }

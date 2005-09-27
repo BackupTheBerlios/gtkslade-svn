@@ -394,7 +394,12 @@ void get_hilight_item(int x, int y)
 	clear_hilights();
 
 	if (edit_mode == 0)
+	{
 		hilight_item = get_nearest_vertex(x, y);
+
+		if (old_hilight != hilight_item)
+			update_vertex_info_bar(hilight_item);
+	}
 
 	if (edit_mode == 1)
 	{
@@ -405,10 +410,20 @@ void get_hilight_item(int x, int y)
 	}
 	
 	if (edit_mode == 2)
+	{
 		hilight_item = determine_sector(m_x(x), -m_y(y));
 
+		if (old_hilight != hilight_item)
+			update_sector_info_bar(hilight_item);
+	}
+
 	if (edit_mode == 3)
+	{
 		hilight_item = get_nearest_thing(m_x(x), -m_y(y));
+
+		if (old_hilight != hilight_item)
+			update_thing_info_bar(hilight_item);
+	}
 }
 
 // get_side_sector: Attempts to find what sector a line's side is in
