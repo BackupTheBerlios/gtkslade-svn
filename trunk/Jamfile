@@ -4,4 +4,4 @@ LINK = g++ ;
 C++FLAGS = `pkg-config --cflags gtk+-2.0 gtkglext-1.0` ;
 LINKLIBS = `pkg-config --libs   gtk+-2.0 gtkglext-1.0` ;
 
-Main slade : checks.cpp console.cpp console_window.cpp cvar.cpp draw.cpp edit.cpp edit_move.cpp editor_window.cpp input.cpp keybind.cpp linedraw.cpp line_edit.cpp main.cpp main_window.cpp map.cpp mathstuff.cpp menu.cpp misc.cpp sector.cpp sidedef.cpp tokenizer.cpp undoredo.cpp wad.cpp info_bar.cpp info_line.cpp colours.cpp textures.cpp ;
+Main slade : checks.cpp console.cpp console_window.cpp cvar.cpp draw.cpp edit.cpp edit_move.cpp editor_window.cpp input.cpp keybind.cpp linedraw.cpp line_edit.cpp main.cpp main_window.cpp map.cpp mathstuff.cpp menu.cpp misc.cpp sector.cpp sidedef.cpp tokenizer.cpp undoredo.cpp wad.cpp info_bar.cpp info_line.cpp info_vertex.cpp info_sector.cpp info_thing.cpp colours.cpp textures.cpp col_cfg_dialog.cpp ;

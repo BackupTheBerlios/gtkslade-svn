@@ -101,7 +101,8 @@ bool load_colour_configs()
 			{
 				string filename = "config/colours/";
 				filename += dir_name;
-				read_colour_config(filename);
+				if (g_str_has_suffix(dir_name, ".cfg"))
+					read_colour_config(filename);
 				dir_name = g_dir_read_name(dir);
 			}
 		}
