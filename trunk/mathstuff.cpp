@@ -10,10 +10,10 @@ int difference(int v1, int v2)
 
 // distance: Returns the distance between two points
 // ---------------------------------------------- >>
-double distance(int x1, int y1, int x2, int y2)
+double distance(double x1, double y1, double x2, double y2)
 {
-	double dist_x = (double)x2 - (double)x1;
-	double dist_y = (double)y2 - (double)y1;
+	double dist_x = x2 - x1;
+	double dist_y = y2 - y1;
 
 	return sqrt(dist_x * dist_x + dist_y * dist_y);
 }
@@ -31,7 +31,7 @@ point2_t midpoint(point2_t p1, point2_t p2)
 // distance_to_line: Finds the shortest distance from a vertex to a line
 // ------------------------------------------------------------------ >>
 // (code borrowed & slightly modified from Doom Builder, by CodeImp)
-double distance_to_line(int x1, int y1, int x2, int y2, int vx, int vy)
+double distance_to_line(int x1, int y1, int x2, int y2, double vx, double vy)
 {
 	double u;
 

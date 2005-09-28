@@ -102,6 +102,54 @@ struct point2_t
 	}
 };
 
+// fpoint2_t: An accurate 2d point ;)
+struct fpoint2_t
+{
+	double x, y;
+
+	// Constructors
+	fpoint2_t() { x = 0; y = 0; }
+
+	fpoint2_t(double X, double Y)
+	{
+		x = X;
+		y = Y;
+	}
+
+	// Functions
+	void set(double X, double Y)
+	{
+		x = X;
+		y = Y;
+	}
+
+	void set(fpoint2_t p)
+	{
+		x = p.x;
+		y = p.y;
+	}
+
+	bool equals(fpoint2_t p)
+	{
+		if (x == p.x && y == p.y)
+			return true;
+		else
+			return false;
+	}
+
+	/*
+	float magnitude()
+	{
+		return (float)sqrt((x * x) + (y * y));
+	}
+	*/
+
+	fpoint2_t perpendicular()
+	{
+		return fpoint2_t(-y, x);
+	}
+};
+
 // rect_t: A rectangle
 struct rect_t
 {
@@ -195,6 +243,14 @@ struct rect_t
 			tl.y += y;
 			br.y -= y;
 		}
+	}
+
+	double length()
+	{
+		double dist_x = x2() - x1();
+		double dist_y = y2() - y1();
+
+		return sqrt(dist_x * dist_x + dist_y * dist_y);
 	}
 };
 

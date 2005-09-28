@@ -68,9 +68,9 @@ void decrease_grid()
 
 // snap_to_grid: Finds the nearest grid line to a point
 // ------------------------------------------------- >>
-int snap_to_grid(int pos)
+int snap_to_grid(double pos)
 {
-	short upper, lower;
+	int upper, lower;
 
 	for (int i = pos; i >= (pos - gridsize); i--)
 	{
@@ -90,12 +90,14 @@ int snap_to_grid(int pos)
 		}
 	}
 
-	if ((upper - pos) < (pos - lower))
+	double mid = lower + ((upper - lower) / 2.0);
+
+	if (pos > mid)
 		return upper;
 	else
 		return lower;
 
-	return pos;
+	return (int)pos;
 }
 
 // snap_to_grid_custom: Finds the nearest specified grid line to a point
@@ -132,16 +134,16 @@ int snap_to_grid_custom(int pos, int grid)
 
 // s_x: Returns the actual screen position of an x coordinate on the map
 // ------------------------------------------------------------------ >>
-int s_x(int x)
+double s_x(double x)
 {
-	return (vid_width / 2) + ((xoff * zoom) + (x * zoom) / MAJOR_UNIT);
+	return ((double)vid_width / 2.0) + (((double)xoff * zoom) + (x * zoom) / MAJOR_UNIT);
 }
 
 // s_y: Returns the actual screen position of a y coordinate on the map
 // ----------------------------------------------------------------- >>
-int s_y(int y)
+double s_y(double y)
 {
-	return (vid_height / 2) + ((yoff * zoom) + (y * zoom) / MAJOR_UNIT);
+	return ((double)vid_height / 2) + (((double)yoff * zoom) + (y * zoom) / MAJOR_UNIT);
 }
 
 point2_t s_p(point2_t point)
@@ -151,16 +153,16 @@ point2_t s_p(point2_t point)
 
 // m_x: Returns the map coordiate of an x position on the screen
 // ---------------------------------------------------------- >>
-int m_x(int x)
+double m_x(double x)
 {
-	return (int)((((float)x / (float)zoom) * 32.0f) - ((float)xoff * 32.0f) - ((((float)vid_width / 2.0f) / (float)zoom) * MAJOR_UNIT));
+	return (((float)x / (float)zoom) * 32.0f) - ((float)xoff * 32.0f) - ((((float)vid_width / 2.0f) / (float)zoom) * MAJOR_UNIT);
 }
 
 // m_y: Returns the map coordiate of a y position on the screen
 // --------------------------------------------------------- >>
-int m_y(int y)
+double m_y(double y)
 {
-	return (int)((((float)y / (float)zoom) * 32.0f) - ((float)yoff * 32.0f) - ((((float)vid_height / 2.0f) / (float)zoom) * MAJOR_UNIT));
+	return (((float)y / (float)zoom) * 32.0f) - ((float)yoff * 32.0f) - ((((float)vid_height / 2.0f) / (float)zoom) * MAJOR_UNIT);
 }
 
 point2_t m_p(point2_t point)
@@ -215,7 +217,7 @@ int get_nearest_vertex(int x, int y)
 
 // get_nearest_thing: Gets the nearest vertex to a point
 // --------------------------------------------------- >>
-int get_nearest_thing(int x, int y)
+int get_nearest_thing(double x, double y)
 {
 	double min_dist = 64;
 	int thing = -1;
@@ -237,7 +239,7 @@ int get_nearest_thing(int x, int y)
 // get_nearest_line: Gets the nearest line to a point
 // (if any are closer than 64 units)
 // ----------------------------------------------- >>
-int get_nearest_line(int x, int y)
+int get_nearest_line(double x, double y)
 {
 	double min_dist = 64;
 	int line = -1;
@@ -260,7 +262,7 @@ int get_nearest_line(int x, int y)
 
 // get_nearest_line_2: Gets the nearest line to a point
 // ------------------------------------------------- >>
-int get_nearest_line_2(int x, int y)
+int get_nearest_line_2(double x, double y)
 {
 	double min_dist = -1;
 	int line = -1;
@@ -367,7 +369,7 @@ bool determine_line_side(float x1, float y1, float x2, float y2, float x, float 
 
 // determine_sector: Determines what sector a point lies in
 // (returns -1 if point is in the 'void')
-int determine_sector(int x, int y)
+int determine_sector(double x, double y)
 {
 	//draw_text(16, 16, COL_WHITE, 0, "%d %d", x, y);
 	int line = get_nearest_line_2(x, y);
@@ -906,6 +908,9 @@ int check_vertex_split(DWORD vertex)
 	int split_line = -1;
 	short vx = map.verts[vertex]->x;
 	short vy = map.verts[vertex]->y;
+
+	if (gridsize == 1)
+		return -1;
 	
 	for (DWORD l = 0; l < map.n_lines; l++)
 	{
@@ -926,6 +931,9 @@ int check_vertex_split(point2_t p)
 {
 	int split_line = -1;
 	int vertex = map.v_getvertatpoint(p);
+
+	if (gridsize == 1)
+		return -1;
 	
 	for (DWORD l = 0; l < map.n_lines; l++)
 	{

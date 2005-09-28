@@ -9,6 +9,7 @@
 #include "input.h"
 #include "linedraw.h"
 #include "info_bar.h"
+#include "col_cfg_dialog.h"
 
 GtkWidget	*editor_window = NULL;
 GtkWidget	*map_area = NULL;
@@ -338,7 +339,6 @@ static void menu_action(GtkAction *action)
 {
 	string act = gtk_action_get_name(action);
 
-	
 	if (act == "ModeVerts")
 		change_edit_mode(0);
 	else if (act == "ModeLines")
@@ -351,6 +351,19 @@ static void menu_action(GtkAction *action)
 		message_box("Not implemented yet", GTK_MESSAGE_INFO);
 	else if (act == "ShowConsole")
 		popup_console();
+	else if (act == "ColoursEdit")
+		open_colour_select_dialog();
+	else if (act == "About")
+	{
+		gtk_show_about_dialog(GTK_WINDOW(editor_window),
+								"name", "SLADE",
+								"comments", "by Simon 'SlayeR' Judd, 2005",
+								"version", "1.0 beta",
+								"website", "http://slade.mancubus.net",
+								NULL);
+	}
+	else
+		message_box("Menu action not implemented", GTK_MESSAGE_INFO);
 }
 
 /*
@@ -367,6 +380,7 @@ static GtkActionEntry entries[] = {
 	{ "EditSectorMenu", NULL, "_Sectors" },
 	{ "ModeMenu", NULL, "_Mode"  },
 	{ "ViewMenu", NULL, "_View"  },
+	{ "OptionsMenu", NULL, "_Options" },
 	{ "HelpMenu", NULL, "_Help" },
 	
 	// File menu
@@ -393,6 +407,9 @@ static GtkActionEntry entries[] = {
 
 	// View menu
 	{ "ShowConsole", NULL, "Show _Console", NULL, "Shows the SLADE console window", G_CALLBACK(menu_action) },
+
+	// Options menu
+	{ "ColoursEdit", NULL, "_Colours...", NULL, "Edit the colour configuration", G_CALLBACK(menu_action) },
 
 	// Help menu
 	{ "About", GTK_STOCK_ABOUT, "_About SLADE", NULL, "", G_CALLBACK(menu_action) },
@@ -439,12 +456,16 @@ static const gchar *ui_info =
 "   <menu action='ViewMenu'>"
 "    <menuitem action='ShowConsole'/>"
 "   </menu>"
+"   <menu action='OptionsMenu'>"
+"    <menuitem action='ColoursEdit'/>"
+"   </menu>"
 "   <menu action='HelpMenu' position='bot'>"
 "    <menuitem action='About'/>"
 "    <menuitem action='Help'/>"
 "   </menu>"
 "  </menubar>"
 "  <toolbar  name='ToolBar'>"
+"    <placeholder/>"
 "    <toolitem action='Save'/>"
 "    <toolitem action='SaveAs'/>"
 "    <toolitem action='Close'/>"
@@ -510,6 +531,8 @@ void setup_editor_window()
 	GtkWidget *toolbar = gtk_ui_manager_get_widget(ui, "/ToolBar");
 	gtk_toolbar_set_style(GTK_TOOLBAR(toolbar), GTK_TOOLBAR_ICONS);
 	gtk_toolbar_set_icon_size(GTK_TOOLBAR(toolbar), GTK_ICON_SIZE_MENU);
+	GTK_WIDGET_UNSET_FLAGS(toolbar, GTK_CAN_FOCUS);
+	GTK_WIDGET_UNSET_FLAGS(toolbar, GTK_HAS_FOCUS);
 	g_signal_connect(G_OBJECT(toolbar), "key-press-event", G_CALLBACK(tbar_keypress), NULL);
 	gtk_box_pack_start (GTK_BOX(main_vbox), toolbar, false, false, 0);
 

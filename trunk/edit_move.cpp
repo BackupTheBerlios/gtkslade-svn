@@ -17,7 +17,7 @@ extern point2_t mouse;
 // ---------------------------------------------------------------- >>
 void add_move_items()
 {
-	point2_t offset;
+	fpoint2_t offset;
 	bool	selection = !!selected_items.size();
 
 	// Vertices

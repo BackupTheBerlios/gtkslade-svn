@@ -3,8 +3,8 @@ struct movelist_t
 {
 	DWORD		n_items;
 	DWORD		*items;
-	point2_t	*offsets;
-	point2_t	cursor_offset;
+	fpoint2_t	*offsets;
+	fpoint2_t	cursor_offset;
 	bool		cursor_snap;
 
 	movelist_t()
@@ -15,11 +15,11 @@ struct movelist_t
 		n_items = 0;
 	}
 
-	void add(point2_t p, DWORD t)
+	void add(fpoint2_t p, DWORD t)
 	{
 		n_items++;
 		items = (DWORD *)realloc(items, n_items * sizeof(DWORD));
-		offsets = (point2_t *)realloc(offsets, n_items * sizeof(point2_t));
+		offsets = (fpoint2_t *)realloc(offsets, n_items * sizeof(fpoint2_t));
 		items[n_items - 1] = t;
 		offsets[n_items - 1].set(p);
 	}
@@ -35,7 +35,7 @@ struct movelist_t
 		cursor_offset.set(0, 0);
 	}
 
-	int get_x(DWORD item, int pos)
+	int get_x(DWORD item, double pos)
 	{
 		DWORD i = 0;
 		for (i = 0; i < n_items; i++)
@@ -50,7 +50,7 @@ struct movelist_t
 			return snap_to_grid(pos + offsets[i].x);
 	}
 
-	int get_y(DWORD item, int pos)
+	int get_y(DWORD item, double pos)
 	{
 		DWORD i = 0;
 

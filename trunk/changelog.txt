@@ -8,6 +8,10 @@ Goes in bottom-up order
 -: Removed
 ~: Changed
 
+[29/09/05]
++ Added a colour configuration dialog, which mostly works except for creating/saving new schemes. Couple other problems with it too I need to sort out.
++ Reworked the colour configurations a bit (now they are in seperate files rather than one)
+
 
 [27/09/05]
 + Added the rest of the infobar stuff (minus stuff that needs textures/game configs)

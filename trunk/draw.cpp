@@ -459,7 +459,7 @@ void update_grid()
 	}
 
 	// If the grid should be drawn (not to small)
-	if (gridsize >= (grid_hidelevel / zoom) && gridsize > 1)
+	if (gridsize >= (grid_hidelevel / zoom) && gridsize > 0)
 	{
 		for (int x = start_x; x < end_x; x++)
 		{

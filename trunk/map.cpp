@@ -750,29 +750,44 @@ short Map::l_getyoff(int l, int side)
 
 void Map::l_setmidtex(int l, int side, string tex)
 {
+	int s;
+
 	if (side == 1)
-		sides[lines[l]->side1]->tex_middle = tex;
+		s = lines[l]->side1;
 
 	if (side == 2)
-		sides[lines[l]->side2]->tex_middle = tex;
+		s = lines[l]->side2;
+
+	if (s != -1)
+		sides[s]->tex_middle = tex;
 }
 
 void Map::l_setuptex(int l, int side, string tex)
 {
+	int s;
+
 	if (side == 1)
-		sides[lines[l]->side1]->tex_upper = tex;
+		s = lines[l]->side1;
 
 	if (side == 2)
-		sides[lines[l]->side2]->tex_upper = tex;
+		s = lines[l]->side2;
+
+	if (s != -1)
+		sides[s]->tex_upper = tex;
 }
 
 void Map::l_setlotex(int l, int side, string tex)
 {
+	int s;
+
 	if (side == 1)
-		sides[lines[l]->side1]->tex_lower = tex;
+		s = lines[l]->side1;
 
 	if (side == 2)
-		sides[lines[l]->side2]->tex_lower = tex;
+		s = lines[l]->side2;
+
+	if (s != -1)
+		sides[s]->tex_lower = tex;
 }
 
 int Map::l_split(int l, int vertex)

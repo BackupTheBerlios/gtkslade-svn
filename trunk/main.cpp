@@ -160,7 +160,7 @@ int main(int argc, char *argv[])
 
 	load_main_config();
 
-	load_colour_configs("config/colours.cfg");
+	load_colour_configs();
 	string ccfg = col_config;
 	set_colour_config(ccfg);
 

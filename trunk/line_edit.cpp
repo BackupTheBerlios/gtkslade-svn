@@ -275,6 +275,11 @@ void apply_line_edit()
 
 void open_line_edit()
 {
+	set_flags.clear();
+	unset_flags.clear();
+	special = -1;
+	tag = -1;
+
 	GtkWidget *dialog = gtk_dialog_new_with_buttons("Edit Line",
 													GTK_WINDOW(editor_window),
 													GTK_DIALOG_MODAL,
