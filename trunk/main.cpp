@@ -6,7 +6,7 @@
 #include "console.h"
 #include "colours.h"
 
-CVAR(String, col_config, "Blue", CVAR_SAVE)
+CVAR(String, col_config, "Default", CVAR_SAVE)
 
 extern WadList wads;
 extern Map map;
@@ -177,7 +177,7 @@ int main(int argc, char *argv[])
 	}
 	else
 		log_message("Some error occurred... Exiting SLADE\n");
-	
+
 	save_main_config();
 
 	return 0;

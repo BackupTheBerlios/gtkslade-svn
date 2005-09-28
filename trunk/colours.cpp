@@ -59,7 +59,8 @@ void parse_rgba(Tokenizer *mr, rgba_t* col)
 void read_colour_config(string filename)
 {
 	Tokenizer tz;
-	tz.open_file(filename, 0, 0);
+	if (!tz.open_file(filename, 0, 0))
+		return;
 
 	if (tz.get_token() == "colour_config")
 	{
@@ -122,6 +123,9 @@ int get_colour_config(string name)
 
 void set_colour(rgba_t *colour, string name, int config)
 {
+	if (colour_configs.size() == 0)
+		return;
+
 	if (colour_configs[config].get_colour(name))
 		colour->set(*colour_configs[config].get_colour(name));
 	else
