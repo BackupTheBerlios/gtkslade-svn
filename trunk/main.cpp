@@ -232,21 +232,10 @@ int main(int argc, char *argv[])
 	string ccfg = col_config;
 	set_colour_config(ccfg);
 
-	//wads.open_iwad("D:/Games/Doom/doom2.wad");
-	//wads.open_iwad("/media/hdb1/Games/Doom/doom2.wad");
-	//map.open(wads.get_iwad(), "MAP01");
-
-	//GtkWidget *window = open_main_window();
-
-	//if (window)
-	//{
-		setup_editor_window();
-		setup_main_window();
-		gtk_main();
-	//}
-	//else
-	//	log_message("Some error occurred... Exiting SLADE\n");
-
+	setup_editor_window();
+	setup_main_window();
+	gtk_main();
+	
 	save_main_config();
 
 	return 0;

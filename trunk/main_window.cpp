@@ -63,6 +63,7 @@ static void destroy(GtkWidget *widget, gpointer data)
 
 bool setup_game_combo(GtkWidget *combo)
 {
+
 	GDir *dir = g_dir_open("./games/", 0, NULL);
 
 	if (dir)
@@ -71,22 +72,25 @@ bool setup_game_combo(GtkWidget *combo)
 
 		while (dir_name)
 		{
-			Tokenizer tokenizer;
-			string filename = "games/";
-			filename += dir_name;
-			tokenizer.open_file(filename, 0, 0);
-
-			string temp = tokenizer.get_token();
-
-			if (temp == "game") // If it's a valid SLADE game configuration
+			if (g_str_has_suffix(dir_name, ".cfg"))
 			{
-				// Add the file path to the game config list
-				game_config_paths.push_back(filename);
+				Tokenizer tokenizer;
+				string filename = "games/";
+				filename += dir_name;
+				tokenizer.open_file(filename, 0, 0);
 
-				// And add the game name to the combo
-				string name = tokenizer.get_token();
-				gtk_combo_box_append_text(GTK_COMBO_BOX(combo), name.c_str());
-				game_config_names.push_back(name);
+				string temp = tokenizer.get_token();
+
+				if (temp == "game") // If it's a valid SLADE game configuration
+				{
+					// Add the file path to the game config list
+					game_config_paths.push_back(filename);
+
+					// And add the game name to the combo
+					string name = tokenizer.get_token();
+					gtk_combo_box_append_text(GTK_COMBO_BOX(combo), name.c_str());
+					game_config_names.push_back(name);
+				}
 			}
 
 			dir_name = g_dir_read_name(dir);
@@ -297,9 +301,7 @@ void setup_main_window()
 	gtk_window_set_title(GTK_WINDOW(wad_manager_window), "SLADE");
 	g_signal_connect(G_OBJECT(wad_manager_window), "delete-event", G_CALLBACK(gtk_widget_hide_on_delete), NULL);
 	//gtk_widget_hide_on_delete(wad_manager_window);
-
 	gtk_widget_set_size_request(wad_manager_window, -1, 300);
-
 	GtkWidget *main_vbox = gtk_vbox_new(false, 0);
 
 	// Game combo
@@ -308,6 +310,7 @@ void setup_main_window()
 	gtk_container_set_border_width(GTK_CONTAINER(vbox), 4);
 	GtkWidget *game_combo = gtk_combo_box_new_text();
 	setup_game_combo(game_combo);
+
 	gtk_box_pack_start(GTK_BOX(vbox), game_combo, true, true, 0);
 	gtk_container_add(GTK_CONTAINER(frame), vbox);
 	gtk_container_set_border_width(GTK_CONTAINER(frame), 4);
