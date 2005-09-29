@@ -22,10 +22,10 @@ public:
 		this->name = name;
 
 		if (bpp == 8)
-			data = (BYTE *)realloc(data, width * height);
+			data = (BYTE*)malloc(width * height);
 
 		if (bpp == 32)
-			data = (BYTE *)realloc(data, width * height * 4);
+			data = (BYTE*)malloc(width * height * 4);
 	}
 
 	void add_pixel(int x, int y, BYTE colour)
@@ -58,6 +58,7 @@ public:
 	}
 
 	GdkPixbuf* get_pbuf();
+	GdkPixbuf* get_pbuf_scale_fit(int w, int h);
 };
 
 void load_textures();

@@ -32,49 +32,84 @@ Texture::~Texture()
 		free(pbuf);
 }
 
-void /*(*GdkPixbufDestroyNotify)*/destroy_pb(guchar *pixels, gpointer data)
+void destroy_pb(guchar *pixels, gpointer data)
 {
 	free(pixels);
 }
 
 GdkPixbuf* Texture::get_pbuf()
 {
-	if (!pbuf)
+	if (bpp == 8)
 	{
-		if (bpp == 8)
+		BYTE* temp = (BYTE*)malloc(width * height * 4);
+
+		DWORD p = 0;
+		for (int a = 0; a < width * height; a++)
 		{
-			BYTE* temp = (BYTE*)malloc(width * height * 4);
-
-			DWORD p = 0;
-			for (int a = 0; a < width * height; a++)
-			{
-				temp[p++] = palette[data[a]].r;
-				temp[p++] = palette[data[a]].g;
-				temp[p++] = palette[data[a]].b;
-				temp[p++] = palette[data[a]].a;
-			}
-
-			pbuf = gdk_pixbuf_new_from_data(temp, GDK_COLORSPACE_RGB, true,
-				8, width, height, width * 4,
-				NULL, NULL);
-
-			free(data);
-			data = NULL;
+			temp[p++] = palette[data[a]].r;
+			temp[p++] = palette[data[a]].g;
+			temp[p++] = palette[data[a]].b;
+			temp[p++] = palette[data[a]].a;
 		}
-		else if (bpp == 32)
-		{
-			pbuf = gdk_pixbuf_new_from_data(data, GDK_COLORSPACE_RGB, true,
-				8, width, height, width * 4,
-				NULL, NULL);
-		}
+
+		return gdk_pixbuf_new_from_data(temp, GDK_COLORSPACE_RGB, true,
+			8, width, height, width * 4,
+			destroy_pb, NULL);
+	}
+	else if (bpp == 32)
+	{
+		BYTE* temp = (BYTE*)malloc(width * height * 4);
+		memcpy(temp, data, width * height * 4);
+
+		return gdk_pixbuf_new_from_data(temp, GDK_COLORSPACE_RGB, true,
+			8, width, height, width * 4,
+			destroy_pb, NULL);
 	}
 
-	return pbuf;
+	return NULL;
+}
+
+GdkPixbuf* Texture::get_pbuf_scale_fit(int w, int h)
+{
+	GdkPixbuf *original = get_pbuf();
+	float scale;
+
+	int n_width = width;
+	int n_height = height;
+
+	int d = min(w, h);
+
+	if (width > height)
+	{
+		if (width > d)
+		{
+			scale = (float)w / (float)width;
+			n_width = w;
+			n_height = height * scale;
+		}
+	}
+	else if (width < height)
+	{
+		if (height > d)
+		{
+			scale = (float)h / (float)height;
+			n_height = h;
+			n_width = width * scale;
+		}
+	}
+	else if (width == height)
+	{
+		n_width = d;
+		n_height = d;
+	}
+
+	GdkPixbuf *ret = gdk_pixbuf_scale_simple(original, n_width, n_height, GDK_INTERP_NEAREST);
+	g_object_unref(original);
+	return ret;
 }
 
 Texture* get_texture(string name)
 {
-	//message_box(parse_string("Find texture %s", name.c_str()), GTK_MESSAGE_INFO);
 	for (int a = 0; a < textures.size(); a++)
 	{
 		if (textures[a]->name == name)

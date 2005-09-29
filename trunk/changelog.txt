@@ -9,6 +9,8 @@ Goes in bottom-up order
 ~: Changed
 
 [30/09/05]
+* Textures on the line info bar are now scaled correctly (probably a bit small for my liking though, but theres not much that can be done about that)
+* Fixed texture loading stuff, now they are loaded on-demand.
 + Added basic texture loading. For now all textures are loaded as pixbufs. I can't quite figure out how to generate them on the fly (which is plenty fast enough) without it chewing up ram like nothing because the generated pixbufs aren't being deleted. It's times like these i'm beginning to regret moving away from gtkmm and it's nice memory management :P
 + Finished up the wad manager window, it's now (nearly) fully functional.
 ~ Changed the editor window to be the 'main' window (rather than the 'wad manager window' as its called now).
