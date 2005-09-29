@@ -7,14 +7,14 @@
 
 // INCLUDES ------------------------------ >>
 #include "main.h"
-//#include "map.h"
+#include "map.h"
 
 // VARIABLES ----------------------------- >>
 WadList	wads;
 
 // EXTERNAL VARIABLES -------------------- >>
-//extern string map_lumps[12];
-//extern Map map;
+extern string map_lumps[12];
+extern Map map;
 
 // Wad::open: Opens a wad file
 // ------------------------ >>
@@ -101,7 +101,6 @@ bool Wad::open(string filename)
 	}
 
 	// Find all available maps
-	/*
 	for (DWORD l = 0; l < num_lumps; l++)
 	{
 		if (directory[l]->Size() == 0)
@@ -135,11 +134,11 @@ bool Wad::open(string filename)
 			l--;
 
 			if (!memchr(existing_map_lumps, 0, 5))
-				available_maps.add(mapname);
+				available_maps.push_back(mapname);
 		}
 	}
-	*/
 
+	sort(available_maps.begin(), available_maps.end());
 	//available_maps.sort();
 
 	fclose(fp);
@@ -355,4 +354,18 @@ void Wad::save(bool nodes)
 		remove(tempname.c_str());
 	}
 	*/
+}
+
+void Wad::close()
+{
+	available_maps.clear();
+
+	for (int a = 0; a < num_lumps; a++)
+		delete directory[a];
+
+	free(directory);
+
+	num_lumps = 0;
+	path = "";
+	locked = true;
 }

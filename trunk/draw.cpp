@@ -386,6 +386,80 @@ void draw_hilight()
 	}
 }
 
+// draw_tagged: Draws any tagged items associated with the current hilighted item
+// --------------------------------------------------------------------------- >>
+void draw_tagged()
+{
+	// Lines mode (check sectors)
+	if (edit_mode == 1)
+	{
+		int tag = map.lines[hilight_item]->sector_tag;
+
+		if (tag == 0)
+			return;
+
+		for(DWORD l = 0; l < map.n_lines; l++)
+		{
+			short sector1 = map.l_getsector1(l);
+			short sector2 = map.l_getsector2(l);
+			bool tagged = false;
+
+			rect_t rect = map.l_getsrect(l);
+
+			if (sector1 != -1)
+			{
+				if (map.sectors[sector1]->tag == tag)
+					tagged = true;
+			}
+
+			if (sector2 != -1)
+			{
+				if (map.sectors[sector2]->tag == tag)
+					tagged = true;
+			}
+
+			if (tagged)
+			{
+				glLineWidth(3.0f * line_size);
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+				draw_line(rect, col_tagged, true);
+			}
+		}
+	}
+
+	// Sectors mode (check lines)
+	if (edit_mode == 2)
+	{
+		int tag = map.sectors[hilight_item]->tag;
+
+		if (tag == 0)
+			return;
+
+		for(DWORD l = 0; l < map.n_lines; l++)
+		{
+			if (map.lines[l]->sector_tag == tag)
+			{
+				rect_t rect = map.l_getsrect(l);
+				rect_t rect2;
+
+				int xm = rect.x1() + ((rect.x2() - rect.x1()) / 2);
+				int ym = rect.y1() + ((rect.y2() - rect.y1()) / 2);
+				int xm2, ym2;
+
+				xm2 = xm - ((rect.y2() - rect.y1()) / 8);
+				ym2 = ym + ((rect.x2() - rect.x1()) / 8);
+
+				rect2.set(xm, ym, xm2, ym2);
+
+				glLineWidth(3.0f * line_size);
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+				draw_line(rect, col_tagged, true);
+				draw_line(rect2, col_tagged, true);
+			}
+		}
+	}
+}
+
 // draw_drawlines: Draws dashed lines for line drawing
 // ------------------------------------------------ >>
 void draw_drawlines()
@@ -543,21 +617,28 @@ void draw_map()
 	glClearColor(col_background.fr(), col_background.fg(), col_background.fb(), 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glCallList(grid_list);
-	glCallList(map_list);
-
-	if (line_draw)
-		draw_drawlines();
-	else
+	if (map.opened)
 	{
-		if (hilight_item != -1)
-			draw_hilight();
+		glCallList(grid_list);
+		glCallList(map_list);
 
-		if (sel_box.x1() != -1)
+		if (line_draw)
+			draw_drawlines();
+		else
 		{
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-			draw_rect(sel_box, col_selbox, true);
-			draw_rect(sel_box, col_selbox_line, false);
+			if (hilight_item != -1)
+			{
+				draw_hilight();
+				draw_tagged();
+			}
+
+			if (sel_box.x1() != -1)
+			{
+				glLineWidth(2.0f);
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+				draw_rect(sel_box, col_selbox, true);
+				draw_rect(sel_box, col_selbox_line, false);
+			}
 		}
 	}
 }

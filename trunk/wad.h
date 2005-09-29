@@ -98,6 +98,7 @@ public:
 	// Member Functions
 	bool	open(string filename);
 	void	save(bool nodes);
+	void	close();
 
 	long	get_lump_index(string name);
 	long	get_lump_index(string name, DWORD offset);

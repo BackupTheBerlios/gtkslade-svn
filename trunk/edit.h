@@ -53,3 +53,4 @@ void get_line_colour(WORD l, rgba_t *colour);
 bool check_overlapping_lines(vector<int> lines);
 void merge_overlapping_lines(vector<int> lines);
 void change_edit_mode(int mode);
+void init_map();

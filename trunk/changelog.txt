@@ -8,7 +8,13 @@ Goes in bottom-up order
 -: Removed
 ~: Changed
 
+[30/09/05]
++ Added basic texture loading. For now all textures are loaded as pixbufs. I can't quite figure out how to generate them on the fly (which is plenty fast enough) without it chewing up ram like nothing because the generated pixbufs aren't being deleted. It's times like these i'm beginning to regret moving away from gtkmm and it's nice memory management :P
++ Finished up the wad manager window, it's now (nearly) fully functional.
+~ Changed the editor window to be the 'main' window (rather than the 'wad manager window' as its called now).
+
 [29/09/05]
++ Implemented tag hilighting. I had the colour there, but I haven't actually had the feature implemented ever :P (It was in the very first SLADE, but I never re-implemented it after the rewrite post-0.1)
 + Added a colour configuration dialog, which mostly works except for creating/saving new schemes. Couple other problems with it too I need to sort out.
 ~ Reworked the colour configurations a bit (now they are in seperate files rather than one)
 

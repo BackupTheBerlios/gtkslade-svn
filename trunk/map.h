@@ -22,6 +22,8 @@ public:
 	sector_t*	*sectors;
 	thing_t*	*things;
 
+	bool	opened;
+
 	bool	hexen;	// Hexen format?
 	bool	zdoom;	// ZDoom extras?
 	bool	boom;	// Boom extras?
@@ -39,6 +41,7 @@ public:
 		things = (thing_t **)NULL;
 
 		n_lines = n_sides = n_verts = n_sectors = n_things = 0;
+		opened = false;
 	}
 
 	~Map() {}

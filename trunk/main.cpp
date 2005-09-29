@@ -5,11 +5,13 @@
 #include "editor_window.h"
 #include "console.h"
 #include "colours.h"
+#include "textures.h"
 
 CVAR(String, col_config, "Default", CVAR_SAVE)
 
 extern WadList wads;
 extern Map map;
+extern GtkWidget *editor_window;
 
 // str_upper: Returns a string in uppercase
 // ------------------------------------- >>
@@ -94,6 +96,67 @@ bool yesno_box(string message)
 		return false;
 }
 
+// file_browser: Opens up a file browser dialog and returns the path chosen
+// --------------------------------------------------------------------- >>
+string file_browser(string extension)
+{
+	string ret = "";
+	GtkFileFilter *filter = gtk_file_filter_new();
+	gtk_file_filter_add_pattern(filter, extension.c_str());
+	gtk_file_filter_set_name(filter, extension.c_str());
+
+	GtkWidget *dialog = gtk_file_chooser_dialog_new("Open File",
+													NULL,
+													GTK_FILE_CHOOSER_ACTION_OPEN,
+													GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+													GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
+													NULL);
+	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
+
+	if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT)
+		ret = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
+
+	gtk_widget_destroy(dialog);
+
+	return ret;
+}
+
+void entry_box_act(GtkWidget *w, gpointer data)
+{
+	gtk_dialog_response(GTK_DIALOG(data), GTK_RESPONSE_ACCEPT);
+}
+
+string entry_box(string prompt)
+{
+	string ret = "";
+
+	GtkWidget *dialog = gtk_dialog_new_with_buttons(prompt.c_str(),
+													GTK_WINDOW(editor_window),
+													GTK_DIALOG_MODAL,
+													GTK_STOCK_OK,
+													GTK_RESPONSE_ACCEPT,
+													GTK_STOCK_CANCEL,
+													GTK_RESPONSE_REJECT,
+													NULL);
+
+	GtkWidget *label = gtk_label_new(prompt.c_str());
+	gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
+	gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dialog)->vbox), label, false, false, 0);
+	GtkWidget *entry = gtk_entry_new();
+	g_signal_connect(G_OBJECT(entry), "activate", G_CALLBACK(entry_box_act), dialog);
+	gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dialog)->vbox), entry, false, false, 0);
+	gtk_widget_show_all(dialog);
+
+	gint result = gtk_dialog_run(GTK_DIALOG(dialog));
+
+	if (result == GTK_RESPONSE_ACCEPT)
+		ret = gtk_entry_get_text(GTK_ENTRY(entry));
+
+	gtk_widget_destroy(dialog);
+	return ret;
+}
+
+
 // load_main_config: Loads the main SLADE configuration file
 // ------------------------------------------------------ >>
 void load_main_config()
@@ -155,8 +218,13 @@ int main(int argc, char *argv[])
 	gtk_init(&argc, &argv);
 	//gtk_gl_init(&argc, &argv);
 
+	// Init logfile
+	FILE* f = fopen("slade.log", "wt");
+	fclose(f);
+
 	init_console();
 	setup_icons();
+	init_textures();
 
 	load_main_config();
 
@@ -165,18 +233,19 @@ int main(int argc, char *argv[])
 	set_colour_config(ccfg);
 
 	//wads.open_iwad("D:/Games/Doom/doom2.wad");
-	wads.open_iwad("/media/hdb1/Games/Doom/doom2.wad");
-	map.open(wads.get_iwad(), "MAP01");
+	//wads.open_iwad("/media/hdb1/Games/Doom/doom2.wad");
+	//map.open(wads.get_iwad(), "MAP01");
 
-	GtkWidget *window = open_main_window();
+	//GtkWidget *window = open_main_window();
 
-	if (window)
-	{
+	//if (window)
+	//{
 		setup_editor_window();
+		setup_main_window();
 		gtk_main();
-	}
-	else
-		log_message("Some error occurred... Exiting SLADE\n");
+	//}
+	//else
+	//	log_message("Some error occurred... Exiting SLADE\n");
 
 	save_main_config();
 

@@ -1057,3 +1057,75 @@ void change_edit_mode(int mode)
 	force_map_redraw(true, false);
 	change_infobar_page();
 }
+
+// init_map: Focuses on the center of the map & inits 3d camera
+// --------------------------------------------------------- >>
+void init_map()
+{
+	int max_x = 0;
+	int min_x = 0;
+	int max_y = 0;
+	int min_y = 0;
+	
+	for (DWORD v = 0; v < map.n_verts; v++)
+	{
+		if (map.verts[v]->x < min_x)
+			min_x = map.verts[v]->x;
+		
+		if (map.verts[v]->x > max_x)
+			max_x = map.verts[v]->x;
+		
+		if (map.verts[v]->y < min_y)
+			min_y = map.verts[v]->y;
+		
+		if (map.verts[v]->y > max_y)
+			max_y = map.verts[v]->y;
+	}
+	
+	xoff = -(min_x + ((max_x - min_x) / 2)) / MAJOR_UNIT;
+	yoff = (min_y + ((max_y - min_y) / 2)) / MAJOR_UNIT;
+
+	// Init camera
+	/*
+	point3_t pos;
+	point3_t view;
+	pos.z = 0.0f;
+
+	for (int t = 0; t < map.n_things; t++)
+	{
+		if (map.things[t]->type == 1)
+		{
+			pos.x = map.things[t]->x * scale;
+			pos.y = map.things[t]->y * scale;
+
+			int sector = determine_sector(map.things[t]->x, map.things[t]->y);
+			
+			if (sector != -1)
+				pos.z = (map.sectors[sector]->f_height + 40) * scale;
+
+			if (map.things[t]->angle == 0)			// east
+				view.set(1.0f, 0.0f, 0.0f);
+			else if (map.things[t]->angle == 45)	// northeast
+				view.set(0.7f, 0.7f, 0.0f);
+			else if (map.things[t]->angle == 90)	// north
+				view.set(0.0f, 1.0f, 0.0f);
+			else if (map.things[t]->angle == 135)	// northwest
+				view.set(-0.7f, 0.7f, 0.0f);
+			else if (map.things[t]->angle == 180)	// west
+				view.set(-1.0f, 0.0f, 0.0f);
+			else if (map.things[t]->angle == 225)	// southwest
+				view.set(-0.7f, -0.7f, 0.0f);
+			else if (map.things[t]->angle == 270)	// south
+				view.set(0.0f, -1.0f, 0.0f);
+			else if (map.things[t]->angle == 315)	// southeast
+				view.set(0.7f, -0.7f, 0.0f);
+			else
+				view.set(1.0f, 0.0f, 0.0f);
+		}
+	}
+	
+	camera.position.set(pos);
+	camera.view.set(pos + view);
+	map_changelevel(3);
+	*/
+}

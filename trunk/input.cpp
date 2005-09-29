@@ -8,6 +8,7 @@
 #include "line_edit.h"
 
 extern BindList binds;
+extern Map map;
 
 extern int xoff, yoff, edit_mode, hilight_item;
 extern float zoom;
@@ -63,6 +64,9 @@ void edit_item()
 // ------------------------------ >>
 void keys_edit()
 {
+	if (!map.opened)
+		return;
+
 	// Scroll up
 	if (binds.pressed("view_up"))
 	{

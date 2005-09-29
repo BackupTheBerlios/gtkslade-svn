@@ -67,3 +67,6 @@ void print(bool debug, char *message, ...);
 void log_message(char *message, ...);
 void message_box(string message, GtkMessageType type);
 void wait_gtk_events();
+string file_browser(string extension);
+bool yesno_box(string message);
+string entry_box(string prompt);

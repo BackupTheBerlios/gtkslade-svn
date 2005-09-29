@@ -78,3 +78,8 @@ void popup_console()
 	gtk_widget_show_all(console_window);
 	gtk_window_present(GTK_WINDOW(console_window));
 }
+
+void hide_console()
+{
+	gtk_widget_hide(console_window);
+}

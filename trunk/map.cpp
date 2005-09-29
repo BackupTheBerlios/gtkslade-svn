@@ -8,6 +8,7 @@
 // INCLUDES ------------------------------ >>
 #include "main.h"
 #include "map.h"
+#include "edit.h"
 
 // VARIABLES ----------------------------- >>
 Map map;
@@ -43,6 +44,9 @@ void Map::create(string mapname)
 	things = (thing_t **)NULL;
 
 	n_lines = n_sides = n_verts = n_sectors = n_things = 0;
+	opened = true;
+
+	init_map();
 }
 
 // Map::close: Frees all map data
@@ -96,6 +100,7 @@ void Map::close()
 	things = (thing_t **)NULL;
 
 	n_lines = n_sides = n_verts = n_sectors = n_things = 0;
+	opened = false;
 }
 
 // Map::open: Opens a map from an open wadfile
@@ -148,7 +153,7 @@ bool Map::open(Wad *wad, string mapname)
 
 		if (strncmp(wad->directory[index]->Name().c_str(), "BEHAVIOR", 8) != 0)
 		{
-			printf("Map has no BEHAVIOR lump\n");
+			message_box("Map has no BEHAVIOR lump\n", GTK_MESSAGE_ERROR);
 			return false;
 		}
 	}
@@ -218,9 +223,6 @@ bool Map::open(Wad *wad, string mapname)
 			fread(lines[i]->args, 1, 5, fp);
 			fread(&lines[i]->side1, 2, 1, fp);
 			fread(&lines[i]->side2, 2, 1, fp);
-			//lines[i]->hilighted = false;
-			//lines[i]->selected = false;
-			//lines[i]->moving = false;
 		}
 	}
 	else
@@ -241,9 +243,6 @@ bool Map::open(Wad *wad, string mapname)
 			fread(&lines[i]->sector_tag, 2, 1, fp);
 			fread(&lines[i]->side1, 2, 1, fp);
 			fread(&lines[i]->side2, 2, 1, fp);
-			//lines[i]->hilighted = false;
-			//lines[i]->selected = false;
-			//lines[i]->moving = false;
 		}
 	}
 
@@ -399,7 +398,8 @@ bool Map::open(Wad *wad, string mapname)
 	// Set thing colours/radii/angle
 	//update_map_things();
 
-	//init_map();
+	init_map();
+	opened = true;
 
 	return true;
 }

@@ -5,6 +5,7 @@
 #include "edit.h"
 #include "editor_window.h"
 #include "console_window.h"
+#include "main_window.h"
 #include "keybind.h"
 #include "input.h"
 #include "linedraw.h"
@@ -14,6 +15,8 @@
 GtkWidget	*editor_window = NULL;
 GtkWidget	*map_area = NULL;
 GdkPixmap	*pixmap = NULL;
+
+Wad*		edit_wad = NULL;
 
 rect_t	sel_box(-1, -1, 0, 0, 0);
 point2_t mouse;
@@ -332,14 +335,21 @@ gboolean key_release_event(GtkWidget *widget, GdkEventKey *event, gpointer data)
 	return false;
 }
 
+static void destroy(GtkWidget *widget, gpointer data)
+{
+    gtk_main_quit();
+}
 
 // MENU STUFF
-
 static void menu_action(GtkAction *action)
 {
 	string act = gtk_action_get_name(action);
 
-	if (act == "ModeVerts")
+	if (act == "WadManager")
+		open_main_window();
+	else if (act == "Exit")
+		gtk_main_quit();
+	else if (act == "ModeVerts")
 		change_edit_mode(0);
 	else if (act == "ModeLines")
 		change_edit_mode(1);
@@ -382,11 +392,13 @@ static GtkActionEntry entries[] = {
 	{ "ViewMenu", NULL, "_View"  },
 	{ "OptionsMenu", NULL, "_Options" },
 	{ "HelpMenu", NULL, "_Help" },
-	
+
 	// File menu
+	{ "WadManager", GTK_STOCK_EXECUTE, "Wad _Manager", NULL, "Open the wad manager", G_CALLBACK(menu_action) },
 	{ "Save", GTK_STOCK_SAVE, "_Save", "<control>S", "Save map", G_CALLBACK(menu_action) },
 	{ "SaveAs", GTK_STOCK_SAVE_AS, "Save _As...", NULL, "Save map to a new file", G_CALLBACK(menu_action) },
-	{ "Close", GTK_STOCK_CLOSE, "_Close", NULL, "Quit", G_CALLBACK(menu_action) },
+	{ "Close", GTK_STOCK_CLOSE, "_Close", NULL, "Close the map", G_CALLBACK(menu_action) },
+	{ "Exit", GTK_STOCK_QUIT, "E_xit SLADE", NULL, "Close the map", G_CALLBACK(menu_action) },
 
 	// Line edit menu
 	{ "AlignX", NULL, "Align Textures _X", NULL, "Align selected wall textures along the x axis", G_CALLBACK(menu_action) },
@@ -428,10 +440,13 @@ static const gchar *ui_info =
 "<ui>"
 "  <menubar name='MenuBar'>"
 "   <menu action='FileMenu'>"
+"     <menuitem action='WadManager'/>"
+"     <separator/>"
 "     <menuitem action='Save'/>"
 "     <menuitem action='SaveAs'/>"
-"     <separator/>"
 "     <menuitem action='Close'/>"
+"     <separator/>"
+"     <menuitem action='Exit'/>"
 "   </menu>"
 "   <menu action='EditMenu'>"
 "    <menu action='EditLineMenu'>"
@@ -466,10 +481,12 @@ static const gchar *ui_info =
 "  </menubar>"
 "  <toolbar  name='ToolBar'>"
 "    <placeholder/>"
+"    <toolitem action='WadManager'/>"
+"    <separator action='Sep1'/>"
 "    <toolitem action='Save'/>"
 "    <toolitem action='SaveAs'/>"
 "    <toolitem action='Close'/>"
-"    <separator action='Sep1'/>"
+"    <separator action='Sep2'/>"
 "    <toolitem action='ModeVerts'/>"
 "    <toolitem action='ModeLines'/>"
 "    <toolitem action='ModeSectors'/>"
@@ -556,6 +573,7 @@ void setup_editor_window()
 	g_signal_connect(G_OBJECT(editor_window), "key-press-event", G_CALLBACK(key_press_event), NULL);
 	g_signal_connect(G_OBJECT(editor_window), "key-release-event", G_CALLBACK(key_release_event), NULL);
 	g_signal_connect_after(G_OBJECT(map_area), "realize", G_CALLBACK (realize_main), NULL);
+	g_signal_connect(G_OBJECT(editor_window), "destroy", G_CALLBACK(destroy), NULL);
 	gtk_box_pack_start(GTK_BOX(main_vbox), map_area, true, true, 0);
 
 	// Setup widgets that need to share the context
