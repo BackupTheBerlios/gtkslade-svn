@@ -626,6 +626,11 @@ void draw_map()
 			draw_drawlines();
 		else
 		{
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+			glLineWidth(2.0f);
+			draw_rect(sel_box, col_selbox, true);
+			draw_rect(sel_box, col_selbox_line, false);
+
 			if (hilight_item != -1)
 			{
 				draw_hilight();
