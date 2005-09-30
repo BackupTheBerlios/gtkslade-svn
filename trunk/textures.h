@@ -6,7 +6,7 @@ private:
 	WORD		height;
 	BYTE		bpp;
 	BYTE		*data;
-	GdkPixbuf	*pbuf;
+	//GdkPixbuf	*pbuf;
 
 public:
 	string		name;
@@ -62,5 +62,6 @@ public:
 };
 
 void load_textures();
-Texture* get_texture(string name);
+Texture* get_texture(string name, int type = 0);
 void init_textures();
+void load_flats();

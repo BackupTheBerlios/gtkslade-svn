@@ -6,6 +6,7 @@
 #include "misc.h"
 
 vector<Texture*>	textures;
+vector<Texture*>	flats;
 vector<Texture*>	edit_textures;
 vector<string>		pnames;
 rgba_t				palette[256];
@@ -20,7 +21,7 @@ Texture::Texture()
 	this->width = 0;
 	this->height = 0;
 	this->bpp = 8;
-	this->pbuf = NULL;
+	//this->pbuf = NULL;
 }
 
 Texture::~Texture()
@@ -28,8 +29,8 @@ Texture::~Texture()
 	if (data)
 		free(data);
 
-	if (pbuf)
-		free(pbuf);
+	//if (pbuf)
+	//	free(pbuf);
 }
 
 void destroy_pb(guchar *pixels, gpointer data)
@@ -108,12 +109,26 @@ GdkPixbuf* Texture::get_pbuf_scale_fit(int w, int h)
 	return ret;
 }
 
-Texture* get_texture(string name)
+Texture* get_texture(string name, int type)
 {
-	for (int a = 0; a < textures.size(); a++)
+	// Search textures
+	if (type == 0 || type == 1)
 	{
-		if (textures[a]->name == name)
-			return textures[a];
+		for (int a = 0; a < textures.size(); a++)
+		{
+			if (textures[a]->name == name)
+				return textures[a];
+		}
+	}
+
+	// Search flats
+	if (type == 0 || type == 2)
+	{
+		for (int a = 0; a < flats.size(); a++)
+		{
+			if (flats[a]->name == name)
+				return flats[a];
+		}
 	}
 
 	return &no_tex;
@@ -258,8 +273,15 @@ void load_textures_lump(Wad* wad, Lump *lump)
 	offsets = (long *)calloc(n_tex, 4);
 	fread(offsets, 4, n_tex, fp);
 	
+	show_progress();
+
 	for (int t = 0; t < n_tex; t++)
 	{
+		double prog = (double)t / (double)n_tex;
+
+		if (t % 10 == 0)
+			update_progress(prog);
+
 		// Go to start of tex definition
 		fseek(fp, lump->Offset(), SEEK_SET);
 		fseek(fp, offsets[t], SEEK_CUR);
@@ -334,6 +356,8 @@ void load_textures_lump(Wad* wad, Lump *lump)
 
 		//tex_list.create_tex(gl_filter, 0);
 	}
+
+	hide_progress();
 }
 
 // load_textures: Loads all textures from the last wad opened containing a TEXTUREx lump
@@ -381,4 +405,70 @@ void load_textures()
 	if (htexwad)
 		load_zgl_hirestex(htexwad, htexwad->get_lump("HIRESTEX", 0));
 		*/
+}
+
+// load_flats_wad: Loads all flats from a wad
+// --------------------------------------- >>
+void load_flats_wad(Wad* wad)
+{
+	int lump = wad->flats[START];
+	FILE *fp = fopen(wad->path.c_str(), "rb");
+
+	lump++;
+
+	while (lump < wad->flats[END])
+	{
+		if (wad->directory[lump]->Size() > 0)
+		{
+			BYTE p = 0;
+
+			// Create the texture
+			Texture *tex = get_texture(wad->directory[lump]->Name(), 2);
+			if (tex->name == "_notex")
+			{
+				tex = new Texture();
+				tex->setup(wad->directory[lump]->Name(), 8, 64, 64);
+				flats.push_back(tex);
+			}
+
+			// Read flat data
+			fseek(fp, wad->directory[lump]->Offset(), SEEK_SET);
+
+			for (BYTE y = 0; y < 64; y++)
+			{
+				for (BYTE x = 0; x < 64; x++)
+				{
+					fread(&p, 1, 1, fp);
+					tex->add_pixel(x, y, p);
+				}
+			}
+		}
+
+		lump++;
+	}
+}
+
+// load_flats: Loads flats from all open wads (that have any flats in them)
+// --------------------------------------------------------------------- >>
+void load_flats()
+{
+	popup_console();
+	console_print("Loading flats...");
+	wait_gtk_events();
+
+	// Load IWAD flats first
+	load_flats_wad(wads.get_iwad());
+
+	// Load flats from all open pwads
+	if (wads.n_wads == 0)
+		return;
+
+	for (DWORD w = 0; w < wads.n_wads; w++)
+	{
+		if (wads.get_wad(w)->flats[START] != -1)
+			load_flats_wad(wads.get_wad(w));
+	}
+
+	console_print("Done");
+	hide_console();
 }

@@ -177,6 +177,7 @@ void new_standalone_click()
 
 		if (game_changed)
 		{
+			load_flats();
 			load_textures();
 			game_changed = false;
 		}
@@ -254,6 +255,7 @@ void maps_list_activated(GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewCo
 	
 	if (game_changed)
 	{
+		load_flats();
 		load_textures();
 		game_changed = false;
 	}

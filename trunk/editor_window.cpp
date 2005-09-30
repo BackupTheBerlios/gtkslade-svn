@@ -349,6 +349,8 @@ static void menu_action(GtkAction *action)
 		open_main_window();
 	else if (act == "Exit")
 		gtk_main_quit();
+	else if (act == "Close")
+		map.close();
 	else if (act == "ModeVerts")
 		change_edit_mode(0);
 	else if (act == "ModeLines")
@@ -586,5 +588,6 @@ void setup_editor_window()
 	gtk_box_pack_start(GTK_BOX(main_vbox), infobar, false, false, 0);
 	change_infobar_page();
 
+	gtk_window_maximize(GTK_WINDOW(editor_window));
 	gtk_widget_show_all(editor_window);
 }

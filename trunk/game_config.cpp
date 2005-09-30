@@ -2,7 +2,6 @@
 #include "main.h"
 #include "misc.h"
 #include "map.h"
-#include "textures.h"
 
 vector<string> game_config_paths;
 vector<string> game_config_names;

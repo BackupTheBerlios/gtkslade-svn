@@ -2,8 +2,10 @@
 #include "main.h"
 #include "console.h"
 
-GtkWidget *console_window;
-GtkWidget *s_window;
+GtkWidget	*console_window;
+GtkWidget	*s_window;
+GtkWidget	*progress;
+bool		showprogress = false;
 
 extern GtkTextBuffer *console_log;
 extern string cmd_line;
@@ -64,6 +66,10 @@ void setup_console_window()
 
 	gtk_box_pack_start(GTK_BOX(vbox), s_window, true, true, 0);
 
+	// Progress bar
+	progress = gtk_progress_bar_new();
+	gtk_box_pack_start(GTK_BOX(vbox), progress, false, false, 4);
+
 	// Command entry box
 	GtkWidget *cmd_entry = gtk_entry_new();
 	gtk_widget_modify_font(cmd_entry, pango_font_description_from_string("Courier 8"));
@@ -76,10 +82,34 @@ void setup_console_window()
 void popup_console()
 {
 	gtk_widget_show_all(console_window);
+
+	if (!showprogress)
+		gtk_widget_hide(progress);
+
 	gtk_window_present(GTK_WINDOW(console_window));
 }
 
 void hide_console()
 {
 	gtk_widget_hide(console_window);
+}
+
+void show_progress()
+{
+	showprogress = true;
+	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(progress), 0);
+	gtk_widget_show(progress);
+}
+
+void hide_progress()
+{
+	showprogress = false;
+	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(progress), 0);
+	gtk_widget_hide(progress);
+}
+
+void update_progress(double val)
+{
+	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(progress), val);
+	wait_gtk_events();
 }

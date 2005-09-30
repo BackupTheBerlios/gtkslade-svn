@@ -3,6 +3,7 @@
 #include "info_bar.h"
 #include "map.h"
 #include "misc.h"
+#include "textures.h"
 
 GtkWidget *s_frame_main = NULL;
 GtkWidget *s_frame_floor = NULL;
@@ -14,6 +15,9 @@ GtkWidget *s_label_height = NULL;
 GtkWidget *s_label_light = NULL;
 GtkWidget *s_label_tag = NULL;
 GtkWidget *s_label_special = NULL;
+
+GtkWidget *s_image_floor = NULL;
+GtkWidget *s_image_ceil = NULL;
 
 extern Map map;
 
@@ -58,8 +62,27 @@ GtkWidget *get_sector_info_bar()
 	return main_hbox;
 }
 
+void process_s_image(GtkWidget **image, GtkWidget *box)
+{
+	GdkPixbuf *pbuf = gtk_image_get_pixbuf(GTK_IMAGE(*image));
+
+	gtk_widget_destroy(*image);
+
+	if (pbuf)
+		g_object_unref(pbuf);
+
+	*image = gtk_image_new();
+	gtk_widget_set_size_request(*image, 72, 72);
+	//gtk_box_pack_start(GTK_BOX(box), *image, false, false, 0);
+	gtk_container_add(GTK_CONTAINER(box), *image);
+	gtk_widget_show(*image);
+}
+
 void update_sector_info_bar(int sector)
 {
+	process_s_image(&s_image_floor, s_frame_floor);
+	process_s_image(&s_image_ceil, s_frame_ceil);
+
 	if (sector == -1)
 	{
 		gtk_frame_set_label(GTK_FRAME(s_frame_main), "No Sector Hilighted");
@@ -95,8 +118,10 @@ void update_sector_info_bar(int sector)
 	// Floor frame
 	gtk_frame_set_label(GTK_FRAME(s_frame_floor), parse_string("Floor: %s", s->f_tex.c_str()).c_str());
 	widget_set_font(gtk_frame_get_label_widget(GTK_FRAME(s_frame_floor)), "Sans Bold 10");
+	gtk_image_set_from_pixbuf(GTK_IMAGE(s_image_floor), get_texture(s->f_tex, 2)->get_pbuf_scale_fit(72, 72));
 
 	// Ceiling frame
 	gtk_frame_set_label(GTK_FRAME(s_frame_ceil), parse_string("Ceiling: %s", s->c_tex.c_str()).c_str());
 	widget_set_font(gtk_frame_get_label_widget(GTK_FRAME(s_frame_ceil)), "Sans Bold 10");
+	gtk_image_set_from_pixbuf(GTK_IMAGE(s_image_ceil), get_texture(s->c_tex, 2)->get_pbuf_scale_fit(72, 72));
 }

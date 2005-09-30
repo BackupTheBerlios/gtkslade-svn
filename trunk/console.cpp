@@ -3,11 +3,15 @@
 #include "console.h"
 #include "colours.h"
 #include "misc.h"
+#include "textures.h"
 #include "editor_window.h"
 
 GtkTextBuffer	*console_log;
 string			cmd_line;
 vector<string>	cmd_history;
+
+extern vector<Texture*>	textures;
+extern vector<Texture*>	flats;
 
 void init_console()
 {
@@ -121,6 +125,15 @@ void console_parsecommand()
 			sprintf(temp, "\"%s\"", l_cvars[s].c_str());
 			console_print(temp);
 		}
+
+		parsed = true;
+	}
+
+	// "dump_flats" command
+	if (token == "dump_flats")
+	{
+		for (int a = 0; a < flats.size(); a++)
+			console_print(flats[a]->name);
 
 		parsed = true;
 	}
