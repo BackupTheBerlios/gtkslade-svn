@@ -22,10 +22,16 @@ public:
 		this->name = name;
 
 		if (bpp == 8)
+		{
 			data = (BYTE*)malloc(width * height);
+			memset(data, 0, width * height);
+		}
 
 		if (bpp == 32)
+		{
 			data = (BYTE*)malloc(width * height * 4);
+			memset(data, 0, width * height * 4);
+		}
 	}
 
 	void add_pixel(int x, int y, BYTE colour)
@@ -58,10 +64,12 @@ public:
 	}
 
 	GdkPixbuf* get_pbuf();
-	GdkPixbuf* get_pbuf_scale_fit(int w, int h);
+	GdkPixbuf* get_pbuf_scale(float scale = 1.0f, GdkInterpType interp = GDK_INTERP_NEAREST);
+	GdkPixbuf* get_pbuf_scale_fit(int w, int h, float scaling = 1.0f);
 };
 
 void load_textures();
 Texture* get_texture(string name, int type = 0);
 void init_textures();
 void load_flats();
+void load_sprites();

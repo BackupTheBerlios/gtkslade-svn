@@ -35,6 +35,16 @@ struct col_config_t
 	string			name;
 	string			path;
 
+	float			hilight_size;
+	float			selection_size;
+	float			moving_size;
+
+	col_config_t()
+	{
+		hilight_size = 3.0f;
+		selection_size = moving_size = 5.0f;
+	}
+
 	void add(string name, rgba_t col)
 	{
 		names.push_back(name);
@@ -51,9 +61,12 @@ struct col_config_t
 
 		return NULL;
 	}
+
+	void save();
 };
 
 #define SETCOL(name) set_colour(&col_##name, #name, config)
 
 bool load_colour_configs();
 void set_colour_config(string name);
+void parse_rgba(Tokenizer *mr, rgba_t* col);

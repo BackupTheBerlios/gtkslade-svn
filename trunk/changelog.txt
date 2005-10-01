@@ -8,6 +8,14 @@ Goes in bottom-up order
 -: Removed
 ~: Changed
 
+[01/10/05]
++ Added borders and backgrounds for textures on the info bar
++ Added thing types and sprites to thing info bar
++ Thing types are now loaded from game configurations
++ Action specials are now loaded from game configurations
++ Added ability to create and save colour configurations
++ Added a 'preferences' dialog, and merged the colour configuration dialog into it
+
 [30/09/05]
 + Added flat images to the sector info bar
 + Flats are now loaded

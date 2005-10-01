@@ -232,6 +232,7 @@ int main(int argc, char *argv[])
 	string ccfg = col_config;
 	set_colour_config(ccfg);
 
+	popup_console();
 	setup_editor_window();
 	setup_main_window();
 	gtk_main();

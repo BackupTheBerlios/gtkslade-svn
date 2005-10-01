@@ -19,10 +19,15 @@ GtkWidget *s_label_special = NULL;
 GtkWidget *s_image_floor = NULL;
 GtkWidget *s_image_ceil = NULL;
 
+GtkWidget *s_box_floor = NULL;
+GtkWidget *s_box_ceil = NULL;
+
 extern Map map;
 
 GtkWidget *get_sector_info_bar()
 {
+	GdkColor color;
+
 	// Main frame
 	s_frame_main = gtk_frame_new("No Sector Hilighted");
 	widget_set_font(gtk_frame_get_label_widget(GTK_FRAME(s_frame_main)), "Sans Bold 10");
@@ -48,10 +53,30 @@ GtkWidget *get_sector_info_bar()
 	widget_set_font(gtk_frame_get_label_widget(GTK_FRAME(s_frame_floor)), "Sans Bold 10");
 	gtk_widget_set_size_request(s_frame_floor, 144, -1);
 
+	GtkWidget *frame = gtk_frame_new(NULL);
+	gtk_frame_set_shadow_type(GTK_FRAME(frame), GTK_SHADOW_IN);
+	gtk_container_set_border_width(GTK_CONTAINER(frame), 4);
+	gtk_container_add(GTK_CONTAINER(s_frame_floor), frame);
+
+	s_box_floor = gtk_event_box_new();
+	gtk_widget_set_size_request(s_box_floor, 104, -1);
+	gtk_widget_modify_bg(s_box_floor, GTK_STATE_NORMAL, &color);
+	gtk_container_add(GTK_CONTAINER(frame), s_box_floor);
+
 	// Ceiling frame
 	s_frame_ceil = gtk_frame_new("Ceiling");
 	widget_set_font(gtk_frame_get_label_widget(GTK_FRAME(s_frame_ceil)), "Sans Bold 10");
 	gtk_widget_set_size_request(s_frame_ceil, 144, -1);
+
+	frame = gtk_frame_new(NULL);
+	gtk_frame_set_shadow_type(GTK_FRAME(frame), GTK_SHADOW_IN);
+	gtk_container_set_border_width(GTK_CONTAINER(frame), 4);
+	gtk_container_add(GTK_CONTAINER(s_frame_ceil), frame);
+
+	s_box_ceil = gtk_event_box_new();
+	gtk_widget_set_size_request(s_box_ceil, 104, -1);
+	gtk_widget_modify_bg(s_box_ceil, GTK_STATE_NORMAL, &color);
+	gtk_container_add(GTK_CONTAINER(frame), s_box_ceil);
 
 	// Stuff
 	GtkWidget *main_hbox = gtk_hbox_new(false, 0);
@@ -72,7 +97,7 @@ void process_s_image(GtkWidget **image, GtkWidget *box)
 		g_object_unref(pbuf);
 
 	*image = gtk_image_new();
-	gtk_widget_set_size_request(*image, 72, 72);
+	gtk_widget_set_size_request(*image, 96, 96);
 	//gtk_box_pack_start(GTK_BOX(box), *image, false, false, 0);
 	gtk_container_add(GTK_CONTAINER(box), *image);
 	gtk_widget_show(*image);
@@ -80,8 +105,8 @@ void process_s_image(GtkWidget **image, GtkWidget *box)
 
 void update_sector_info_bar(int sector)
 {
-	process_s_image(&s_image_floor, s_frame_floor);
-	process_s_image(&s_image_ceil, s_frame_ceil);
+	process_s_image(&s_image_floor, s_box_floor);
+	process_s_image(&s_image_ceil, s_box_ceil);
 
 	if (sector == -1)
 	{
@@ -118,10 +143,10 @@ void update_sector_info_bar(int sector)
 	// Floor frame
 	gtk_frame_set_label(GTK_FRAME(s_frame_floor), parse_string("Floor: %s", s->f_tex.c_str()).c_str());
 	widget_set_font(gtk_frame_get_label_widget(GTK_FRAME(s_frame_floor)), "Sans Bold 10");
-	gtk_image_set_from_pixbuf(GTK_IMAGE(s_image_floor), get_texture(s->f_tex, 2)->get_pbuf_scale_fit(72, 72));
+	gtk_image_set_from_pixbuf(GTK_IMAGE(s_image_floor), get_texture(s->f_tex, 2)->get_pbuf_scale_fit(96, 96, 2.0f));
 
 	// Ceiling frame
 	gtk_frame_set_label(GTK_FRAME(s_frame_ceil), parse_string("Ceiling: %s", s->c_tex.c_str()).c_str());
 	widget_set_font(gtk_frame_get_label_widget(GTK_FRAME(s_frame_ceil)), "Sans Bold 10");
-	gtk_image_set_from_pixbuf(GTK_IMAGE(s_image_ceil), get_texture(s->c_tex, 2)->get_pbuf_scale_fit(72, 72));
+	gtk_image_set_from_pixbuf(GTK_IMAGE(s_image_ceil), get_texture(s->c_tex, 2)->get_pbuf_scale_fit(96, 96, 2.0f));
 }

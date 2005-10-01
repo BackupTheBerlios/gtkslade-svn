@@ -2,12 +2,116 @@
 #include "main.h"
 #include "misc.h"
 #include "map.h"
+#include "action_special.h"
 
 vector<string> game_config_paths;
 vector<string> game_config_names;
 
 extern WadList wads;
 extern Map map;
+
+// read_types: Reads either line, sector, thing or arg types from a file
+// ------------------------------------------------------------------ >>
+void read_types(Tokenizer *mr, bool things, bool lines, bool sectors, bool args)
+{
+	string token = mr->get_token();
+	while (token != "!END")
+	{
+		// Thing types
+		if (things && token == "thing_types")
+		{
+			mr->check_token("{");
+
+			token = mr->get_token();
+			while (token != "}")
+			{
+				if (token == "group")
+					parse_thing_group(mr);
+
+				if (token == "import")
+				{
+					Tokenizer mr2;
+					mr2.open_file("games/" + mr->get_token(), 0, 0);
+					read_types(&mr2, true, false, false, false);
+				}
+
+				token = mr->get_token();
+			}
+		}
+
+		// Action specials
+		if (lines && token == "action_specials")
+		{
+			mr->check_token("{");
+
+			token = mr->get_token();
+			while (token != "}")
+			{
+				if (token == "group")
+					parse_action_group(mr);
+
+				if (token == "import")
+				{
+					Tokenizer mr2;
+					mr2.open_file("games/" + mr->get_token(), 0, 0);
+					read_types(&mr2, false, true, false, false);
+				}
+
+				token = mr->get_token();
+			}
+		}
+
+		// Sector types
+		/*
+		if (sectors && token == "sector_types")
+		{
+			mr->check_token("{");
+
+			token = mr->get_token();
+			while (token != "}")
+			{
+				if (token == "type")
+					parse_sectortype(mr);
+
+				if (token == "import_types")
+				{
+					MemReader mr2;
+					mr2.open_file("games/" + mr->get_token(), 0, 0);
+					read_types(&mr2, false, false, true, false);
+				}
+
+				token = mr->get_token();
+			}
+		}
+		*/
+
+		// Arg types
+		/*
+		if (args && token == "arg_types")
+		{
+			mr->check_token("{");
+
+			token = mr->get_token();
+			while (token != "}")
+			{
+				if (token == "type")
+					parse_argtype(mr);
+
+				if (token == "import_types")
+				{
+					MemReader mr2;
+					mr2.open_file("games/" + mr->get_token(), 0, 0);
+					read_types(&mr2, false, false, false, true);
+				}
+
+				token = mr->get_token();
+			}
+		}
+		*/
+
+		token = mr->get_token();
+	}
+}
 
 bool load_game_config(int index)
 {
@@ -73,6 +177,9 @@ bool load_game_config(int index)
 
 		token = tz.get_token();
 	}
+
+	// Read action specials & thing/sector types
+	read_types(&tz, true, true, true, true);
 
 	return true;
 }

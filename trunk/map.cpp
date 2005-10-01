@@ -396,7 +396,8 @@ bool Map::open(Wad *wad, string mapname)
 	}
 
 	// Set thing colours/radii/angle
-	//update_map_things();
+	for (int a = 0; a < n_things; a++)
+		things[a]->ttype = get_thing_type(things[a]->type);
 
 	init_map();
 	opened = true;

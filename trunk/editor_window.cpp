@@ -10,7 +10,9 @@
 #include "input.h"
 #include "linedraw.h"
 #include "info_bar.h"
-#include "col_cfg_dialog.h"
+//#include "col_cfg_dialog.h"
+#include "prefs_dialog.h"
+#include "misc.h"
 
 GtkWidget	*editor_window = NULL;
 GtkWidget	*map_area = NULL;
@@ -350,7 +352,11 @@ static void menu_action(GtkAction *action)
 	else if (act == "Exit")
 		gtk_main_quit();
 	else if (act == "Close")
+	{
 		map.close();
+		force_map_redraw(true, true);
+		gtk_window_set_title(GTK_WINDOW(editor_window), "SLADE");
+	}
 	else if (act == "ModeVerts")
 		change_edit_mode(0);
 	else if (act == "ModeLines")
@@ -363,8 +369,10 @@ static void menu_action(GtkAction *action)
 		message_box("Not implemented yet", GTK_MESSAGE_INFO);
 	else if (act == "ShowConsole")
 		popup_console();
-	else if (act == "ColoursEdit")
-		open_colour_select_dialog();
+	//else if (act == "ColoursEdit")
+	//	open_colour_select_dialog();
+	else if (act == "Preferences")
+		open_prefs_dialog();
 	else if (act == "About")
 	{
 		gtk_show_about_dialog(GTK_WINDOW(editor_window),
@@ -396,10 +404,10 @@ static GtkActionEntry entries[] = {
 	{ "HelpMenu", NULL, "_Help" },
 
 	// File menu
-	{ "WadManager", GTK_STOCK_EXECUTE, "Wad _Manager", NULL, "Open the wad manager", G_CALLBACK(menu_action) },
+	{ "WadManager", GTK_STOCK_EXECUTE, "Wad _Manager", "<control>W", "Open the wad manager", G_CALLBACK(menu_action) },
 	{ "Save", GTK_STOCK_SAVE, "_Save", "<control>S", "Save map", G_CALLBACK(menu_action) },
 	{ "SaveAs", GTK_STOCK_SAVE_AS, "Save _As...", NULL, "Save map to a new file", G_CALLBACK(menu_action) },
-	{ "Close", GTK_STOCK_CLOSE, "_Close", NULL, "Close the map", G_CALLBACK(menu_action) },
+	{ "Close", GTK_STOCK_CLOSE, "_Close", "", "Close the map", G_CALLBACK(menu_action) },
 	{ "Exit", GTK_STOCK_QUIT, "E_xit SLADE", NULL, "Close the map", G_CALLBACK(menu_action) },
 
 	// Line edit menu
@@ -412,6 +420,9 @@ static GtkActionEntry entries[] = {
 	{ "CreateDoor", NULL, "Create _Door", NULL, "Create door(s) from selected sector(s)", G_CALLBACK(menu_action) },
 	{ "CreateStairs", NULL, "Create _Stairs", NULL, "Create stairs from selected sectors", G_CALLBACK(menu_action) },
 
+	// Edit menu
+	{ "Preferences", NULL, "_Preferences...", NULL, "Change SLADE Preferences", G_CALLBACK(menu_action) },
+
 	// Mode menu
 	{ "ModeVerts", "slade-mode-verts", "_Vertices", NULL, "Vertices Mode", G_CALLBACK(menu_action) },
 	{ "ModeLines", "slade-mode-lines", "_Lines", NULL, "Lines Mode", G_CALLBACK(menu_action) },
@@ -423,7 +434,7 @@ static GtkActionEntry entries[] = {
 	{ "ShowConsole", NULL, "Show _Console", NULL, "Shows the SLADE console window", G_CALLBACK(menu_action) },
 
 	// Options menu
-	{ "ColoursEdit", NULL, "_Colours...", NULL, "Edit the colour configuration", G_CALLBACK(menu_action) },
+	//{ "ColoursEdit", NULL, "_Colours...", NULL, "Edit the colour configuration", G_CALLBACK(menu_action) },
 
 	// Help menu
 	{ "About", GTK_STOCK_ABOUT, "_About SLADE", NULL, "", G_CALLBACK(menu_action) },
@@ -462,6 +473,8 @@ static const gchar *ui_info =
 "     <menuitem action='CreateDoor'/>"
 "     <menuitem action='CreateStairs'/>"
 "    </menu>"
+"    <separator/>"
+"    <menuitem action='Preferences'/>"
 "   </menu>"
 "   <menu action='ModeMenu'>"
 "    <menuitem action='ModeVerts'/>"
@@ -473,9 +486,12 @@ static const gchar *ui_info =
 "   <menu action='ViewMenu'>"
 "    <menuitem action='ShowConsole'/>"
 "   </menu>"
+/*
 "   <menu action='OptionsMenu'>"
+"    <menuitem action='Preferences'/>"
 "    <menuitem action='ColoursEdit'/>"
 "   </menu>"
+*/
 "   <menu action='HelpMenu' position='bot'>"
 "    <menuitem action='About'/>"
 "    <menuitem action='Help'/>"
@@ -550,6 +566,7 @@ void setup_editor_window()
 	GtkWidget *toolbar = gtk_ui_manager_get_widget(ui, "/ToolBar");
 	gtk_toolbar_set_style(GTK_TOOLBAR(toolbar), GTK_TOOLBAR_ICONS);
 	gtk_toolbar_set_icon_size(GTK_TOOLBAR(toolbar), GTK_ICON_SIZE_MENU);
+	gtk_container_unset_focus_chain(GTK_CONTAINER(toolbar));
 	GTK_WIDGET_UNSET_FLAGS(toolbar, GTK_CAN_FOCUS);
 	GTK_WIDGET_UNSET_FLAGS(toolbar, GTK_HAS_FOCUS);
 	g_signal_connect(G_OBJECT(toolbar), "key-press-event", G_CALLBACK(tbar_keypress), NULL);
@@ -590,4 +607,21 @@ void setup_editor_window()
 
 	gtk_window_maximize(GTK_WINDOW(editor_window));
 	gtk_widget_show_all(editor_window);
+}
+
+void open_map(Wad* wad, string mapname)
+{
+	if (wad)
+	{
+		map.open(wad, mapname);
+		gtk_window_set_title(GTK_WINDOW(editor_window), parse_string("SLADE (%s, %s)", wad->path.c_str(), mapname.c_str()).c_str());
+	}
+	else
+	{
+		map.create(mapname);
+		gtk_window_set_title(GTK_WINDOW(editor_window), parse_string("SLADE (unsaved, %s)", mapname.c_str()).c_str());
+	}
+
+	force_map_redraw(true, true);
+	edit_wad = wad;
 }

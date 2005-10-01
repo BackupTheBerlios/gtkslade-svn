@@ -24,6 +24,7 @@ extern rgba_t col_vertex;
 extern rgba_t col_line_solid;
 extern rgba_t col_line_2s;
 extern rgba_t col_line_monster;
+extern rgba_t col_line_special;
 extern rgba_t col_selbox;
 extern rgba_t col_selbox_line;
 extern rgba_t col_grid;
@@ -31,6 +32,8 @@ extern rgba_t col_64grid;
 rgba_t col_3d_crosshair;
 rgba_t col_3d_hilight;
 rgba_t col_3d_hilight_line;
+
+extern float hilight_size, moving_size, selection_size;
 
 void parse_rgba(Tokenizer *mr, rgba_t* col)
 {
@@ -41,7 +44,10 @@ void parse_rgba(Tokenizer *mr, rgba_t* col)
 	col->r = mr->get_integer();
 	col->g = mr->get_integer();
 	col->b = mr->get_integer();
-	col->a = mr->get_integer();
+
+	// Read alpha if specified
+	if (mr->peek_token() != "}")
+		col->a = mr->get_integer();
 
 	// Read blend if specified
 	if (mr->peek_token() != "}")
@@ -67,10 +73,21 @@ void read_colour_config(string filename)
 		string token = tz.get_token();
 		while (token != "}")
 		{
-			rgba_t col;
 			string name = token;
-			parse_rgba(&tz, &col);
-			ccfg.add(name, col);
+
+			if (name == "hilight_size")
+				ccfg.hilight_size = tz.get_float();
+			else if (name == "selection_size")
+				ccfg.selection_size = tz.get_float();
+			else if (name == "moving_size")
+				ccfg.moving_size = tz.get_float();
+			else
+			{
+				rgba_t col;
+				parse_rgba(&tz, &col);
+				ccfg.add(name, col);
+			}
+
 			token = tz.get_token();
 		}
 
@@ -126,6 +143,10 @@ void set_colour(rgba_t *colour, string name, int config)
 		colour->set(*colour_configs[config].get_colour(name));
 	else
 		colour->set(*colour_configs[0].get_colour(name));
+
+	hilight_size = colour_configs[config].hilight_size;
+	selection_size = colour_configs[config].selection_size;
+	moving_size = colour_configs[config].moving_size;
 }
 
 void set_colour_config(string name)
@@ -143,6 +164,7 @@ void set_colour_config(string name)
 	SETCOL(line_solid);
 	SETCOL(line_2s);
 	SETCOL(line_monster);
+	SETCOL(line_special);
 	SETCOL(selbox);
 	SETCOL(selbox_line);
 	SETCOL(grid);
@@ -151,4 +173,29 @@ void set_colour_config(string name)
 	SETCOL(3d_crosshair);
 	SETCOL(3d_hilight);
 	SETCOL(3d_hilight_line);
+}
+
+void col_config_t::save()
+{
+	if (path == "")
+		return;
+
+	FILE* fp = fopen(path.c_str(), "wt");
+
+	fprintf(fp, "\ncolour_config \"%s\"\n", name.c_str());
+	fprintf(fp, "{");
+
+	for (int a = 0; a < colours.size(); a++)
+	{
+		fprintf(fp, "\t%s\t{\t%d\t%d\t%d\t%d\t%d\t}\n",
+				names[a].c_str(), colours[a].r, colours[a].g, colours[a].b, colours[a].a, colours[a].blend);
+	}
+
+	fprintf(fp, "\n\thilight_size\t%1.2f\n", hilight_size);
+	fprintf(fp, "\tselection_size\t%1.2f\n", selection_size);
+	fprintf(fp, "\tmoving_size\t%1.2f\n", moving_size);
+
+	fprintf(fp, "}\n\n");
+
+	fclose(fp);
 }

@@ -21,6 +21,7 @@ extern rgba_t col_vertex;
 extern rgba_t col_line_solid;
 extern rgba_t col_line_2s;
 extern rgba_t col_line_monster;
+extern rgba_t col_line_special;
 extern rgba_t col_selbox;
 extern rgba_t col_selbox_line;
 extern rgba_t col_grid;
@@ -37,6 +38,7 @@ void config_changed(GtkWidget *w, gpointer data)
 {
 	set_colour_config(gtk_combo_box_get_active_text(GTK_COMBO_BOX(w)));
 	force_map_redraw(true, true);
+	col_config = gtk_combo_box_get_active_text(GTK_COMBO_BOX(w));
 
 	for (int a = 0; a < buttons.size(); a++)
 	{
@@ -57,14 +59,40 @@ void config_changed(GtkWidget *w, gpointer data)
 void colour_changed(GtkWidget *w, gpointer data)
 {
 	rgba_t *col = (rgba_t*)data;
-	GdkColor *gdk_col;
+	GdkColor gdk_col;
 
-	gtk_color_button_get_color(GTK_COLOR_BUTTON(w), gdk_col);
-	int alpha = gtk_color_button_get_alpha(GTK_COLOR_BUTTON(w));
-	col->set((BYTE)(gdk_col->red / 255), (BYTE)(gdk_col->green / 255),
-			(BYTE)(gdk_col->blue / 255), (BYTE)(alpha / 255), col->blend);
+	gtk_color_button_get_color(GTK_COLOR_BUTTON(w), &gdk_col);
+
+	int alpha = (gtk_color_button_get_alpha(GTK_COLOR_BUTTON(w)) / 255);
+	if (alpha > 255)
+		alpha = 255;
+
+	int red = (gdk_col.red / 255);
+	if (red > 255)
+		red = 255;
+
+	int green = (gdk_col.green / 255);
+	if (green > 255)
+		green = 255;
+
+	int blue = (gdk_col.blue / 255);
+	if (blue > 255)
+		blue = 255;
+
+	col->set((BYTE)red, (BYTE)green, (BYTE)blue, (BYTE)alpha);
 
 	force_map_redraw(true, true);
+}
+
+void additive_toggled(GtkWidget *w, gpointer data)
+{
+	rgba_t *col = (rgba_t*)data;
+	gboolean active = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(w));
+
+	if (active)
+		col->blend = 1;
+	else
+		col->blend = 0;
 }
 
 GtkWidget *setup_colour_editor(string col_name, rgba_t *col, string name)
@@ -90,6 +118,7 @@ GtkWidget *setup_colour_editor(string col_name, rgba_t *col, string name)
 
 	// Additive checkbox
 	GtkWidget *cbox_add = gtk_check_button_new_with_label("Additive");
+	g_signal_connect(G_OBJECT(cbox_add), "toggled", G_CALLBACK(additive_toggled), col);
 
 	if (col->blend == 1)
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(cbox_add), true);
@@ -107,6 +136,10 @@ GtkWidget *setup_colour_editor(string col_name, rgba_t *col, string name)
 
 GtkWidget *setup_ccfg_dialog()
 {
+	buttons.clear();
+	cboxes.clear();
+	colours.clear();
+
 	GtkWidget *ret_vbox = gtk_vbox_new(false, 0);
 
 	// Selection combo
@@ -153,6 +186,7 @@ GtkWidget *setup_ccfg_dialog()
 	gtk_box_pack_start(GTK_BOX(vbox), setup_colour_editor("line_solid", &col_line_solid, "Solid Lines"), true, true, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), setup_colour_editor("line_2s", &col_line_2s, "2 Sided Lines"), true, true, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), setup_colour_editor("line_monster", &col_line_monster, "Monster Blocking Lines"), true, true, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), setup_colour_editor("line_special", &col_line_special, "Special Lines"), true, true, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), setup_colour_editor("selbox", &col_selbox, "Selection Box"), true, true, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), setup_colour_editor("selbox_line", &col_selbox_line, "Selection Box Outline"), true, true, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), setup_colour_editor("grid", &col_grid, "Grid"), true, true, 0);
@@ -168,6 +202,7 @@ GtkWidget *setup_ccfg_dialog()
 	return ret_vbox;
 }
 
+/*
 void open_colour_select_dialog()
 {
 	buttons.clear();
@@ -180,7 +215,7 @@ void open_colour_select_dialog()
 													GTK_STOCK_OK,
 													GTK_RESPONSE_ACCEPT,
 													NULL);
-	
+
 	gtk_container_add(GTK_CONTAINER(GTK_DIALOG(dialog)->vbox), setup_ccfg_dialog());
 	gtk_window_set_position(GTK_WINDOW(dialog), GTK_WIN_POS_CENTER_ON_PARENT);
 	gtk_window_set_default_size(GTK_WINDOW(dialog), -1, 400);
@@ -189,4 +224,6 @@ void open_colour_select_dialog()
 	int response = gtk_dialog_run(GTK_DIALOG(dialog));
 
 	gtk_widget_destroy(dialog);
+	gtk_window_present(GTK_WINDOW(editor_window));
 }
+*/

@@ -22,6 +22,16 @@ CVAR(Bool, thing_sprites, false, CVAR_SAVE)
 CVAR(Bool, grid_dashed, false, CVAR_SAVE)
 CVAR(Bool, line_aa, true, CVAR_SAVE)
 
+/*
+CVAR(Float, hilight_size, 3.0, CVAR_SAVE)
+CVAR(Float, selection_size, 5.0f, CVAR_SAVE)
+CVAR(Float, moving_size, 5.0f, CVAR_SAVE)
+*/
+
+float hilight_size = 3.0f;
+float selection_size = 5.0f;
+float moving_size = 5.0f;
+
 GLuint map_list;
 GLuint grid_list;
 
@@ -169,7 +179,7 @@ void draw_lines()
 
 			if (MOVING(map.lines[l]->vertex1) && MOVING(map.lines[l]->vertex2))
 			{
-				glLineWidth(5.0f * line_size);
+				glLineWidth(moving_size * line_size);
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 				draw_line(rect, col_moving, true);
 				draw_line(rect2, col_moving, true);
@@ -182,7 +192,7 @@ void draw_lines()
 	// Draw selected lines if nothing is moving
 	if (move_list.n_items == 0)
 	{
-		glLineWidth(5.0f * line_size);
+		glLineWidth(selection_size * line_size);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
 		for (DWORD a = 0; a < selected_items.size(); a++)
@@ -275,7 +285,7 @@ void draw_sectors()
 		if (move_list.exists(map.lines[l]->vertex1)
 			&&move_list.exists(map.lines[l]->vertex2))
 		{
-			glLineWidth(5.0f * line_size);
+			glLineWidth(moving_size * line_size);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 			draw_line(rect, col_moving, true);
 		}
@@ -286,7 +296,7 @@ void draw_sectors()
 			if (vector_exists(selected_items, sector1)
 				|| vector_exists(selected_items, sector2))
 			{
-				glLineWidth(5.0f * line_size);
+				glLineWidth(selection_size * line_size);
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 				draw_line(rect, col_selection, true);
 			}
@@ -303,20 +313,58 @@ void draw_things()
 	for (DWORD t = 0; t < map.n_things; t++)
 	{
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		colour.set(180, 180, 180, 255);
-		int r = (16 * zoom) / MAJOR_UNIT;
+		colour.set(map.things[t]->ttype->colour);
+		int r = (map.things[t]->ttype->radius * zoom) / MAJOR_UNIT;
+		if (r < 0) r = 8;
 		draw_rect(rect_t(s_x(map.things[t]->x), s_y(-map.things[t]->y), r*2, r*2, RECT_CENTER), colour, true);
 		colour.set(0, 0, 0, 100);
 		draw_rect(rect_t(s_x(map.things[t]->x), s_y(-map.things[t]->y), r*2, r*2, RECT_CENTER), colour, false);
 
+		if (map.things[t]->ttype->show_angle/* || thing_quickangle*/)
+		{
+			point2_t p(s_x(map.things[t]->x), s_y(-map.things[t]->y));
+			int x2, y2;
+
+			// east
+			if (map.things[t]->angle == 0)			{ x2 = p.x + r; y2 = p.y; }
+			// northeast
+			else if (map.things[t]->angle == 45)	{ x2 = p.x + r; y2 = p.y - r; }
+			// north
+			else if (map.things[t]->angle == 90)	{ x2 = p.x; y2 = p.y - r; }
+			// northwest
+			else if (map.things[t]->angle == 135)	{ x2 = p.x - r; y2 = p.y - r; }
+			// west
+			else if (map.things[t]->angle == 180)	{ x2 = p.x - r; y2 = p.y; }
+			// southwest
+			else if (map.things[t]->angle == 225)	{ x2 = p.x - r; y2 = p.y + r; }
+			// south
+			else if (map.things[t]->angle == 270)	{ x2 = p.x; y2 = p.y + r; }
+			// southeast
+			else if (map.things[t]->angle == 315)	{ x2 = p.x + r; y2 = p.y + r; }
+			// Invalid angle
+			else	{ x2 = p.x; y2 = p.y; }
+
+			glLineWidth(2.0f);
+			//if (thing_sprites)
+			//{
+			//	draw_point(p.x, p.y, 8 * zoom / MAJOR_UNIT, COL_WHITE);
+			//	draw_line(rect_t(p.x, p.y, x2, y2), rgba_t(255, 255, 255, 200), line_aa);
+			//}
+			//else
+				draw_line(rect_t(p.x, p.y, x2, y2), rgba_t(0, 0, 0, 200), line_aa);
+			glLineWidth(1.0f);
+		}
+
 		if (move_list.exists(t))
 		{
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+			r += 4;
 			draw_rect(rect_t(s_x(map.things[t]->x), s_y(-map.things[t]->y), r*2, r*2, RECT_CENTER), col_moving, true);
 		}
 		else if (vector_exists(selected_items, t))
 		{
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+			r += 4;
 			draw_rect(rect_t(s_x(map.things[t]->x), s_y(-map.things[t]->y), r*2, r*2, RECT_CENTER), col_selection, true);
 		}
 	}
@@ -346,7 +394,7 @@ void draw_hilight()
 
 		rect2.set(xm, ym, xm2, ym2);
 
-		glLineWidth(3.0f * line_size);
+		glLineWidth(hilight_size * line_size);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 		draw_line(rect, col_hilight, true);
 		draw_line(rect2, col_hilight, true);
@@ -365,7 +413,7 @@ void draw_hilight()
 				|| hilight_item == sector2
 				&& hilight_item != -1)
 			{
-				glLineWidth(3.0f * line_size);
+				glLineWidth(hilight_size * line_size);
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 				draw_line(rect, col_hilight, true);
 			}
@@ -374,15 +422,11 @@ void draw_hilight()
 
 	if (edit_mode == 3)
 	{
-		//int r = (map.things[hilight_item]->radius * zoom) / MAJOR_UNIT;
-		int r = (17 * zoom) / MAJOR_UNIT;
-		point2_t p;
-		p.set(s_x(map.things[hilight_item]->x), s_y(-map.things[hilight_item]->y));
+		int r = ((map.things[hilight_item]->ttype->radius * zoom) / MAJOR_UNIT) + 4;
+		if (r < 0) r = 14;
 
-		//if (map.things[hilight_item]->radius == -1)
-		//	r = 8 * zoom / MAJOR_UNIT;
-
-		draw_rect(rect_t(p.x - r, p.y - r, p.x + r, p.y + r), col_hilight, true);
+		rgba_t col(col_hilight.r, col_hilight.g, col_hilight.b, 150, col_hilight.blend);
+		draw_rect(rect_t(s_x(map.things[hilight_item]->x), s_y(-map.things[hilight_item]->y), r*2, r*2, RECT_CENTER), col, true);
 	}
 }
 

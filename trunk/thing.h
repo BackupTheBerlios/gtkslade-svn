@@ -1,4 +1,6 @@
 
+#include "thing_type.h"
+
 // Doom flags
 #define THING_EASY		0x0001
 #define THING_MEDIUM	0x0002
@@ -37,9 +39,7 @@ struct thing_t
 	BYTE	args[5];
 
 	// Editor stuff
-	rgba_t		colour;
-	short		radius;
-	bool		draw_angle;
+	thing_type_t	*ttype;
 
 	thing_t()
 	{
@@ -51,13 +51,13 @@ struct thing_t
 		flags = THING_EASY|THING_MEDIUM|THING_HARD|THING_DEAF|THING_SINGLE|THING_COOPERATIVE|THING_FIGHTER|THING_CLERIC|THING_MAGE;
 		tid = 0;
 		special = 0;
-		draw_angle = false;
+		//draw_angle = false;
 
 		for (int a = 0; a < 5; a++)
 			args[a] = 0;
 
-		colour.set(255, 255, 255, 255);
-		radius = 20;
+		//colour.set(255, 255, 255, 255);
+		//radius = 20;
 	}
 
 	void increment_angle(int amount)

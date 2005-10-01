@@ -14,6 +14,8 @@ Wad*			selected_wad;
 GtkWidget		*wad_manager_window;
 bool			game_changed = true;
 
+CVAR(String, game_config, "Doom 2", CVAR_SAVE)
+
 // EXTERNAL VARIABLES -------------------- >>
 extern WadList wads;
 extern vector<string> game_config_paths;
@@ -51,7 +53,10 @@ void game_combo_changed(GtkWidget *w, gpointer data)
 		message_box(parse_string("Error loading game configuration \"%s\"", game_config_paths[index].c_str()),
 					GTK_MESSAGE_ERROR);
 	else
+	{
+		game_config = game_config_names[index];
 		populate_wad_list();
+	}
 
 	game_changed = true;
 }
@@ -68,6 +73,8 @@ bool setup_game_combo(GtkWidget *combo)
 
 	if (dir)
 	{
+		int index = 0;
+		string def = game_config;
 		const gchar* dir_name = g_dir_read_name(dir);
 
 		while (dir_name)
@@ -90,6 +97,9 @@ bool setup_game_combo(GtkWidget *combo)
 					string name = tokenizer.get_token();
 					gtk_combo_box_append_text(GTK_COMBO_BOX(combo), name.c_str());
 					game_config_names.push_back(name);
+	
+					if (name == def)
+						index = game_config_names.size() - 1;
 				}
 			}
 
@@ -97,6 +107,7 @@ bool setup_game_combo(GtkWidget *combo)
 		}
 
 		g_signal_connect(G_OBJECT(combo), "changed", G_CALLBACK(game_combo_changed), NULL);
+		gtk_combo_box_set_active(GTK_COMBO_BOX(combo), index);
 
 		return true;
 	}
@@ -170,15 +181,14 @@ void new_standalone_click()
 
 	if (mapname != "")
 	{
-		map.create(str_upper(mapname));
-		force_map_redraw(true, true);
-		edit_wad = NULL;
+		open_map(NULL, mapname);
 		gtk_widget_hide(wad_manager_window);
 
 		if (game_changed)
 		{
 			load_flats();
 			load_textures();
+			load_sprites();
 			game_changed = false;
 		}
 	}
@@ -248,15 +258,14 @@ void maps_list_activated(GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewCo
 	gchar* mapname;
 	gtk_tree_model_get(GTK_TREE_MODEL(maps_store), &iter, 0, &mapname, -1);
 
-	map.open(selected_wad, mapname);
-	force_map_redraw(true, true);
-	edit_wad = selected_wad;
+	open_map(selected_wad, mapname);
 	gtk_widget_hide(wad_manager_window);
 	
 	if (game_changed)
 	{
 		load_flats();
 		load_textures();
+		load_sprites();
 		game_changed = false;
 	}
 

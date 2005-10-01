@@ -7,6 +7,7 @@
 
 vector<Texture*>	textures;
 vector<Texture*>	flats;
+vector<Texture*>	sprites;
 vector<Texture*>	edit_textures;
 vector<string>		pnames;
 rgba_t				palette[256];
@@ -14,6 +15,7 @@ rgba_t				palette[256];
 Texture				no_tex;
 
 extern WadList wads;
+extern vector<string> spritenames;
 
 Texture::Texture()
 {
@@ -43,6 +45,7 @@ GdkPixbuf* Texture::get_pbuf()
 	if (bpp == 8)
 	{
 		BYTE* temp = (BYTE*)malloc(width * height * 4);
+		memset(temp, 0, width * height * 4);
 
 		DWORD p = 0;
 		for (int a = 0; a < width * height; a++)
@@ -70,35 +73,48 @@ GdkPixbuf* Texture::get_pbuf()
 	return NULL;
 }
 
-GdkPixbuf* Texture::get_pbuf_scale_fit(int w, int h)
+GdkPixbuf* Texture::get_pbuf_scale(float scale, GdkInterpType interp)
 {
 	GdkPixbuf *original = get_pbuf();
+
+	GdkPixbuf *ret = gdk_pixbuf_scale_simple(original, width * scale, height * scale, interp);
+	g_object_unref(original);
+
+	return ret;
+}
+
+GdkPixbuf* Texture::get_pbuf_scale_fit(int w, int h, float scaling)
+{
+	GdkPixbuf *original = get_pbuf_scale(scaling);
 	float scale;
 
-	int n_width = width;
-	int n_height = height;
+	int swidth = width * scaling;
+	int sheight = height * scaling;
+
+	int n_width = swidth;
+	int n_height = sheight;
 
 	int d = min(w, h);
 
-	if (width > height)
+	if (swidth > sheight)
 	{
-		if (width > d)
+		if (swidth > d)
 		{
-			scale = (float)w / (float)width;
+			scale = (float)w / (float)swidth;
 			n_width = w;
-			n_height = height * scale;
+			n_height = sheight * scale;
 		}
 	}
-	else if (width < height)
+	else if (swidth < sheight)
 	{
-		if (height > d)
+		if (sheight > d)
 		{
-			scale = (float)h / (float)height;
+			scale = (float)h / (float)sheight;
 			n_height = h;
-			n_width = width * scale;
+			n_width = swidth * scale;
 		}
 	}
-	else if (width == height)
+	else if (swidth == sheight)
 	{
 		n_width = d;
 		n_height = d;
@@ -128,6 +144,26 @@ Texture* get_texture(string name, int type)
 		{
 			if (flats[a]->name == name)
 				return flats[a];
+		}
+	}
+	
+	// Search sprites
+	if (type == 0 || type == 3)
+	{
+		for (int a = 0; a < sprites.size(); a++)
+		{
+			if (sprites[a]->name == name)
+				return sprites[a];
+		}
+	}
+
+	// Search editor textures
+	if (type == 0 || type == 4)
+	{
+		for (int a = 0; a < edit_textures.size(); a++)
+		{
+			if (edit_textures[a]->name == name)
+				return edit_textures[a];
 		}
 	}
 
@@ -471,4 +507,103 @@ void load_flats()
 
 	console_print("Done");
 	hide_console();
+}
+
+// load_sprite: Loads a sprite to a texture
+// ------------------------------------- >>
+void load_sprite(Wad* wad, string name)
+{
+	patch_header_t	header;
+	long			*columns = NULL;
+	BYTE			row = 0;
+	BYTE			n_pix = 0;
+	BYTE			colour = 0;
+	Lump*			patch = NULL;
+
+	patch = wad->get_lump(name, wad->sprites[START]);
+
+	if (!patch)
+	{
+		printf("Sprite %s not found!\n", name.c_str());
+		return;
+	}
+
+	FILE *fp = fopen(wad->path.c_str(), "rb");
+	fseek(fp, patch->Offset(), SEEK_SET);
+
+	// Get header & offsets
+	fread(&header.width, 2, 1, fp);
+	fread(&header.height, 2, 1, fp);
+	fread(&header.left, 2, 1, fp);
+	fread(&header.top, 2, 1, fp);
+	columns = (long *)calloc(header.width, sizeof(long));
+	fread(columns, sizeof(long), header.width, fp);
+
+	/*
+	tex_list.add_tex(name, header.width, header.height, false, false);
+	tex_list.init_tex_data();
+	texture_t *tex = tex_list.get_last();
+	*/
+	// Create the texture
+	Texture *tex = get_texture(patch->Name(), 3);
+	if (tex->name == "_notex")
+	{
+		tex = new Texture();
+		tex->setup(patch->Name(), 8, header.width, header.height);
+		sprites.push_back(tex);
+	}
+
+	// Read data
+	for (int c = 0; c < header.width; c++)
+	{
+		// Go to start of column
+		fseek(fp, patch->Offset(), SEEK_SET);
+		fseek(fp, columns[c], SEEK_CUR);
+
+		// Read posts
+		while (1)
+		{
+			// Get row offset
+			fread(&row, 1, 1, fp);
+
+			if (row == 255) // End of column?
+				break;
+			
+			// Get no. of pixels
+			fread(&n_pix, 1, 1, fp);
+
+			// Read pixels
+			fread(&colour, 1, 1, fp); // Skip buffer
+			for (BYTE p = 0; p < n_pix; p++)
+			{
+				fread(&colour, 1, 1, fp);
+				tex->add_pixel(c, row + p, colour);
+			}
+			fread(&colour, 1, 1, fp); // Skip buffer & go to next row offset
+		}
+	}
+
+	fclose(fp);
+}
+
+// load_sprites: Loads sprites for thing previews
+// ------------------------------------------- >>
+void load_sprites()
+{
+	console_print("Loading sprites...");
+	show_progress();
+
+	for (int s = 0; s < spritenames.size(); s++)
+	{
+		if (s % 5 == 0)
+			update_progress((float)s / (float)spritenames.size());
+
+		Wad* wad = wads.get_wad_with_lump(spritenames[s]);
+
+		if (wad)
+			load_sprite(wad, spritenames[s]);
+	}
+
+	hide_progress();
+	console_print("Done");
 }

@@ -185,7 +185,15 @@ void get_line_colour(WORD l, rgba_t *colour)
 	}
 
 	if (map.lines[l]->type != 0)
-		colour->set(col_line_special);
+	{
+		rgba_t spec2s(col_line_special.r * 0.8, col_line_special.g * 0.8,
+					col_line_special.b * 0.8, col_line_special.a, col_line_special.blend);
+
+		if (map.lines[l]->flags & LINE_TWOSIDED)
+			colour->set(spec2s);
+		else
+			colour->set(col_line_special);
+	}
 
 	if (map.lines[l]->flags & LINE_TWOSIDED && map.lines[l]->side2 == -1)
 		colour->set(120, 0, 0, 255);

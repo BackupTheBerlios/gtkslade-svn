@@ -4,6 +4,7 @@
 #include "map.h"
 #include "misc.h"
 #include "textures.h"
+#include "action_special.h"
 
 GtkWidget *frame_main = NULL;
 GtkWidget *frame_side1 = NULL;
@@ -17,19 +18,44 @@ GtkWidget *label_special = NULL;
 GtkWidget *label_tag = NULL;
 
 // Side1 frame
-GtkWidget *hbox_side1 = NULL;
+//GtkWidget *hbox_side1 = NULL;
 GtkWidget *image_uptex1 = NULL;
 GtkWidget *image_lotex1 = NULL;
 GtkWidget *image_midtex1 = NULL;
+GtkWidget *box_uptex1 = NULL;
+GtkWidget *box_lotex1 = NULL;
+GtkWidget *box_midtex1 = NULL;
 
 // Side2 frame
-GtkWidget *hbox_side2 = NULL;
+//GtkWidget *hbox_side2 = NULL;
 GtkWidget *image_uptex2 = NULL;
 GtkWidget *image_lotex2 = NULL;
 GtkWidget *image_midtex2 = NULL;
+GtkWidget *box_uptex2 = NULL;
+GtkWidget *box_lotex2 = NULL;
+GtkWidget *box_midtex2 = NULL;
 
 extern Map map;
 extern vector<Texture*> textures;
+
+GtkWidget *setup_image_box(GtkWidget **box)
+{
+	GdkColor colour;
+	colour.red = 0;
+	colour.green = 0;
+	colour.blue = 0;
+
+	GtkWidget *frame = gtk_frame_new(NULL);
+	gtk_frame_set_shadow_type(GTK_FRAME(frame), GTK_SHADOW_IN);
+	gtk_container_set_border_width(GTK_CONTAINER(frame), 4);
+
+	*box = gtk_event_box_new();
+	gtk_widget_set_size_request(*box, 72, -1);
+	gtk_widget_modify_bg(*box, GTK_STATE_NORMAL, &colour);
+	gtk_container_add(GTK_CONTAINER(frame), *box);
+
+	return frame;
+}
 
 GtkWidget *get_line_info_bar()
 {
@@ -54,52 +80,30 @@ GtkWidget *get_line_info_bar()
 	// Front Side Frame
 	frame_side1 = gtk_frame_new("No Front Side");
 	widget_set_font(gtk_frame_get_label_widget(GTK_FRAME(frame_side1)), "Sans Bold 10");
-	//gtk_widget_set_size_request(frame_side1, 240, 0);
+	
 
-	GdkColor colour;
-	colour.red = 0;
-	colour.green = 0;
-	colour.blue = 0;
 
-	image_uptex1 = gtk_image_new();
-	gtk_widget_set_size_request(image_uptex1, 72, 72);
-	image_midtex1 = gtk_image_new();
-	gtk_widget_set_size_request(image_midtex1, 72, 72);
-	image_lotex1 = gtk_image_new();
-	gtk_widget_set_size_request(image_lotex1, 72, 72);
-
-	hbox_side1 = gtk_hbox_new(true, 0);
-	gtk_container_set_border_width(GTK_CONTAINER(hbox_side1), 4);
-	gtk_box_pack_start(GTK_BOX(hbox_side1), image_uptex1, false, false, 0);
-	gtk_box_pack_start(GTK_BOX(hbox_side1), image_midtex1, false, false, 0);
-	gtk_box_pack_start(GTK_BOX(hbox_side1), image_lotex1, false, false, 0);
-	gtk_container_add(GTK_CONTAINER(frame_side1), hbox_side1);
-	gtk_widget_modify_bg(hbox_side1, GTK_STATE_NORMAL, &colour);
+	GtkWidget *hbox = gtk_hbox_new(true, 0);
+	gtk_container_set_border_width(GTK_CONTAINER(hbox), 4);
+	gtk_box_pack_start(GTK_BOX(hbox), setup_image_box(&box_uptex1), false, false, 0);
+	gtk_box_pack_start(GTK_BOX(hbox), setup_image_box(&box_midtex1), false, false, 4);
+	gtk_box_pack_start(GTK_BOX(hbox), setup_image_box(&box_lotex1), false, false, 4);
+	gtk_container_add(GTK_CONTAINER(frame_side1), hbox);
 
 	// Back Side Frame
 	frame_side2 = gtk_frame_new("No Back Side");
 	widget_set_font(gtk_frame_get_label_widget(GTK_FRAME(frame_side2)), "Sans Bold 10");
-	//gtk_widget_set_size_request(frame_side2, 240, 0);
-
-	image_uptex2 = gtk_image_new();
-	gtk_widget_set_size_request(image_uptex2, 72, 72);
-	image_midtex2 = gtk_image_new();
-	gtk_widget_set_size_request(image_midtex2, 72, 72);
-	image_lotex2 = gtk_image_new();
-	gtk_widget_set_size_request(image_lotex2, 72, 72);
-
-	hbox_side2 = gtk_hbox_new(true, 0);
-	gtk_container_set_border_width(GTK_CONTAINER(hbox_side2), 4);
-	gtk_box_pack_start(GTK_BOX(hbox_side2), image_uptex2, false, false, 0);
-	gtk_box_pack_start(GTK_BOX(hbox_side2), image_midtex2, false, false, 0);
-	gtk_box_pack_start(GTK_BOX(hbox_side2), image_lotex2, false, false, 0);
-	gtk_container_add(GTK_CONTAINER(frame_side2), hbox_side2);
-	gtk_widget_modify_bg(hbox_side1, GTK_STATE_NORMAL, &colour);
+	
+	hbox = gtk_hbox_new(true, 0);
+	gtk_container_set_border_width(GTK_CONTAINER(hbox), 4);
+	gtk_box_pack_start(GTK_BOX(hbox), setup_image_box(&box_uptex2), false, false, 0);
+	gtk_box_pack_start(GTK_BOX(hbox), setup_image_box(&box_midtex2), false, false, 0);
+	gtk_box_pack_start(GTK_BOX(hbox), setup_image_box(&box_lotex2), false, false, 0);
+	gtk_container_add(GTK_CONTAINER(frame_side2), hbox);
 
 
 	// Stuff
 	GtkWidget *main_hbox = gtk_hbox_new(false, 0);
-	//gtk_container_set_border_width(GTK_CONTAINER(main_hbox), 4);
 	gtk_box_pack_start(GTK_BOX(main_hbox), frame_main, true, true, 0);
 	gtk_box_pack_start(GTK_BOX(main_hbox), frame_side1, false, false, 0);
 	gtk_box_pack_start(GTK_BOX(main_hbox), frame_side2, false, false, 0);
@@ -118,41 +122,19 @@ void process_image(GtkWidget **image, GtkWidget *box)
 
 	*image = gtk_image_new();
 	gtk_widget_set_size_request(*image, 72, 72);
-	gtk_box_pack_start(GTK_BOX(box), *image, false, false, 0);
+	//gtk_box_pack_start(GTK_BOX(box), *image, false, false, 0);
+	gtk_container_add(GTK_CONTAINER(box), *image);
 	gtk_widget_show(*image);
 }
 
 void update_line_info_bar(int line)
 {
-	/*
-	gtk_widget_destroy(image_uptex1);
-	gtk_widget_destroy(image_midtex1);
-	gtk_widget_destroy(image_lotex1);
-	gtk_widget_destroy(image_uptex2);
-	gtk_widget_destroy(image_midtex2);
-	gtk_widget_destroy(image_lotex2);
-
-	image_uptex1 = gtk_image_new();
-	image_midtex1 = gtk_image_new();
-	image_lotex1 = gtk_image_new();
-	image_uptex2 = gtk_image_new();
-	image_midtex2 = gtk_image_new();
-	image_lotex2 = gtk_image_new();
-
-	gtk_box_pack_start(GTK_BOX(hbox_side1), image_uptex1, false, false, 0);
-	gtk_box_pack_start(GTK_BOX(hbox_side1), image_midtex1, false, false, 0);
-	gtk_box_pack_start(GTK_BOX(hbox_side1), image_lotex1, false, false, 0);
-	gtk_box_pack_start(GTK_BOX(hbox_side2), image_uptex2, false, false, 0);
-	gtk_box_pack_start(GTK_BOX(hbox_side2), image_midtex2, false, false, 0);
-	gtk_box_pack_start(GTK_BOX(hbox_side2), image_lotex2, false, false, 0);
-	*/
-
-	process_image(&image_uptex1, hbox_side1);
-	process_image(&image_midtex1, hbox_side1);
-	process_image(&image_lotex1, hbox_side1);
-	process_image(&image_uptex2, hbox_side2);
-	process_image(&image_midtex2, hbox_side2);
-	process_image(&image_lotex2, hbox_side2);
+	process_image(&image_uptex1, box_uptex1);
+	process_image(&image_midtex1, box_midtex1);
+	process_image(&image_lotex1, box_lotex1);
+	process_image(&image_uptex2, box_uptex2);
+	process_image(&image_midtex2, box_midtex2);
+	process_image(&image_lotex2, box_lotex2);
 
 	if (line == -1)
 	{
@@ -181,8 +163,11 @@ void update_line_info_bar(int line)
 					parse_string("Length: %d", (int)distance(rect.x1(), rect.y1(), rect.x2(), rect.y2())).c_str());
 	gtk_label_set_text(GTK_LABEL(label_side1), parse_string("Front Side: %d", map.lines[line]->side1).c_str());
 	gtk_label_set_text(GTK_LABEL(label_side2), parse_string("Back Side: %d", map.lines[line]->side2).c_str());
-	gtk_label_set_text(GTK_LABEL(label_special), parse_string("Special: %d", map.lines[line]->type).c_str());
 	gtk_label_set_text(GTK_LABEL(label_tag), parse_string("Sector Tag: %d", map.lines[line]->sector_tag).c_str());
+
+	// Special
+	const char* special = get_special(map.lines[line]->type)->name.c_str();
+	gtk_label_set_text(GTK_LABEL(label_special), parse_string("Special: %d (%s)", map.lines[line]->type, special).c_str());
 
 	// Front Side Frame
 	if (map.lines[line]->side1 != -1)
