@@ -4,13 +4,14 @@
 #include "misc.h"
 #include "editor_window.h"
 
-string cur_ccfg;
+col_config_t	*current;
+string			cur_ccfg;
+
+GtkWidget*		ccfg_combo;
 
 vector<GtkWidget*>	buttons;
 vector<GtkWidget*>	cboxes;
 vector<rgba_t*>		colours;
-
-extern GtkWidget *editor_window;
 
 extern rgba_t col_background;
 extern rgba_t col_hilight;
@@ -39,6 +40,7 @@ void config_changed(GtkWidget *w, gpointer data)
 	set_colour_config(gtk_combo_box_get_active_text(GTK_COMBO_BOX(w)));
 	force_map_redraw(true, true);
 	col_config = gtk_combo_box_get_active_text(GTK_COMBO_BOX(w));
+	current = &colour_configs[gtk_combo_box_get_active(GTK_COMBO_BOX(w))];
 
 	for (int a = 0; a < buttons.size(); a++)
 	{
@@ -134,7 +136,82 @@ GtkWidget *setup_colour_editor(string col_name, rgba_t *col, string name)
 	return hbox;
 }
 
-GtkWidget *setup_ccfg_dialog()
+void populate_config_combo(GtkWidget *combo)
+{
+	int index = 0;
+
+	// clear the combo box
+	GtkTreeIter iter;
+	GtkTreeModel *model = gtk_combo_box_get_model(GTK_COMBO_BOX(combo));
+
+	while (gtk_tree_model_get_iter_first(model, &iter))
+	{
+		gtk_combo_box_remove_text(GTK_COMBO_BOX(combo), index);
+		model = gtk_combo_box_get_model(GTK_COMBO_BOX(combo));
+	}
+
+	index = 0;
+	for (int a = 0; a < colour_configs.size(); a++)
+	{
+		gtk_combo_box_append_text(GTK_COMBO_BOX(combo), colour_configs[a].name.c_str());
+		string ccfg = col_config;
+
+		if (ccfg == colour_configs[a].name)
+		{
+			index = a;
+			current = &colour_configs[a];
+		}
+	}
+
+	gtk_combo_box_set_active(GTK_COMBO_BOX(combo), index);
+}
+
+void new_config_clicked(GtkWidget *w, gpointer data)
+{
+	col_config_t ccfg;
+	ccfg.name = entry_box("Enter Configuration Name");
+
+	if (ccfg.name == "")
+		return;
+
+	ccfg.add("background", col_background);
+	ccfg.add("hilight", col_hilight);
+	ccfg.add("selection", col_selection);
+	ccfg.add("moving", col_moving);
+	ccfg.add("tagged", col_tagged);
+	ccfg.add("vertex", col_vertex);
+	ccfg.add("line_solid", col_line_solid);
+	ccfg.add("line_2s", col_line_2s);
+	ccfg.add("line_monster", col_line_monster);
+	ccfg.add("line_special", col_line_special);
+	ccfg.add("selbox", col_selbox);
+	ccfg.add("selbox_line", col_selbox_line);
+	ccfg.add("grid", col_grid);
+	ccfg.add("64grid", col_64grid);
+	ccfg.add("3d_crosshair", col_3d_crosshair);
+	ccfg.add("3d_hilight", col_3d_hilight);
+	ccfg.add("3d_hilight_line", col_3d_hilight_line);
+
+	ccfg.path = parse_string("config/colours/%s.cfg", ccfg.name.c_str());
+	colour_configs.push_back(ccfg);
+	current = &colour_configs.back();
+	col_config = ccfg.name;
+
+	populate_config_combo(ccfg_combo);
+}
+
+void save_config_clicked(GtkWidget *w, gpointer data)
+{
+	if (current->name == "Default")
+	{
+		message_box("You cannot overwrite the default colour scheme.", GTK_MESSAGE_INFO);
+		return;
+	}
+
+	current->save();
+}
+
+GtkWidget *setup_colours_prefs()
 {
 	buttons.clear();
 	cboxes.clear();
@@ -147,25 +224,11 @@ GtkWidget *setup_ccfg_dialog()
 	gtk_container_set_border_width(GTK_CONTAINER(frame), 4);
 	GtkWidget *vbox = gtk_vbox_new(false, 0);
 	gtk_container_set_border_width(GTK_CONTAINER(vbox), 4);
-	GtkWidget *combo = gtk_combo_box_new_text();
-	int index = 0;
-
-	for (int a = 0; a < colour_configs.size(); a++)
-	{
-		gtk_combo_box_append_text(GTK_COMBO_BOX(combo), colour_configs[a].name.c_str());
-		string ccfg = col_config;
-
-		if (ccfg == colour_configs[a].name)
-		{
-			index = a;
-			cur_ccfg = ccfg;
-		}
-	}
-
-	gtk_combo_box_set_active(GTK_COMBO_BOX(combo), index);
-	g_signal_connect(G_OBJECT(combo), "changed", G_CALLBACK(config_changed), NULL);
+	ccfg_combo = gtk_combo_box_new_text();
+	populate_config_combo(ccfg_combo);
+	g_signal_connect(G_OBJECT(ccfg_combo), "changed", G_CALLBACK(config_changed), NULL);
 	gtk_container_add(GTK_CONTAINER(frame), vbox);
-	gtk_box_pack_start(GTK_BOX(vbox), combo, false, false, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), ccfg_combo, false, false, 0);
 	gtk_box_pack_start(GTK_BOX(ret_vbox), frame, false, false, 0);
 
 	// Colour frames
@@ -199,31 +262,18 @@ GtkWidget *setup_ccfg_dialog()
 	gtk_container_add(GTK_CONTAINER(frame), s_window);
 	gtk_box_pack_start(GTK_BOX(ret_vbox), frame, true, true, 0);
 
+	GtkWidget *hbox = gtk_hbox_new(false, 0);
+	gtk_container_set_border_width(GTK_CONTAINER(hbox), 4);
+	gtk_box_pack_start(GTK_BOX(ret_vbox), hbox, false, false, 0);
+
+	gtk_box_pack_start(GTK_BOX(hbox), gtk_label_new(""), true, true, 0);
+
+	GtkWidget *button = gtk_button_new_with_label("New Config");
+	g_signal_connect(G_OBJECT(button), "clicked", G_CALLBACK(new_config_clicked), NULL);
+	gtk_box_pack_start(GTK_BOX(hbox), button, false, false, 0);
+	button = gtk_button_new_with_label("Save Config");
+	g_signal_connect(G_OBJECT(button), "clicked", G_CALLBACK(save_config_clicked), NULL);
+	gtk_box_pack_start(GTK_BOX(hbox), button, false, false, 4);
+
 	return ret_vbox;
 }
-
-/*
-void open_colour_select_dialog()
-{
-	buttons.clear();
-	colours.clear();
-	cboxes.clear();
-
-	GtkWidget *dialog = gtk_dialog_new_with_buttons("Select Colours Configuration",
-													GTK_WINDOW(editor_window),
-													GTK_DIALOG_MODAL,
-													GTK_STOCK_OK,
-													GTK_RESPONSE_ACCEPT,
-													NULL);
-
-	gtk_container_add(GTK_CONTAINER(GTK_DIALOG(dialog)->vbox), setup_ccfg_dialog());
-	gtk_window_set_position(GTK_WINDOW(dialog), GTK_WIN_POS_CENTER_ON_PARENT);
-	gtk_window_set_default_size(GTK_WINDOW(dialog), -1, 400);
-	gtk_widget_show_all(dialog);
-
-	int response = gtk_dialog_run(GTK_DIALOG(dialog));
-
-	gtk_widget_destroy(dialog);
-	gtk_window_present(GTK_WINDOW(editor_window));
-}
-*/
