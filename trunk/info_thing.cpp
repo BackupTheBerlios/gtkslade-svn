@@ -58,6 +58,9 @@ GtkWidget *get_thing_info_bar()
 	gtk_container_add(GTK_CONTAINER(t_frame_sprite), frame);
 
 	GdkColor color;
+	color.red = 30000;
+	color.green = 30000;
+	color.blue = 30000;
 	t_box_sprite = gtk_event_box_new();
 	gtk_widget_modify_bg(t_box_sprite, GTK_STATE_NORMAL, &color);
 	gtk_container_add(GTK_CONTAINER(frame), t_box_sprite);

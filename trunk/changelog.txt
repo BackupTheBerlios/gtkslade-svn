@@ -8,6 +8,9 @@ Goes in bottom-up order
 -: Removed
 ~: Changed
 
+[02/10/05]
++ Finished the line info bar
+
 [01/10/05]
 + Added borders and backgrounds for textures on the info bar
 + Added thing types and sprites to thing info bar

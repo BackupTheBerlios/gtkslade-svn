@@ -4,6 +4,7 @@
 #include "colours.h"
 #include "misc.h"
 #include "textures.h"
+#include "tex_browser.h"
 #include "editor_window.h"
 
 GtkTextBuffer	*console_log;
@@ -135,6 +136,12 @@ void console_parsecommand()
 		for (int a = 0; a < flats.size(); a++)
 			console_print(flats[a]->name);
 
+		parsed = true;
+	}
+
+	if (token == "tex_browse")
+	{
+		open_texture_browser();
 		parsed = true;
 	}
 

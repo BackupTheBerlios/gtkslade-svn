@@ -27,6 +27,9 @@ extern Map map;
 GtkWidget *get_sector_info_bar()
 {
 	GdkColor color;
+	color.red = 30000;
+	color.green = 30000;
+	color.blue = 30000;
 
 	// Main frame
 	s_frame_main = gtk_frame_new("No Sector Hilighted");

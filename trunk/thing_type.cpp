@@ -139,7 +139,7 @@ void parse_thing_group(Tokenizer *tz)
 			newtype.colour.a = 255;
 			group->things.push_back(newtype);
 
-			console_print(parse_string("Added \"%s\" to group \"%s\"", newtype.name.c_str(), group->name.c_str()));
+			//console_print(parse_string("Added \"%s\" to group \"%s\"", newtype.name.c_str(), group->name.c_str()));
 		}
 
 		token = tz->get_token();
