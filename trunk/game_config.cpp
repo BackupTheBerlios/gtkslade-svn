@@ -1,12 +1,21 @@
+// <<--------------------------------------->>
+// << SLADE - SlayeR's 'LeetAss Doom Editor >>
+// << By Simon Judd, 2004                   >>
+// << ------------------------------------- >>
+// << game_config.cpp - Game config stuff   >>
+// <<--------------------------------------->>
 
+// Includes ------------------------------- >>
 #include "main.h"
 #include "misc.h"
 #include "map.h"
 #include "action_special.h"
 
+// Variables ------------------------------ >>
 vector<string> game_config_paths;
 vector<string> game_config_names;
 
+// External Variables --------------------- >>
 extern WadList wads;
 extern Map map;
 
@@ -113,9 +122,13 @@ void read_types(Tokenizer *mr, bool things, bool lines, bool sectors, bool args)
 	}
 }
 
+// load_game_config: Loads a game configuration
+// ----------------------------------------- >>
 bool load_game_config(int index)
 {
 	wads.get_iwad()->close();
+	clear_action_specials();
+	clear_thing_types();
 
 	if (index > game_config_paths.size())
 	{

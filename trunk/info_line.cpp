@@ -65,6 +65,7 @@ GtkWidget *setup_image_box(GtkWidget **box, string texname, GtkWidget **label)
 
 	*label = gtk_label_new("");
 	gtk_box_pack_start(GTK_BOX(vbox), *label, false, false, 0);
+	gtk_label_set_ellipsize(GTK_LABEL(*label), PANGO_ELLIPSIZE_END);
 
 	return vbox;
 }

@@ -15,3 +15,4 @@ struct action_special_t
 
 void parse_action_group(Tokenizer *tz);
 action_special_t* get_special(int type);
+void clear_action_specials();

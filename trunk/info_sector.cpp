@@ -40,6 +40,7 @@ GtkWidget *get_sector_info_bar()
 	setup_label(&s_label_light, "Light Level:");
 	setup_label(&s_label_tag, "Tag:");
 	setup_label(&s_label_special, "Special:");
+	gtk_label_set_ellipsize(GTK_LABEL(s_label_special), PANGO_ELLIPSIZE_END);
 
 	GtkWidget *vbox = gtk_vbox_new(false, 0);
 	gtk_container_set_border_width(GTK_CONTAINER(vbox), 4);

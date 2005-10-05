@@ -1,10 +1,18 @@
+// <<--------------------------------------->>
+// << SLADE - SlayeR's 'LeetAss Doom Editor >>
+// << By Simon Judd, 2004                   >>
+// << ------------------------------------- >>
+// << draw.cpp - Drawing functions          >>
+// <<--------------------------------------->>
 
+// Includes ------------------------------- >>
 #include "main.h"
 #include "map.h"
 #include "draw.h"
 #include "edit.h"
 #include "edit_move.h"
 
+// Variables ------------------------------ >>
 rgba_t	col_hilight(255, 255, 0, 160, 1);
 rgba_t	col_selection(0, 140, 220, 255, 1);
 rgba_t	col_moving(255, 0, 0, 255, 1);
@@ -35,6 +43,7 @@ float moving_size = 5.0f;
 GLuint map_list;
 GLuint grid_list;
 
+// External Variables --------------------- >>
 extern Map map;
 extern int vid_width, vid_height, hilight_item, edit_mode, gridsize;
 extern float zoom;
@@ -306,6 +315,8 @@ void draw_sectors()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
+// draw_things: Draws the map things
+// ------------------------------ >>
 void draw_things()
 {
 	rgba_t colour;
@@ -656,6 +667,8 @@ void update_map()
 	glEndList();
 }
 
+// draw_map: Draws the map
+// -------------------- >>
 void draw_map()
 {
 	glClearColor(col_background.fr(), col_background.fg(), col_background.fb(), 1.0f);

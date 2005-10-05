@@ -1,9 +1,19 @@
+// <<--------------------------------------->>
+// << SLADE - SlayeR's 'LeetAss Doom Editor >>
+// << By Simon Judd, 2004                   >>
+// << ------------------------------------- >>
+// << keybind.cpp - Key bindings            >>
+// <<--------------------------------------->>
 
+// Includes ------------------------------- >>
 #include "main.h"
 #include "keybind.h"
 
+// Variables ------------------------------ >>
 BindList binds;
 
+// set_defaults: Sets the default key bindings
+// ---------------------------------------- >>
 void BindList::set_defaults()
 {
 	binds.add("view_up", "Up");
@@ -110,6 +120,8 @@ void BindList::set_defaults()
 	binds.add("open_console", "grave");
 }
 
+// add: Adds a key binding to the bind list
+// ------------------------------------- >>
 void BindList::add(string name, string key)
 {
 	keybind_t newkey;
@@ -120,6 +132,8 @@ void BindList::add(string name, string key)
 	keys.push_back(newkey);
 }
 
+// pressed: Returns wether a key is pressed
+// ------------------------------------- >>
 bool BindList::pressed(string name)
 {
 	for (int a = 0; a < keys.size(); a++)
@@ -131,6 +145,8 @@ bool BindList::pressed(string name)
 	return false;
 }
 
+// set: 'Presses' a key
+// ----------------- >>
 void BindList::set(string key)
 {
 	for (int a = 0; a < keys.size(); a++)
@@ -144,6 +160,8 @@ void BindList::set(string key)
 	}
 }
 
+// unset: 'Releases' a key
+// -------------------- >>
 void BindList::unset(string key)
 {
 	guint nkey = 0;
@@ -160,6 +178,8 @@ void BindList::unset(string key)
 	}
 }
 
+// clear: Clears a bind (wether the key is pressed or not
+// --------------------------------------------------- >>
 void BindList::clear(string name)
 {
 	for (int a = 0; a < keys.size(); a++)
@@ -172,6 +192,8 @@ void BindList::clear(string name)
 	}
 }
 
+// clear_all: Clears all binds
+// ------------------------ >>
 void BindList::clear_all()
 {
 	for (int a = 0; a < keys.size(); a++)

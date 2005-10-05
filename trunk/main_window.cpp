@@ -1,13 +1,14 @@
 
-// INCLUDES ------------------------------ >>
+// Includes ------------------------------ >>
 #include "main.h"
 #include "misc.h"
 #include "game_config.h"
 #include "map.h"
 #include "editor_window.h"
 #include "textures.h"
+#include "console_window.h"
 
-// VARIABLES ----------------------------- >>
+// Variables ----------------------------- >>
 GtkListStore	*wads_store;
 GtkListStore	*maps_store;
 Wad*			selected_wad;
@@ -16,7 +17,7 @@ bool			game_changed = true;
 
 CVAR(String, game_config, "Doom 2", CVAR_SAVE)
 
-// EXTERNAL VARIABLES -------------------- >>
+// External Variables -------------------- >>
 extern WadList wads;
 extern vector<string> game_config_paths;
 extern vector<string> game_config_names;
@@ -186,10 +187,12 @@ void new_standalone_click()
 
 		if (game_changed)
 		{
+			popup_console();
 			load_flats();
 			load_textures();
 			load_sprites();
 			game_changed = false;
+			hide_console();
 		}
 	}
 }
@@ -263,10 +266,12 @@ void maps_list_activated(GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewCo
 	
 	if (game_changed)
 	{
+		popup_console();
 		load_flats();
 		load_textures();
 		load_sprites();
 		game_changed = false;
+		hide_console();
 	}
 
 	g_free(mapname);

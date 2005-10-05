@@ -8,7 +8,12 @@ Goes in bottom-up order
 -: Removed
 ~: Changed
 
+[05/15/05]
++ Started on thing edit dialog
+
 [02/10/05]
+~ Changed default interpolation to bilinear
+* Transparency now loads correctly (I was setting the default palette entry to 0 instead of 247)
 + Finished the line info bar
 
 [01/10/05]

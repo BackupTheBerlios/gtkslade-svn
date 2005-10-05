@@ -1,6 +1,6 @@
 
 #include "main.h"
-#include "textures.h"
+#include "tex_box.h"
 
 extern GtkWidget *editor_window;
 

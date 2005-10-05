@@ -1,4 +1,11 @@
+// <<--------------------------------------->>
+// << SLADE - SlayeR's 'LeetAss Doom Editor >>
+// << By Simon Judd, 2004                   >>
+// << ------------------------------------- >>
+// << input.cpp - Input stuff               >>
+// <<--------------------------------------->>
 
+// Includes ------------------------------- >>
 #include "main.h"
 #include "keybind.h"
 #include "editor_window.h"
@@ -6,7 +13,9 @@
 #include "map.h"
 #include "undoredo.h"
 #include "line_edit.h"
+#include "thing_edit.h"
 
+// External Variables --------------------- >>
 extern BindList binds;
 extern Map map;
 
@@ -38,9 +47,7 @@ void edit_item()
 		return;
 
 	if (edit_mode == 1)
-	{
 		open_line_edit();
-	}
 
 	/*
 	if (edit_mode == 2)
@@ -48,16 +55,10 @@ void edit_item()
 		open_menu = MENU_SECTORMAIN;
 		max_item = sector_options.n_strings - 1;
 	}
+	*/
 
 	if (edit_mode == 3)
-	{
-		open_menu = MENU_THINGMAIN;
-		max_item = thing_options.n_strings - 1;
-	}
-
-	menu = true;
-	sel_item = 0;
-	*/
+		open_thing_edit();
 }
 
 // keys_edit: Keys for the 2d editor

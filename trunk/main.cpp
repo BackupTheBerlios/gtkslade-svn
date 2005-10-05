@@ -1,4 +1,11 @@
+// << ------------------------------------ >>
+// << SLADE - SlayeR's LeetAss Doom Editor >>
+// << By Simon Judd, 2004-05               >>
+// << ------------------------------------ >>
+// << main.cpp - Main stuff                >>
+// << ------------------------------------ >>
 
+// Includes ------------------------------ >>
 #include "main.h"
 #include "map.h"
 #include "main_window.h"
@@ -7,8 +14,10 @@
 #include "colours.h"
 #include "textures.h"
 
+// Variables ----------------------------- >>
 CVAR(String, col_config, "Default", CVAR_SAVE)
 
+// External Variables -------------------- >>
 extern WadList wads;
 extern Map map;
 extern GtkWidget *editor_window;

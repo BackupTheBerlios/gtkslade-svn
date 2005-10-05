@@ -18,3 +18,4 @@ struct thing_type_t
 
 void parse_thing_group(Tokenizer *tz);
 thing_type_t* get_thing_type(int type);
+void clear_thing_types();

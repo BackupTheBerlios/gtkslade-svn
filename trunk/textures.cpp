@@ -23,16 +23,39 @@ Texture::Texture()
 	this->width = 0;
 	this->height = 0;
 	this->bpp = 8;
-	//this->pbuf = NULL;
 }
 
 Texture::~Texture()
 {
 	if (data)
 		free(data);
+}
 
-	//if (pbuf)
-	//	free(pbuf);
+void clear_textures(int type)
+{
+	if (type == 1)
+	{
+		for (int a = 0; a < textures.size(); a++)
+			delete textures[a];
+
+		textures.clear();
+	}
+
+	if (type == 2)
+	{
+		for (int a = 0; a < flats.size(); a++)
+			delete flats[a];
+
+		flats.clear();
+	}
+
+	if (type == 3)
+	{
+		for (int a = 0; a < sprites.size(); a++)
+			delete sprites[a];
+
+		sprites.clear();
+	}
 }
 
 void destroy_pb(guchar *pixels, gpointer data)
@@ -53,7 +76,11 @@ GdkPixbuf* Texture::get_pbuf()
 			temp[p++] = palette[data[a]].r;
 			temp[p++] = palette[data[a]].g;
 			temp[p++] = palette[data[a]].b;
-			temp[p++] = palette[data[a]].a;
+
+			if (has_alpha)
+				temp[p++] = palette[data[a]].a;
+			else
+				temp[p++] = 255;
 		}
 
 		return gdk_pixbuf_new_from_data(temp, GDK_COLORSPACE_RGB, true,
@@ -83,9 +110,9 @@ GdkPixbuf* Texture::get_pbuf_scale(float scale, GdkInterpType interp)
 	return ret;
 }
 
-GdkPixbuf* Texture::get_pbuf_scale_fit(int w, int h, float scaling)
+GdkPixbuf* Texture::get_pbuf_scale_fit(int w, int h, float scaling, GdkInterpType interp)
 {
-	GdkPixbuf *original = get_pbuf_scale(scaling);
+	GdkPixbuf *original = get_pbuf_scale(scaling, interp);
 	float scale;
 
 	int swidth = width * scaling;
@@ -116,11 +143,14 @@ GdkPixbuf* Texture::get_pbuf_scale_fit(int w, int h, float scaling)
 	}
 	else if (swidth == sheight)
 	{
-		n_width = d;
-		n_height = d;
+		if (swidth > d)
+		{
+			n_width = d;
+			n_height = d;
+		}
 	}
 
-	GdkPixbuf *ret = gdk_pixbuf_scale_simple(original, n_width, n_height, GDK_INTERP_NEAREST);
+	GdkPixbuf *ret = gdk_pixbuf_scale_simple(original, n_width, n_height, interp);
 	g_object_unref(original);
 	return ret;
 }
@@ -128,7 +158,7 @@ GdkPixbuf* Texture::get_pbuf_scale_fit(int w, int h, float scaling)
 Texture* get_texture(string name, int type)
 {
 	// Search textures
-	if (type == 0 || type == 1)
+	if (type == 0 || type == TEXTURES_WALLS)
 	{
 		for (int a = 0; a < textures.size(); a++)
 		{
@@ -138,7 +168,7 @@ Texture* get_texture(string name, int type)
 	}
 
 	// Search flats
-	if (type == 0 || type == 2)
+	if (type == 0 || type == TEXTURES_FLATS)
 	{
 		for (int a = 0; a < flats.size(); a++)
 		{
@@ -148,7 +178,7 @@ Texture* get_texture(string name, int type)
 	}
 	
 	// Search sprites
-	if (type == 0 || type == 3)
+	if (type == 0 || type == TEXTURES_SPRITES)
 	{
 		for (int a = 0; a < sprites.size(); a++)
 		{
@@ -158,7 +188,7 @@ Texture* get_texture(string name, int type)
 	}
 
 	// Search editor textures
-	if (type == 0 || type == 4)
+	if (type == 0 || type == TEXTURES_EDITOR)
 	{
 		for (int a = 0; a < edit_textures.size(); a++)
 		{
@@ -179,10 +209,24 @@ void init_textures()
 	{
 		for (int y = 0; y < 128; y++)
 		{
-			rgba_t col;
-			col.set(255, 0, 0, 255);
+			rgba_t col1, col2;
+			col1.set(255, 0, 0, 255);
+			col2.set(0, 0, 0, 255);
 
-			no_tex.add_pixel(x, y, col);
+			if ((x / 8) % 2 == 0)
+			{
+				if ((y / 8) % 2 == 0)
+					no_tex.add_pixel(x, y, col1);
+				else
+					no_tex.add_pixel(x, y, col2);
+			}
+			else
+			{
+				if ((y / 8) % 2 == 0)
+					no_tex.add_pixel(x, y, col2);
+				else
+					no_tex.add_pixel(x, y, col1);
+			}
 		}
 	}
 }
@@ -202,6 +246,7 @@ void read_palette(Wad* wad)
 		fread(&palette[c].b, 1, 1, fp);
 		palette[c].a = 255;
 	}
+	fclose(fp);
 
 	palette[247].a = 0;
 }
@@ -335,15 +380,9 @@ void load_textures_lump(Wad* wad, Lump *lump)
 		fread(&height, 2, 1, fp);
 
 		// Add texture
-		//tex_list.add_tex(texname, width, height, true, false);
-		//tex_list.init_tex_data();
-		//texture_t *tex = tex_list.get_last();
-		//printf("Added texture %s\n", texname);
 		Texture *tex = new Texture();
 		tex->setup(texname, 8, width, height);
 		textures.push_back(tex);
-		//console_print(parse_string("Loading texture %s", texname));
-		//wait_gtk_events();
 
 		// Skip more unused stuff
 		fread(&temp, 4, 1, fp);
@@ -373,14 +412,12 @@ void load_textures_lump(Wad* wad, Lump *lump)
 				patchlump = wad->get_lump(pnames[patch], wad->patches[START]);
 
 			if (patchlump)
-				//printf("poo\n");
 				add_patch_to_tex(xoff, yoff, wad, patchlump, tex);
 			else
 			{
 				patchlump = iwad->get_lump(pnames[patch], iwad->patches[START]);
 
 				if (patchlump)
-					//printf("poo\n");
 					add_patch_to_tex(xoff, yoff, iwad, patchlump, tex);
 				else
 				{
@@ -389,8 +426,6 @@ void load_textures_lump(Wad* wad, Lump *lump)
 				}
 			}
 		}
-
-		//tex_list.create_tex(gl_filter, 0);
 	}
 
 	hide_progress();
@@ -401,10 +436,7 @@ void load_textures_lump(Wad* wad, Lump *lump)
 // ---------------------------------------------------------------------------------- >>
 void load_textures()
 {
-	for (int a = 0; a < textures.size(); a++)
-		delete textures[a];
-
-	textures.clear();
+	clear_textures(1);
 
 	// Read the palette
 	read_palette(wads.get_wad_with_lump("PLAYPAL"));
@@ -412,9 +444,7 @@ void load_textures()
 	// Get the wad with TEXTURE1
 	Wad* tex_wad = wads.get_wad_with_lump("TEXTURE1");
 
-	//print(true, "Loading textures from %s\n", tex_wad->path.c_str());
 	// Console stuff
-	popup_console();
 	console_print("Loading textures...");
 	wait_gtk_events();
 
@@ -429,11 +459,6 @@ void load_textures()
 		load_textures_lump(tex_wad, tex_wad->get_lump("TEXTURE2", 0));
 
 	console_print("Done");
-	hide_console();
-
-	// Test memory usage
-	for (int a = 0; a < textures.size(); a++)
-		textures[a]->get_pbuf();
 
 	/*
 	Wad* htexwad = wads.get_wad_with_lump("HIRESTEX");
@@ -463,7 +488,7 @@ void load_flats_wad(Wad* wad)
 			if (tex->name == "_notex")
 			{
 				tex = new Texture();
-				tex->setup(wad->directory[lump]->Name(), 8, 64, 64);
+				tex->setup(wad->directory[lump]->Name(), 8, 64, 64, false);
 				flats.push_back(tex);
 			}
 
@@ -488,7 +513,7 @@ void load_flats_wad(Wad* wad)
 // --------------------------------------------------------------------- >>
 void load_flats()
 {
-	popup_console();
+	clear_textures(2);
 	console_print("Loading flats...");
 	wait_gtk_events();
 
@@ -506,7 +531,6 @@ void load_flats()
 	}
 
 	console_print("Done");
-	hide_console();
 }
 
 // load_sprite: Loads a sprite to a texture
@@ -539,11 +563,6 @@ void load_sprite(Wad* wad, string name)
 	columns = (long *)calloc(header.width, sizeof(long));
 	fread(columns, sizeof(long), header.width, fp);
 
-	/*
-	tex_list.add_tex(name, header.width, header.height, false, false);
-	tex_list.init_tex_data();
-	texture_t *tex = tex_list.get_last();
-	*/
 	// Create the texture
 	Texture *tex = get_texture(patch->Name(), 3);
 	if (tex->name == "_notex")
@@ -590,6 +609,7 @@ void load_sprite(Wad* wad, string name)
 // ------------------------------------------- >>
 void load_sprites()
 {
+	clear_textures(3);
 	console_print("Loading sprites...");
 	show_progress();
 

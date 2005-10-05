@@ -6,6 +6,7 @@ private:
 	WORD		height;
 	BYTE		bpp;
 	BYTE		*data;
+	bool		has_alpha;
 	//GdkPixbuf	*pbuf;
 
 public:
@@ -14,17 +15,18 @@ public:
 	Texture();
 	~Texture();
 
-	void setup(string name, BYTE bpp, int width, int height)
+	void setup(string name, BYTE bpp, int width, int height, bool has_alpha = true)
 	{
 		this->width = width;
 		this->height = height;
 		this->bpp = bpp;
 		this->name = name;
+		this->has_alpha = has_alpha;
 
 		if (bpp == 8)
 		{
 			data = (BYTE*)malloc(width * height);
-			memset(data, 0, width * height);
+			memset(data, 247, width * height);
 		}
 
 		if (bpp == 32)
@@ -42,7 +44,7 @@ public:
 		if (y < 0 || y >= height)
 			return;
 
-		DWORD p = ((y * (width)) + x);
+		DWORD p = (y * (width)) + x;
 
 		data[p] = colour;
 	}
@@ -64,8 +66,8 @@ public:
 	}
 
 	GdkPixbuf* get_pbuf();
-	GdkPixbuf* get_pbuf_scale(float scale = 1.0f, GdkInterpType interp = GDK_INTERP_NEAREST);
-	GdkPixbuf* get_pbuf_scale_fit(int w, int h, float scaling = 1.0f);
+	GdkPixbuf* get_pbuf_scale(float scale = 1.0f, GdkInterpType interp = GDK_INTERP_BILINEAR);
+	GdkPixbuf* get_pbuf_scale_fit(int w, int h, float scaling = 1.0f, GdkInterpType interp = GDK_INTERP_BILINEAR);
 };
 
 void load_textures();
@@ -73,3 +75,9 @@ Texture* get_texture(string name, int type = 0);
 void init_textures();
 void load_flats();
 void load_sprites();
+
+#define TEXTURES_WALLS		1
+#define	TEXTURES_FLATS		2
+#define TEXTURES_SPRITES	3
+#define TEXTURES_EDITOR		4
+

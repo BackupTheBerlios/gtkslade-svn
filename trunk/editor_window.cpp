@@ -1,4 +1,12 @@
+// <<--------------------------------------->>
+// << SLADE - SlayeR's 'LeetAss Doom Editor >>
+// << By Simon Judd, 2004                   >>
+// << ------------------------------------- >>
+// << editor_window.cpp - Editor window     >>
+// << functions                             >>
+// <<--------------------------------------->>
 
+// Includes ------------------------------- >>
 #include "main.h"
 #include "map.h"
 #include "draw.h"
@@ -10,10 +18,10 @@
 #include "input.h"
 #include "linedraw.h"
 #include "info_bar.h"
-//#include "col_cfg_dialog.h"
 #include "prefs_dialog.h"
 #include "misc.h"
 
+// Variables ------------------------------ >>
 GtkWidget	*editor_window = NULL;
 GtkWidget	*map_area = NULL;
 GdkPixmap	*pixmap = NULL;
@@ -26,6 +34,7 @@ point2_t mouse;
 int vid_width;
 int vid_height;
 
+// External Variables --------------------- >>
 extern Map map;
 extern int hilight_item, edit_mode;
 extern BindList binds;
@@ -337,12 +346,17 @@ gboolean key_release_event(GtkWidget *widget, GdkEventKey *event, gpointer data)
 	return false;
 }
 
+// destroy: Called when the editor window is closed
+// --------------------------------------------- >>
 static void destroy(GtkWidget *widget, gpointer data)
 {
     gtk_main_quit();
 }
 
 // MENU STUFF
+
+// menu_action: Called when a menu/toolbar item is selected
+// ----------------------------------------------------- >>
 static void menu_action(GtkAction *action)
 {
 	string act = gtk_action_get_name(action);
@@ -513,6 +527,10 @@ static const gchar *ui_info =
 "  </toolbar>"
 "</ui>";
 
+// tbar_keypress: Custom handler for keypresses on the toolbar (prevents them)
+// if I don't prevent them, pressing the arrow keys to move around the map
+// will select different toolbar items, and we don't want that :P
+// ------------------------------------------------------------------------ >>
 gboolean tbar_keypress(GtkWidget *widget, GdkEventKey *event, gpointer data)
 {
 	return true;
@@ -609,6 +627,8 @@ void setup_editor_window()
 	gtk_widget_show_all(editor_window);
 }
 
+// open_map: Opens a map to edit, if wad is NULL then it's a new/standalone map
+// ------------------------------------------------------------------------- >>
 void open_map(Wad* wad, string mapname)
 {
 	if (wad)

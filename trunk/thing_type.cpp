@@ -18,6 +18,18 @@ struct thing_group_t
 
 vector<thing_group_t*>	thing_types;
 
+void clear_thing_types()
+{
+	for (int a = 0; a < thing_types.size(); a++)
+	{
+		thing_types[a]->things.clear();
+		free(thing_types[a]);
+	}
+	
+	thing_types.clear();
+	spritenames.clear();
+}
+
 thing_type_t::thing_type_t(int type, string name)
 {
 	this->type = type;

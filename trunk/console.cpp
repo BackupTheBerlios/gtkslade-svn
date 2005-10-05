@@ -1,4 +1,11 @@
+// << ------------------------------------ >>
+// << SLADE - SlayeR's LeetAss Doom Editor >>
+// << By Simon Judd, 2004-05               >>
+// << ------------------------------------ >>
+// << console.cpp - Console functions      >>
+// << ------------------------------------ >>
 
+// Includes ------------------------------ >>
 #include "main.h"
 #include "console.h"
 #include "colours.h"
@@ -7,13 +14,17 @@
 #include "tex_browser.h"
 #include "editor_window.h"
 
+// Variables ----------------------------- >>
 GtkTextBuffer	*console_log;
 string			cmd_line;
 vector<string>	cmd_history;
 
+// External Variables -------------------- >>
 extern vector<Texture*>	textures;
 extern vector<Texture*>	flats;
 
+// init_console: Initialises the console
+// ---------------------------------- >>
 void init_console()
 {
 	console_log = gtk_text_buffer_new(NULL);
@@ -29,6 +40,8 @@ void init_console()
 	console_print("<< ------------------------------------------------------------------ >>\n\n");
 }
 
+// console_print: Prints a message to the console
+// ------------------------------------------- >>
 void console_print(string message)
 {
 	if (message[message.size() - 1] != '\n')
@@ -39,6 +52,8 @@ void console_print(string message)
 	gtk_text_buffer_insert(console_log, &end, message.c_str(), -1);
 }
 
+// console_parsecommand: Parses the current console command
+// ----------------------------------------------------- >>
 void console_parsecommand()
 {
 	if (cmd_line == "")
@@ -126,6 +141,15 @@ void console_parsecommand()
 			sprintf(temp, "\"%s\"", l_cvars[s].c_str());
 			console_print(temp);
 		}
+
+		parsed = true;
+	}
+
+	// "dump_textures" command
+	if (token == "dump_textures")
+	{
+		for (int a = 0; a < textures.size(); a++)
+			console_print(textures[a]->name);
 
 		parsed = true;
 	}

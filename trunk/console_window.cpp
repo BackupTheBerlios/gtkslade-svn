@@ -1,12 +1,22 @@
+// << ------------------------------------ >>
+// << SLADE - SlayeR's LeetAss Doom Editor >>
+// << By Simon Judd, 2004-05               >>
+// << ------------------------------------ >>
+// << console_window.cpp - Console window  >>
+// << functions                            >>
+// << ------------------------------------ >>
 
+// Includes ------------------------------ >>
 #include "main.h"
 #include "console.h"
 
+// Variables ----------------------------- >>
 GtkWidget	*console_window;
 GtkWidget	*s_window;
 GtkWidget	*progress;
 bool		showprogress = false;
 
+// External Variables -------------------- >>
 extern GtkTextBuffer *console_log;
 extern string cmd_line;
 

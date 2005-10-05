@@ -17,6 +17,17 @@ struct action_group_t
 
 vector<action_group_t*>	action_specials;
 
+void clear_action_specials()
+{
+	for (int a = 0; a < action_specials.size(); a++)
+	{
+		action_specials[a]->actions.clear();
+		free(action_specials[a]);
+	}
+	
+	action_specials.clear();
+}
+
 action_special_t::action_special_t(string name)
 {
 	type = 0;
