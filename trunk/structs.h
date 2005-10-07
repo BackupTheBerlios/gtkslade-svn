@@ -41,6 +41,16 @@ struct rgba_t
 	float fb() { return (float)b / 255.0f; }
 	float fa() { return (float)a / 255.0f; }
 
+	GdkColor to_gdk_color()
+	{
+		GdkColor ret;
+		ret.red = r * 256;
+		ret.green = g * 256;
+		ret.blue = b * 256;
+
+		return ret;
+	}
+
 	void set_blend()
 	{
 		if (blend == 0)

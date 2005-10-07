@@ -4,6 +4,7 @@
 #include "misc.h"
 #include "checks.h"
 #include "editor_window.h"
+#include "line_edit.h"
 
 linedef_t line;
 
@@ -66,14 +67,23 @@ void flag_click(GtkWidget *w, gpointer data)
 	}
 }
 
-GtkWidget* setup_flag_checkbox(string name, int flag)
+GtkWidget* setup_flag_checkbox(string name, int type, int flag)
 {
 	GtkWidget *cbox = gtk_check_button_new_with_label(name.c_str());
 
 	if (selected_items.size() == 0 && hilight_item != -1)
 	{
-		if (map.lines[hilight_item]->flags & flag)
-			gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(cbox), true);
+		if (type == 1)
+		{
+			if (map.lines[hilight_item]->flags & flag)
+				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(cbox), true);
+		}
+
+		if (type == 2)
+		{
+			if (map.things[hilight_item]->flags & flag)
+				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(cbox), true);
+		}
 	}
 	else
 	{
@@ -81,8 +91,17 @@ GtkWidget* setup_flag_checkbox(string name, int flag)
 
 		for (int a = 0; a < selected_items.size(); a++)
 		{
-			if (map.lines[selected_items[a]]->flags & flag)
-				count++;
+			if (type == 1)
+			{
+				if (map.lines[selected_items[a]]->flags & flag)
+					count++;
+			}
+
+			if (type == 2)
+			{
+				if (map.things[selected_items[a]]->flags & flag)
+					count++;
+			}
 		}
 
 		if (count > 0)
@@ -117,23 +136,23 @@ GtkWidget* setup_line_edit_props()
 	GtkWidget *hbox = gtk_hbox_new(false, 0);
 	gtk_container_set_border_width(GTK_CONTAINER(hbox), 4);
 	GtkWidget *vbox = gtk_vbox_new(false, 0);
-	gtk_box_pack_start(GTK_BOX(vbox), setup_flag_checkbox("Impassible", LINE_IMPASSIBLE), false, false, 0);
-	gtk_box_pack_start(GTK_BOX(vbox), setup_flag_checkbox("Blocks Monsters", LINE_BLOCKMONSTERS), false, false, 0);
-	gtk_box_pack_start(GTK_BOX(vbox), setup_flag_checkbox("Two Sided", LINE_TWOSIDED), false, false, 0);
-	gtk_box_pack_start(GTK_BOX(vbox), setup_flag_checkbox("Upper Texture Unpegged", LINE_UPPERUNPEGGED), false, false, 0);
-	gtk_box_pack_start(GTK_BOX(vbox), setup_flag_checkbox("Lower Texture Unpegged", LINE_LOWERUNPEGGED), false, false, 0);
-	gtk_box_pack_start(GTK_BOX(vbox), setup_flag_checkbox("Secret (Shown as 1S on Map)", LINE_SECRET), false, false, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), setup_flag_checkbox("Impassible", 1, LINE_IMPASSIBLE), false, false, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), setup_flag_checkbox("Blocks Monsters", 1, LINE_BLOCKMONSTERS), false, false, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), setup_flag_checkbox("Two Sided", 1, LINE_TWOSIDED), false, false, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), setup_flag_checkbox("Upper Texture Unpegged", 1, LINE_UPPERUNPEGGED), false, false, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), setup_flag_checkbox("Lower Texture Unpegged", 1, LINE_LOWERUNPEGGED), false, false, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), setup_flag_checkbox("Secret (Shown as 1S on Map)", 1, LINE_SECRET), false, false, 0);
 	gtk_box_pack_start(GTK_BOX(hbox), vbox, false, false, 0);
 
 	vbox = gtk_vbox_new(false, 0);
-	gtk_box_pack_start(GTK_BOX(vbox), setup_flag_checkbox("Blocks Sound", LINE_BLOCKSOUND), false, false, 0);
-	gtk_box_pack_start(GTK_BOX(vbox), setup_flag_checkbox("Doesn't Show On Map", LINE_NOTONMAP), false, false, 0);
-	gtk_box_pack_start(GTK_BOX(vbox), setup_flag_checkbox("Starts On Map", LINE_STARTONMAP), false, false, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), setup_flag_checkbox("Blocks Sound", 1, LINE_BLOCKSOUND), false, false, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), setup_flag_checkbox("Doesn't Show On Map", 1, LINE_NOTONMAP), false, false, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), setup_flag_checkbox("Starts On Map", 1, LINE_STARTONMAP), false, false, 0);
 	if (map.hexen)
 	{
-		gtk_box_pack_start(GTK_BOX(vbox), setup_flag_checkbox("Repeatable Special", LINE_REPEATABLE), false, false, 0);
-		gtk_box_pack_start(GTK_BOX(vbox), setup_flag_checkbox("Monsters Can Activate", LINE_MONSTERCANACT), false, false, 0);
-		gtk_box_pack_start(GTK_BOX(vbox), setup_flag_checkbox("Blocks Everything", LINE_BLOCKALL), false, false, 0);
+		gtk_box_pack_start(GTK_BOX(vbox), setup_flag_checkbox("Repeatable Special", 1, LINE_REPEATABLE), false, false, 0);
+		gtk_box_pack_start(GTK_BOX(vbox), setup_flag_checkbox("Monsters Can Activate", 1, LINE_MONSTERCANACT), false, false, 0);
+		gtk_box_pack_start(GTK_BOX(vbox), setup_flag_checkbox("Blocks Everything", 1, LINE_BLOCKALL), false, false, 0);
 	}
 	gtk_box_pack_start(GTK_BOX(hbox), vbox, true, false, 0);
 
@@ -213,11 +232,11 @@ GtkWidget* setup_line_edit()
 								setup_line_edit_props(),
 								gtk_label_new("Properties"));
 
-	GtkWidget *temp = gtk_label_new("Front Side");
-	gtk_notebook_append_page(GTK_NOTEBOOK(tabs), temp, gtk_label_new("Side 1"));
+	//GtkWidget *temp = gtk_label_new("Front Side");
+	gtk_notebook_append_page(GTK_NOTEBOOK(tabs), setup_side_edit(1), gtk_label_new("Side 1"));
 
-	temp = gtk_label_new("Back Side");
-	gtk_notebook_append_page(GTK_NOTEBOOK(tabs), temp, gtk_label_new("Side 2"));
+	//temp = gtk_label_new("Back Side");
+	gtk_notebook_append_page(GTK_NOTEBOOK(tabs), setup_side_edit(2), gtk_label_new("Side 2"));
 
 	return tabs;
 }

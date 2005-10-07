@@ -3,7 +3,7 @@
 #include "info_bar.h"
 #include "map.h"
 #include "misc.h"
-#include "textures.h"
+#include "tex_box.h"
 
 GtkWidget *t_frame_main = NULL;
 GtkWidget *t_frame_sprite = NULL;
@@ -16,8 +16,7 @@ GtkWidget *t_label_diff = NULL;
 GtkWidget *t_label_deaf = NULL;
 GtkWidget *t_label_multi = NULL;
 
-GtkWidget *t_box_sprite = NULL;
-GtkWidget *t_image_sprite = NULL;
+tex_box_t *t_tbox_sprite = NULL;
 
 extern Map map;
 
@@ -57,31 +56,15 @@ GtkWidget *get_thing_info_bar()
 	gtk_container_set_border_width(GTK_CONTAINER(frame), 4);
 	gtk_container_add(GTK_CONTAINER(t_frame_sprite), frame);
 
-	GdkColor color;
-	color.red = 30000;
-	color.green = 30000;
-	color.blue = 30000;
-	t_box_sprite = gtk_event_box_new();
-	gtk_widget_modify_bg(t_box_sprite, GTK_STATE_NORMAL, &color);
-	gtk_container_add(GTK_CONTAINER(frame), t_box_sprite);
+	t_tbox_sprite = new tex_box_t("", 3, 1.5f, rgba_t(180, 180, 180, 255, 0));
+	t_tbox_sprite->set_size(96, 96);
+	gtk_container_add(GTK_CONTAINER(frame), t_tbox_sprite->widget);
 
 	return hbox;
 }
 
 void update_thing_info_bar(int thing)
 {
-	GdkPixbuf *pbuf = gtk_image_get_pixbuf(GTK_IMAGE(t_image_sprite));
-
-	gtk_widget_destroy(t_image_sprite);
-
-	if (pbuf)
-		g_object_unref(pbuf);
-
-	t_image_sprite = gtk_image_new();
-	gtk_widget_set_size_request(t_image_sprite, 96, 96);
-	gtk_container_add(GTK_CONTAINER(t_box_sprite), t_image_sprite);
-	gtk_widget_show(t_image_sprite);
-
 	if (thing == -1)
 	{
 		gtk_frame_set_label(GTK_FRAME(t_frame_main), "No Thing Hilighted");
@@ -94,6 +77,8 @@ void update_thing_info_bar(int thing)
 		gtk_label_set_text(GTK_LABEL(t_label_diff), "Difficulty:");
 		gtk_label_set_text(GTK_LABEL(t_label_deaf), "Deaf:");
 		gtk_label_set_text(GTK_LABEL(t_label_multi), "Multiplayer:");
+
+		t_tbox_sprite->change_texture("");
 
 		return;
 	}
@@ -112,5 +97,5 @@ void update_thing_info_bar(int thing)
 	gtk_label_set_text(GTK_LABEL(t_label_deaf), parse_string("Deaf: %s", bool_yesno(t->flags & THING_DEAF).c_str()).c_str());
 	gtk_label_set_text(GTK_LABEL(t_label_multi), parse_string("Multiplayer: %s", bool_yesno(t->flags & THING_MULTI).c_str()).c_str());
 
-	gtk_image_set_from_pixbuf(GTK_IMAGE(t_image_sprite), get_texture(t->ttype->spritename, 3)->get_pbuf_scale_fit(96, 96, 1.5f));
+	t_tbox_sprite->change_texture(t->ttype->spritename, 3, 1.5f);
 }

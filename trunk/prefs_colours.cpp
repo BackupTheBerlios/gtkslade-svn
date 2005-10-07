@@ -30,6 +30,7 @@ extern rgba_t col_64grid;
 extern rgba_t col_3d_crosshair;
 extern rgba_t col_3d_hilight;
 extern rgba_t col_3d_hilight_line;
+extern rgba_t col_linedraw;
 
 extern vector<col_config_t> colour_configs;
 
@@ -184,6 +185,7 @@ void new_config_clicked(GtkWidget *w, gpointer data)
 	ccfg.add("line_2s", col_line_2s);
 	ccfg.add("line_monster", col_line_monster);
 	ccfg.add("line_special", col_line_special);
+	ccfg.add("linedraw", col_linedraw);
 	ccfg.add("selbox", col_selbox);
 	ccfg.add("selbox_line", col_selbox_line);
 	ccfg.add("grid", col_grid);
@@ -250,6 +252,7 @@ GtkWidget *setup_colours_prefs()
 	gtk_box_pack_start(GTK_BOX(vbox), setup_colour_editor("line_2s", &col_line_2s, "2 Sided Lines"), true, true, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), setup_colour_editor("line_monster", &col_line_monster, "Monster Blocking Lines"), true, true, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), setup_colour_editor("line_special", &col_line_special, "Special Lines"), true, true, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), setup_colour_editor("linedraw", &col_linedraw, "Line-Draw Lines"), true, true, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), setup_colour_editor("selbox", &col_selbox, "Selection Box"), true, true, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), setup_colour_editor("selbox_line", &col_selbox_line, "Selection Box Outline"), true, true, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), setup_colour_editor("grid", &col_grid, "Grid"), true, true, 0);

@@ -178,7 +178,7 @@ void close_all_click()
 
 void new_standalone_click()
 {
-	string mapname = entry_box("Enter map name");
+	string mapname = str_upper(entry_box("Enter map name"));
 
 	if (mapname != "")
 	{

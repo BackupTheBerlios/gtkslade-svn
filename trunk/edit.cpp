@@ -661,6 +661,9 @@ void sector_changeheight(bool floor, int amount)
 		}
 	}
 
+	if (hilight_item != -1)
+		update_sector_info_bar(hilight_item);
+
 	map_changelevel(2);
 }
 
@@ -906,6 +909,7 @@ void create_thing()
 {
 	make_backup(false, false, false, false, true);
 	map.add_thing(snap_to_grid(m_x(mouse.x)), snap_to_grid(-m_y(mouse.y)), last_thing);
+	map.things[map.n_things - 1]->ttype = get_thing_type(last_thing.type);
 	map_changelevel(2);
 }
 

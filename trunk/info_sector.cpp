@@ -3,7 +3,7 @@
 #include "info_bar.h"
 #include "map.h"
 #include "misc.h"
-#include "textures.h"
+#include "tex_box.h"
 
 GtkWidget *s_frame_main = NULL;
 GtkWidget *s_frame_floor = NULL;
@@ -16,11 +16,15 @@ GtkWidget *s_label_light = NULL;
 GtkWidget *s_label_tag = NULL;
 GtkWidget *s_label_special = NULL;
 
+/*
 GtkWidget *s_image_floor = NULL;
 GtkWidget *s_image_ceil = NULL;
 
 GtkWidget *s_box_floor = NULL;
 GtkWidget *s_box_ceil = NULL;
+*/
+tex_box_t *s_tbox_ceil = NULL;
+tex_box_t *s_tbox_floor = NULL;
 
 extern Map map;
 
@@ -62,10 +66,9 @@ GtkWidget *get_sector_info_bar()
 	gtk_container_set_border_width(GTK_CONTAINER(frame), 4);
 	gtk_container_add(GTK_CONTAINER(s_frame_floor), frame);
 
-	s_box_floor = gtk_event_box_new();
-	gtk_widget_set_size_request(s_box_floor, 104, -1);
-	gtk_widget_modify_bg(s_box_floor, GTK_STATE_NORMAL, &color);
-	gtk_container_add(GTK_CONTAINER(frame), s_box_floor);
+	s_tbox_floor = new tex_box_t("", 2, 2.0f, rgba_t(180, 180, 180, 255, 0));
+	s_tbox_floor->set_size(96, 96);
+	gtk_container_add(GTK_CONTAINER(frame), s_tbox_floor->widget);
 
 	// Ceiling frame
 	s_frame_ceil = gtk_frame_new("Ceiling");
@@ -77,10 +80,9 @@ GtkWidget *get_sector_info_bar()
 	gtk_container_set_border_width(GTK_CONTAINER(frame), 4);
 	gtk_container_add(GTK_CONTAINER(s_frame_ceil), frame);
 
-	s_box_ceil = gtk_event_box_new();
-	gtk_widget_set_size_request(s_box_ceil, 104, -1);
-	gtk_widget_modify_bg(s_box_ceil, GTK_STATE_NORMAL, &color);
-	gtk_container_add(GTK_CONTAINER(frame), s_box_ceil);
+	s_tbox_ceil = new tex_box_t("", 2, 2.0f, rgba_t(180, 180, 180, 255, 0));
+	s_tbox_ceil->set_size(96, 96);
+	gtk_container_add(GTK_CONTAINER(frame), s_tbox_ceil->widget);
 
 	// Stuff
 	GtkWidget *main_hbox = gtk_hbox_new(false, 0);
@@ -91,27 +93,8 @@ GtkWidget *get_sector_info_bar()
 	return main_hbox;
 }
 
-void process_s_image(GtkWidget **image, GtkWidget *box)
-{
-	GdkPixbuf *pbuf = gtk_image_get_pixbuf(GTK_IMAGE(*image));
-
-	gtk_widget_destroy(*image);
-
-	if (pbuf)
-		g_object_unref(pbuf);
-
-	*image = gtk_image_new();
-	gtk_widget_set_size_request(*image, 96, 96);
-	//gtk_box_pack_start(GTK_BOX(box), *image, false, false, 0);
-	gtk_container_add(GTK_CONTAINER(box), *image);
-	gtk_widget_show(*image);
-}
-
 void update_sector_info_bar(int sector)
 {
-	process_s_image(&s_image_floor, s_box_floor);
-	process_s_image(&s_image_ceil, s_box_ceil);
-
 	if (sector == -1)
 	{
 		gtk_frame_set_label(GTK_FRAME(s_frame_main), "No Sector Hilighted");
@@ -127,6 +110,9 @@ void update_sector_info_bar(int sector)
 		gtk_label_set_text(GTK_LABEL(s_label_light), "Light Level:");
 		gtk_label_set_text(GTK_LABEL(s_label_tag), "Tag:");
 		gtk_label_set_text(GTK_LABEL(s_label_special), "Special:");
+
+		s_tbox_floor->change_texture("");
+		s_tbox_ceil->change_texture("");
 
 		return;
 	}
@@ -147,10 +133,10 @@ void update_sector_info_bar(int sector)
 	// Floor frame
 	gtk_frame_set_label(GTK_FRAME(s_frame_floor), parse_string("Floor: %s", s->f_tex.c_str()).c_str());
 	widget_set_font(gtk_frame_get_label_widget(GTK_FRAME(s_frame_floor)), "Sans Bold 10");
-	gtk_image_set_from_pixbuf(GTK_IMAGE(s_image_floor), get_texture(s->f_tex, 2)->get_pbuf_scale_fit(96, 96, 2.0f));
+	s_tbox_floor->change_texture(s->f_tex, 2, 2.0f);
 
 	// Ceiling frame
 	gtk_frame_set_label(GTK_FRAME(s_frame_ceil), parse_string("Ceiling: %s", s->c_tex.c_str()).c_str());
 	widget_set_font(gtk_frame_get_label_widget(GTK_FRAME(s_frame_ceil)), "Sans Bold 10");
-	gtk_image_set_from_pixbuf(GTK_IMAGE(s_image_ceil), get_texture(s->c_tex, 2)->get_pbuf_scale_fit(96, 96, 2.0f));
+	s_tbox_ceil->change_texture(s->c_tex, 2, 2.0f);
 }

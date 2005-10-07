@@ -23,7 +23,7 @@ rgba_t	col_vertex(0, 180, 0, 255, 1);
 rgba_t	col_background(0, 0, 0, 255, 0);
 rgba_t	col_selbox(0, 140, 220, 100, 1);
 rgba_t	col_selbox_line(100, 180, 220, 200, 1);
-rgba_t	col_linedraw(0, 255, 0, 255, 0);
+rgba_t	col_linedraw(0, 200, 0, 255, 0);
 
 CVAR(Float, line_size, 1.5, CVAR_SAVE)
 CVAR(Bool, thing_sprites, false, CVAR_SAVE)
@@ -323,15 +323,25 @@ void draw_things()
 
 	for (DWORD t = 0; t < map.n_things; t++)
 	{
+		// Get thing type definition (for colour, radius and sprite)
+		thing_type_t* ttype = map.things[t]->ttype;
+		if (!ttype) ttype = get_thing_type(-1);
+
+		// Setup the colour
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		colour.set(map.things[t]->ttype->colour);
-		int r = (map.things[t]->ttype->radius * zoom) / MAJOR_UNIT;
+		colour.set(ttype->colour);
+
+		// Setup the radius
+		int r = (ttype->radius * zoom) / MAJOR_UNIT;
 		if (r < 0) r = 8;
+
+		// Draw thing rect
 		draw_rect(rect_t(s_x(map.things[t]->x), s_y(-map.things[t]->y), r*2, r*2, RECT_CENTER), colour, true);
 		colour.set(0, 0, 0, 100);
 		draw_rect(rect_t(s_x(map.things[t]->x), s_y(-map.things[t]->y), r*2, r*2, RECT_CENTER), colour, false);
 
-		if (map.things[t]->ttype->show_angle/* || thing_quickangle*/)
+		// Draw the angle (if needed)
+		if (map.things[t]->ttype->show_angle)
 		{
 			point2_t p(s_x(map.things[t]->x), s_y(-map.things[t]->y));
 			int x2, y2;
@@ -355,24 +365,26 @@ void draw_things()
 			// Invalid angle
 			else	{ x2 = p.x; y2 = p.y; }
 
-			glLineWidth(2.0f);
 			//if (thing_sprites)
 			//{
 			//	draw_point(p.x, p.y, 8 * zoom / MAJOR_UNIT, COL_WHITE);
 			//	draw_line(rect_t(p.x, p.y, x2, y2), rgba_t(255, 255, 255, 200), line_aa);
 			//}
 			//else
-				draw_line(rect_t(p.x, p.y, x2, y2), rgba_t(0, 0, 0, 200), line_aa);
+
+			glLineWidth(2.0f);
+			draw_line(rect_t(p.x, p.y, x2, y2), rgba_t(0, 0, 0, 200), line_aa);
 			glLineWidth(1.0f);
 		}
 
+		// Draw moving hilight
 		if (move_list.exists(t))
 		{
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 			r += 4;
 			draw_rect(rect_t(s_x(map.things[t]->x), s_y(-map.things[t]->y), r*2, r*2, RECT_CENTER), col_moving, true);
 		}
-		else if (vector_exists(selected_items, t))
+		else if (vector_exists(selected_items, t)) // Draw selected hilight
 		{
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 			r += 4;

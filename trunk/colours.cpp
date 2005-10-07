@@ -25,6 +25,7 @@ extern rgba_t col_line_solid;
 extern rgba_t col_line_2s;
 extern rgba_t col_line_monster;
 extern rgba_t col_line_special;
+extern rgba_t col_linedraw;
 extern rgba_t col_selbox;
 extern rgba_t col_selbox_line;
 extern rgba_t col_grid;
@@ -141,7 +142,7 @@ void set_colour(rgba_t *colour, string name, int config)
 
 	if (colour_configs[config].get_colour(name))
 		colour->set(*colour_configs[config].get_colour(name));
-	else
+	else if (colour_configs[0].get_colour(name))
 		colour->set(*colour_configs[0].get_colour(name));
 
 	hilight_size = colour_configs[config].hilight_size;
@@ -165,6 +166,7 @@ void set_colour_config(string name)
 	SETCOL(line_2s);
 	SETCOL(line_monster);
 	SETCOL(line_special);
+	SETCOL(linedraw);
 	SETCOL(selbox);
 	SETCOL(selbox_line);
 	SETCOL(grid);

@@ -3,7 +3,7 @@
 #include "info_bar.h"
 #include "map.h"
 #include "misc.h"
-#include "textures.h"
+#include "tex_box.h"
 #include "action_special.h"
 
 GtkWidget *frame_main = NULL;
@@ -18,37 +18,25 @@ GtkWidget *label_special = NULL;
 GtkWidget *label_tag = NULL;
 
 // Side1 frame
-GtkWidget *image_uptex1 = NULL;
-GtkWidget *image_lotex1 = NULL;
-GtkWidget *image_midtex1 = NULL;
-GtkWidget *box_uptex1 = NULL;
-GtkWidget *box_lotex1 = NULL;
-GtkWidget *box_midtex1 = NULL;
+tex_box_t *tbox_uptex1 = NULL;
+tex_box_t *tbox_lotex1 = NULL;
+tex_box_t *tbox_midtex1 = NULL;
 GtkWidget *label_uptex1 = NULL;
 GtkWidget *label_lotex1 = NULL;
 GtkWidget *label_midtex1 = NULL;
 
 // Side2 frame
-GtkWidget *image_uptex2 = NULL;
-GtkWidget *image_lotex2 = NULL;
-GtkWidget *image_midtex2 = NULL;
-GtkWidget *box_uptex2 = NULL;
-GtkWidget *box_lotex2 = NULL;
-GtkWidget *box_midtex2 = NULL;
+tex_box_t *tbox_uptex2 = NULL;
+tex_box_t *tbox_lotex2 = NULL;
+tex_box_t *tbox_midtex2 = NULL;
 GtkWidget *label_uptex2 = NULL;
 GtkWidget *label_lotex2 = NULL;
 GtkWidget *label_midtex2 = NULL;
 
 extern Map map;
-extern vector<Texture*> textures;
 
-GtkWidget *setup_image_box(GtkWidget **box, string texname, GtkWidget **label)
+GtkWidget *setup_image_box(tex_box_t **box, string texname, GtkWidget **label)
 {
-	GdkColor colour;
-	colour.red = 30000;
-	colour.green = 30000;
-	colour.blue = 30000;
-
 	GtkWidget *vbox = gtk_vbox_new(false, 0);
 
 	gtk_box_pack_start(GTK_BOX(vbox), gtk_label_new(texname.c_str()), false, false, 0);
@@ -58,10 +46,10 @@ GtkWidget *setup_image_box(GtkWidget **box, string texname, GtkWidget **label)
 	gtk_container_set_border_width(GTK_CONTAINER(frame), 4);
 	gtk_box_pack_start(GTK_BOX(vbox), frame, true, true, 0);
 
-	*box = gtk_event_box_new();
-	gtk_widget_set_size_request(*box, 72, -1);
-	gtk_widget_modify_bg(*box, GTK_STATE_NORMAL, &colour);
-	gtk_container_add(GTK_CONTAINER(frame), *box);
+	*box = new tex_box_t("", 1, 1.0f, rgba_t(180, 180, 180, 255, 0));
+	tex_box_t *tbox = *box;
+	tbox->set_size(72, 72);
+	gtk_container_add(GTK_CONTAINER(frame), tbox->widget);
 
 	*label = gtk_label_new("");
 	gtk_box_pack_start(GTK_BOX(vbox), *label, false, false, 0);
@@ -96,9 +84,9 @@ GtkWidget *get_line_info_bar()
 
 	GtkWidget *hbox = gtk_hbox_new(true, 0);
 	gtk_container_set_border_width(GTK_CONTAINER(hbox), 4);
-	gtk_box_pack_start(GTK_BOX(hbox), setup_image_box(&box_uptex1, "Upper", &label_uptex1), false, false, 0);
-	gtk_box_pack_start(GTK_BOX(hbox), setup_image_box(&box_midtex1, "Middle", &label_midtex1), false, false, 4);
-	gtk_box_pack_start(GTK_BOX(hbox), setup_image_box(&box_lotex1, "Lower", &label_lotex1), false, false, 4);
+	gtk_box_pack_start(GTK_BOX(hbox), setup_image_box(&tbox_uptex1, "Upper", &label_uptex1), false, false, 0);
+	gtk_box_pack_start(GTK_BOX(hbox), setup_image_box(&tbox_midtex1, "Middle", &label_midtex1), false, false, 4);
+	gtk_box_pack_start(GTK_BOX(hbox), setup_image_box(&tbox_lotex1, "Lower", &label_lotex1), false, false, 4);
 	gtk_container_add(GTK_CONTAINER(frame_side1), hbox);
 
 
@@ -108,9 +96,9 @@ GtkWidget *get_line_info_bar()
 	
 	hbox = gtk_hbox_new(true, 0);
 	gtk_container_set_border_width(GTK_CONTAINER(hbox), 4);
-	gtk_box_pack_start(GTK_BOX(hbox), setup_image_box(&box_uptex2, "Upper", &label_uptex2), false, false, 0);
-	gtk_box_pack_start(GTK_BOX(hbox), setup_image_box(&box_midtex2, "Middle", &label_midtex2), false, false, 0);
-	gtk_box_pack_start(GTK_BOX(hbox), setup_image_box(&box_lotex2, "Lower", &label_lotex2), false, false, 0);
+	gtk_box_pack_start(GTK_BOX(hbox), setup_image_box(&tbox_uptex2, "Upper", &label_uptex2), false, false, 0);
+	gtk_box_pack_start(GTK_BOX(hbox), setup_image_box(&tbox_midtex2, "Middle", &label_midtex2), false, false, 0);
+	gtk_box_pack_start(GTK_BOX(hbox), setup_image_box(&tbox_lotex2, "Lower", &label_lotex2), false, false, 0);
 	gtk_container_add(GTK_CONTAINER(frame_side2), hbox);
 
 
@@ -123,31 +111,8 @@ GtkWidget *get_line_info_bar()
 	return main_hbox;
 }
 
-void process_image(GtkWidget **image, GtkWidget *box)
-{
-	GdkPixbuf *pbuf = gtk_image_get_pixbuf(GTK_IMAGE(*image));
-
-	gtk_widget_destroy(*image);
-
-	if (pbuf)
-		g_object_unref(pbuf);
-
-	*image = gtk_image_new();
-	gtk_widget_set_size_request(*image, 72, 72);
-	//gtk_box_pack_start(GTK_BOX(box), *image, false, false, 0);
-	gtk_container_add(GTK_CONTAINER(box), *image);
-	gtk_widget_show(*image);
-}
-
 void update_line_info_bar(int line)
 {
-	process_image(&image_uptex1, box_uptex1);
-	process_image(&image_midtex1, box_midtex1);
-	process_image(&image_lotex1, box_lotex1);
-	process_image(&image_uptex2, box_uptex2);
-	process_image(&image_midtex2, box_midtex2);
-	process_image(&image_lotex2, box_lotex2);
-
 	gtk_label_set_text(GTK_LABEL(label_uptex1), "");
 	gtk_label_set_text(GTK_LABEL(label_midtex1), "");
 	gtk_label_set_text(GTK_LABEL(label_lotex1), "");
@@ -169,6 +134,13 @@ void update_line_info_bar(int line)
 		gtk_label_set_text(GTK_LABEL(label_side2), "Back Side:");
 		gtk_label_set_text(GTK_LABEL(label_special), "Special:");
 		gtk_label_set_text(GTK_LABEL(label_tag), "Sector Tag:");
+
+		tbox_uptex1->change_texture("");
+		tbox_lotex1->change_texture("");
+		tbox_midtex1->change_texture("");
+		tbox_uptex2->change_texture("");
+		tbox_lotex2->change_texture("");
+		tbox_midtex2->change_texture("");
 
 		return;
 	}
@@ -197,24 +169,27 @@ void update_line_info_bar(int line)
 
 		if (map.l_needsuptex(line, 1))
 		{
-			gtk_image_set_from_pixbuf(GTK_IMAGE(image_uptex1),
-				get_texture(side->tex_upper)->get_pbuf_scale_fit(72, 72));
+			tbox_uptex1->change_texture(side->tex_upper, 1, 1.0f);
 			gtk_label_set_text(GTK_LABEL(label_uptex1), side->tex_upper.c_str());
 		}
+		else
+			tbox_uptex1->change_texture("");
 
 		if (map.l_needsmidtex(line, 1))
 		{
-			gtk_image_set_from_pixbuf(GTK_IMAGE(image_midtex1),
-				get_texture(side->tex_middle)->get_pbuf_scale_fit(72, 72));
+			tbox_midtex1->change_texture(side->tex_middle, 1, 1.0f);
 			gtk_label_set_text(GTK_LABEL(label_midtex1), side->tex_middle.c_str());
 		}
+		else
+			tbox_midtex1->change_texture("");
 
 		if (map.l_needslotex(line, 1))
 		{
-			gtk_image_set_from_pixbuf(GTK_IMAGE(image_lotex1),
-				get_texture(side->tex_lower)->get_pbuf_scale_fit(72, 72));
+			tbox_lotex1->change_texture(side->tex_lower, 1, 1.0f);
 			gtk_label_set_text(GTK_LABEL(label_lotex1), side->tex_lower.c_str());
 		}
+		else
+			tbox_lotex1->change_texture("");
 	}
 	else
 	{
@@ -231,28 +206,31 @@ void update_line_info_bar(int line)
 
 		if (map.l_needsuptex(line, 2))
 		{
-			gtk_image_set_from_pixbuf(GTK_IMAGE(image_uptex2),
-				get_texture(side->tex_upper)->get_pbuf_scale_fit(72, 72));
+			tbox_uptex2->change_texture(side->tex_upper, 1, 1.0f);
 			gtk_label_set_text(GTK_LABEL(label_uptex2), side->tex_upper.c_str());
 		}
+		else
+			tbox_uptex2->change_texture("");
 
 		if (map.l_needsmidtex(line, 2))
 		{
-			gtk_image_set_from_pixbuf(GTK_IMAGE(image_midtex2),
-				get_texture(side->tex_middle)->get_pbuf_scale_fit(72, 72));
+			tbox_midtex2->change_texture(side->tex_middle, 1, 1.0f);
 			gtk_label_set_text(GTK_LABEL(label_midtex2), side->tex_middle.c_str());
 		}
+		else
+			tbox_midtex2->change_texture("");
 
 		if (map.l_needslotex(line, 2))
 		{
-			gtk_image_set_from_pixbuf(GTK_IMAGE(image_lotex2),
-				get_texture(side->tex_lower)->get_pbuf_scale_fit(72, 72));
+			tbox_lotex2->change_texture(side->tex_lower, 1, 1.0f);
 			gtk_label_set_text(GTK_LABEL(label_lotex2), side->tex_lower.c_str());
 		}
+		else
+			tbox_lotex2->change_texture("");
 	}
 	else
 	{
-		gtk_frame_set_label(GTK_FRAME(frame_side2), "No Front Side");
+		gtk_frame_set_label(GTK_FRAME(frame_side2), "No Back Side");
 		widget_set_font(gtk_frame_get_label_widget(GTK_FRAME(frame_side2)), "Sans Bold 10");
 	}
 }

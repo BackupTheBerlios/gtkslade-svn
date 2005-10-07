@@ -8,7 +8,15 @@ Goes in bottom-up order
 -: Removed
 ~: Changed
 
-[05/15/05]
+[07/10/05]
++ Started on the texture browser
++ Started on the sidedef part of the line edit dialog
+
+[06/10/05]
+* Fixed crash when creating a new thing (wasn't updating it's thing definition)
+~ Replaced all the images on the info bar with my new tex_box_t structs. Makes things much easier (from a programming perspective :P)
+
+[05/10/05]
 + Started on thing edit dialog
 
 [02/10/05]
