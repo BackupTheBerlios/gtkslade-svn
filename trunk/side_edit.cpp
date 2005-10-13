@@ -4,6 +4,7 @@
 #include "checks.h"
 #include "editor_window.h"
 #include "tex_box.h"
+#include "tex_browser.h"
 
 struct side_data
 {
@@ -38,6 +39,16 @@ extern Map map;
 extern GtkWidget *editor_window;
 extern vector<int> selected_items;
 extern int hilight_item;
+
+static gboolean tex_box_clicked(GtkWidget *widget, GdkEventButton *event, gpointer data)
+{
+	string* tex = (string*)data;
+
+	if (event->button == 1)
+		open_texture_browser(true, false, false);
+
+	return true;
+}
 
 GtkWidget* setup_side_edit(int side)
 {
@@ -161,6 +172,16 @@ GtkWidget* setup_side_edit(int side)
 	gtk_entry_set_text(GTK_ENTRY(entry), sdat->tex_lower.c_str());
 	gtk_box_pack_start(GTK_BOX(vbox), entry, false, false, 4);
 	gtk_box_pack_start(GTK_BOX(hbox), vbox, true, true, 4);
+
+	if (side_exists)
+	{
+		gtk_widget_set_events(sdat->tbox_upper->widget, GDK_BUTTON_PRESS_MASK);
+		gtk_widget_set_events(sdat->tbox_middle->widget, GDK_BUTTON_PRESS_MASK);
+		gtk_widget_set_events(sdat->tbox_lower->widget, GDK_BUTTON_PRESS_MASK);
+		g_signal_connect(G_OBJECT(sdat->tbox_upper->widget), "button_press_event", G_CALLBACK(tex_box_clicked), &sdat->tex_upper);
+		g_signal_connect(G_OBJECT(sdat->tbox_middle->widget), "button_press_event", G_CALLBACK(tex_box_clicked), &sdat->tex_middle);
+		g_signal_connect(G_OBJECT(sdat->tbox_lower->widget), "button_press_event", G_CALLBACK(tex_box_clicked), &sdat->tex_lower);
+	}
 
 	if (line != -1)
 	{

@@ -9,15 +9,6 @@
 extern GdkGLConfig *glconfig;
 extern GdkGLContext *glcontext;
 
-void refresh_tbox(tex_box_t* tbox, int x = 0, int y = 0, int width = -1, int height = -1)
-{
-	gdk_draw_drawable(tbox->widget->window, tbox->widget->style->fg_gc[GTK_WIDGET_STATE(tbox->widget)],
-						tbox->pixmap,
-						x, y,
-						x, y,
-						width, height);
-}
-
 void redraw_tbox(tex_box_t* tbox)
 {
 	GtkWidget *w = GTK_WIDGET(tbox->widget);
@@ -48,29 +39,37 @@ void redraw_tbox(tex_box_t* tbox)
 gboolean tbox_expose_event(GtkWidget *w, GdkEventExpose *event, gpointer data)
 {
 	tex_box_t* tbox = (tex_box_t*)data;
-
-	/*
-	GdkGLContext *context = gtk_widget_get_gl_context(w);
-	GdkGLDrawable *gldrawable = gtk_widget_get_gl_drawable(w);
-
-	if (!gdk_gl_drawable_gl_begin(gldrawable, context))
-		return FALSE;
-
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	if (tbox->texture != "")
-		draw_texture_scale(rect_t(0, 0, w->allocation.width, w->allocation.height, 0), tbox->texture, tbox->textype);
-
-	if (gdk_gl_drawable_is_double_buffered(gldrawable))
-		gdk_gl_drawable_swap_buffers(gldrawable);
-	else
-		glFlush();
-
-	gdk_gl_drawable_gl_end(gldrawable);
-	*/
 	redraw_tbox(tbox);
 
 	return false;
+}
+
+void tbox_realize_event(GtkWidget *widget, gpointer data)
+{
+	tex_box_t* tbox = (tex_box_t*)data;
+
+	GdkGLContext *context = gtk_widget_get_gl_context(widget);
+	GdkGLDrawable *gldrawable = gtk_widget_get_gl_drawable(widget);
+
+	if (!gdk_gl_drawable_gl_begin(gldrawable, context))
+		return;
+
+	glViewport(0, 0, widget->allocation.width, widget->allocation.height);
+	glClearColor(tbox->back_colour.fr(), tbox->back_colour.fg(), tbox->back_colour.fb(), 0.0f);
+	glClearDepth(1.0);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDisable(GL_CULL_FACE);
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+
+	glOrtho(0.0f, widget->allocation.width, widget->allocation.height, 0.0f, -1.0f, 1.0f);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+	gdk_gl_drawable_gl_end(gldrawable);
 }
 
 gboolean tbox_configure_event(GtkWidget *widget, GdkEventConfigure *event, gpointer data)
@@ -84,26 +83,8 @@ gboolean tbox_configure_event(GtkWidget *widget, GdkEventConfigure *event, gpoin
 		return FALSE;
 
 	glViewport(0, 0, widget->allocation.width, widget->allocation.height);
-	glClearColor(tbox->back_colour.fr(), tbox->back_colour.fg(), tbox->back_colour.fb(), 0.0f);
-	glClearDepth(1.0);
-	glShadeModel(GL_SMOOTH);
-	glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glCullFace(GL_NONE);
-	glDisable(GL_CULL_FACE);
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_FOG);
 
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-
-	glOrtho(0.0f, widget->allocation.width, widget->allocation.height, 0.0f, -1.0f, 1.0f);
-
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-
-	gdk_gl_drawable_gl_end (gldrawable);
+	gdk_gl_drawable_gl_end(gldrawable);
 
 	return true;
 }
@@ -120,6 +101,7 @@ tex_box_t::tex_box_t(string texture, BYTE textype, float scale, rgba_t back_colo
 	gtk_widget_set_gl_capability(widget, glconfig, glcontext, TRUE, GDK_GL_RGBA_TYPE);
 	g_signal_connect(G_OBJECT(widget), "expose-event", G_CALLBACK(tbox_expose_event), (gpointer)this);
 	g_signal_connect(G_OBJECT(widget), "configure-event", G_CALLBACK(tbox_configure_event), (gpointer)this);
+	g_signal_connect_after(G_OBJECT(widget), "realize", G_CALLBACK(tbox_realize_event), (gpointer)this);
 }
 
 void tex_box_t::setup_widget()
@@ -143,10 +125,7 @@ void tex_box_t::change_texture(string newtex, BYTE newtype, float newscale, bool
 	rect.y = widget->allocation.y;
 
 	if (redraw)
-	{
 		redraw_tbox(this);
-		refresh_tbox(this);
-	}
 }
 
 tex_box_t::~tex_box_t()

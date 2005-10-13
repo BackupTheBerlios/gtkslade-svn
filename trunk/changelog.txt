@@ -9,6 +9,7 @@ Goes in bottom-up order
 ~: Changed
 
 [14/10/05]
++ The texture browser is up, can't do anything but view the textures for now.
 ~ Changed the texture system to use opengl textures instead of pixbufs, since they were proving too slow for the texture browser.
 
 [07/10/05]

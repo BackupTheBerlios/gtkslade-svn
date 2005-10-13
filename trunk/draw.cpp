@@ -164,55 +164,50 @@ void draw_texture_scale(rect_t rect, string texname, int textype, rgba_t col, fl
 	if (!tex)
 		return;
 
-	int width = rect.width();
-	int height = rect.height();
 	int texwidth = tex->width * scalef;
 	int texheight = tex->height * scalef;
+	int nwidth = texwidth;
+	int nheight = texheight;
+	int dim = min(rect.width(), rect.height());
+	int midx = rect.x1() + (rect.width() / 2);
+	int midy = rect.y1() + (rect.height() / 2);
 
-	int mid_x = rect.x1() + (width / 2);
-	int mid_y = rect.y1() + (height / 2);
-
-	int nx1 = rect.x1();
-	int nx2 = rect.x1() + width;
-	int ny1 = rect.y1();
-	int ny2 = rect.y1() + height;
-
-	if (texwidth > width)
+	if (texwidth > texheight)
 	{
-		float multiplier = (float)rect.width() / (float)texwidth;
-		
-		ny1 = mid_y - (float(texheight / 2.0f) * multiplier);
-		ny2 = mid_y + (float(texheight / 2.0f) * multiplier);
-		height = texheight * multiplier;
+		if (texwidth > dim)
+		{
+			float mult = (float)dim / (float)texwidth;
+			nwidth = dim;
+			nheight *= mult;
+		}
+	}
+	else if (texwidth < texheight)
+	{
+		if (texheight > dim)
+		{
+			float mult = (float)dim / (float)texheight;
+			nheight = dim;
+			nwidth *= mult;
+		}
 	}
 	else
 	{
-		nx1 = mid_x - (texwidth / 2);
-		nx2 = mid_x + (texwidth / 2);
+		if (texwidth > dim)
+		{
+			nwidth = dim;
+			nheight = dim;
+		}
 	}
 
-	if (texheight > height)
-	{
-		float multiplier = (float)rect.height() / (float)texheight;
-		
-		nx1 = mid_x - (float(texwidth / 2.0f) * multiplier);
-		nx2 = mid_x + (float(texwidth / 2.0f) * multiplier);
-	}
-	else
-	{
-		ny1 = mid_y - (texheight / 2);
-		ny2 = mid_y + (texheight / 2);
-	}
-	
 	set_colour(col);
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, tex->get_gl_id());
-	
+
 	glBegin(GL_QUADS);
-		glTexCoord2f(0.0f, 0.0f);	glVertex2d(nx1, ny1);
-		glTexCoord2f(1.0f, 0.0f);	glVertex2d(nx2, ny1);
-		glTexCoord2f(1.0f, 1.0f);	glVertex2d(nx2, ny2);
-		glTexCoord2f(0.0f, 1.0f);	glVertex2d(nx1, ny2);
+		glTexCoord2f(0.0f, 0.0f);	glVertex2d(midx - (nwidth / 2), midy - (nheight / 2));
+		glTexCoord2f(1.0f, 0.0f);	glVertex2d(midx + (nwidth / 2), midy - (nheight / 2));
+		glTexCoord2f(1.0f, 1.0f);	glVertex2d(midx + (nwidth / 2), midy + (nheight / 2));
+		glTexCoord2f(0.0f, 1.0f);	glVertex2d(midx - (nwidth / 2), midy + (nheight / 2));
 	glEnd();
 }
 

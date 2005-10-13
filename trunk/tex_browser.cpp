@@ -2,8 +2,12 @@
 #include "main.h"
 #include "textures.h"
 #include "tex_box.h"
+#include "draw.h"
 
 string selected_tex = "";
+int rows = 0;
+vector<string> tex_names;
+GtkWidget *browse_vscroll;
 
 CVAR(Int, browser_columns, 4, CVAR_SAVE)
 
@@ -11,45 +15,113 @@ extern GtkWidget *editor_window;
 extern vector<Texture*> textures;
 extern vector<Texture*> flats;
 extern vector<Texture*> sprites;
+extern GdkGLConfig *glconfig;
+extern GdkGLContext *glcontext;
 
-GtkWidget* setup_texture_browser(vector<string> tex_names)
+gboolean browser_configure_event(GtkWidget *widget, GdkEventConfigure *event, gpointer data)
 {
-	GtkWidget *s_window = gtk_scrolled_window_new(NULL, NULL);
-	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(s_window), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
+	GdkGLContext *context = gtk_widget_get_gl_context(widget);
+	GdkGLDrawable *gldrawable = gtk_widget_get_gl_drawable(widget);
 
-	int rows = tex_names.size() / browser_columns;
+	if (!gdk_gl_drawable_gl_begin(gldrawable, context))
+		return false;
 
-	GtkWidget *table = gtk_table_new(rows, browser_columns, true);
+	glViewport(0, 0, widget->allocation.width, widget->allocation.height);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClearDepth(1.0);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDisable(GL_CULL_FACE);
 
-	int tex = 0;
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
 
+	glOrtho(0.0f, widget->allocation.width, widget->allocation.height, 0.0f, -1.0f, 1.0f);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+	gdk_gl_drawable_gl_end(gldrawable);
+
+	return true;
+}
+
+gboolean browser_expose_event(GtkWidget *w, GdkEventExpose *event, gpointer data)
+{
+	int width = w->allocation.width / browser_columns;
+	rows = (tex_names.size() / browser_columns) + 1;
+	int rows_page = w->allocation.height / width;
+	double offset = gtk_range_get_value(GTK_RANGE(browse_vscroll));
+	int top = ((rows - rows_page) * width) * offset;
+
+	// Determine sizes for row and page steps (for the scrollbar)
+	double step, page;
+	step = (double)width / double(rows * width);
+	page = double(rows_page * width) / double(rows * width);
+	gtk_range_set_increments(GTK_RANGE(browse_vscroll), step, page);
+
+	GdkGLContext *context = gtk_widget_get_gl_context(w);
+	GdkGLDrawable *gldrawable = gtk_widget_get_gl_drawable(w);
+
+	if (!gdk_gl_drawable_gl_begin(gldrawable, context))
+		return false;
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	int a = 0;
 	for (int row = 0; row < rows; row++)
 	{
 		for (int col = 0; col < browser_columns; col++)
 		{
-			if (tex > tex_names.size())
+			if (a > tex_names.size())
 				continue;
 
-			GtkWidget *frame = gtk_aspect_frame_new(NULL, 0.5, 0.5, 1.0, true);
-			gtk_frame_set_shadow_type(GTK_FRAME(frame), GTK_SHADOW_NONE);
-
-			tex_box_t* tbox = new tex_box_t(tex_names[tex], 0, 5.0f, rgba_t(0, 0, 0, 255, 0));
-			tbox->set_size(64, 64);
-			gtk_container_add(GTK_CONTAINER(frame), tbox->widget);
-
-			gtk_table_attach_defaults(GTK_TABLE(table), frame, col, col+1, row, row+1);
-			tex++;
+			if (((row + 1) * width) > top && (row * width) < (top + w->allocation.height))
+				draw_texture_scale(rect_t(col * width, (row * width) - top, width, width, 0), tex_names[a], 0);
+			
+			a++;
 		}
 	}
 
-	gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(s_window), table);
+	if (gdk_gl_drawable_is_double_buffered(gldrawable))
+		gdk_gl_drawable_swap_buffers(gldrawable);
+	else
+		glFlush();
 
-	return s_window;
+	gdk_gl_drawable_gl_end(gldrawable);
+
+	return false;
+}
+
+gboolean browse_vscroll_change(GtkRange *range, GtkScrollType scroll, gdouble value, gpointer data)
+{
+	GtkWidget *draw_area = (GtkWidget*)data;
+	gdk_window_invalidate_rect(draw_area->window, &draw_area->allocation, false);
+	return false;
+}
+
+GtkWidget* setup_texture_browser()
+{
+	GtkWidget *hbox = gtk_hbox_new(false, 0);
+
+	GtkWidget *draw_area = gtk_drawing_area_new();
+	gtk_widget_set_gl_capability(draw_area, glconfig, glcontext, TRUE, GDK_GL_RGBA_TYPE);
+	g_signal_connect(G_OBJECT(draw_area), "expose-event", G_CALLBACK(browser_expose_event), NULL);
+	g_signal_connect(G_OBJECT(draw_area), "configure-event", G_CALLBACK(browser_configure_event), NULL);
+
+	gtk_box_pack_start(GTK_BOX(hbox), draw_area, true, true, 0);
+
+	browse_vscroll = gtk_vscrollbar_new(NULL);
+	gtk_range_set_range(GTK_RANGE(browse_vscroll), 0.0, 1.0);
+	g_signal_connect(G_OBJECT(browse_vscroll), "change-value", G_CALLBACK(browse_vscroll_change), draw_area);
+	gtk_box_pack_start(GTK_BOX(hbox), browse_vscroll, false, false, 0);
+
+	return hbox;
 }
 
 string open_texture_browser(bool tex, bool flat, bool sprite)
 {
-	vector<string> tex_names;
+	tex_names.clear();
 
 	if (tex)
 	{
@@ -78,7 +150,7 @@ string open_texture_browser(bool tex, bool flat, bool sprite)
 													GTK_RESPONSE_REJECT,
 													NULL);
 
-	gtk_container_add(GTK_CONTAINER(GTK_DIALOG(dialog)->vbox), setup_texture_browser(tex_names));
+	gtk_container_add(GTK_CONTAINER(GTK_DIALOG(dialog)->vbox), setup_texture_browser());
 	gtk_window_set_position(GTK_WINDOW(dialog), GTK_WIN_POS_CENTER_ON_PARENT);
 	gtk_window_set_default_size(GTK_WINDOW(dialog), 400, 400);
 	gtk_widget_show_all(dialog);
