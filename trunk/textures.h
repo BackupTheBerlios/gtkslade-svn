@@ -2,14 +2,16 @@
 class Texture
 {
 private:
-	WORD		width;
-	WORD		height;
 	BYTE		bpp;
 	BYTE		*data;
 	bool		has_alpha;
+	bool		gl_tex_generated;
 	//GdkPixbuf	*pbuf;
+	GLuint		gl_id;
 
 public:
+	WORD		width;
+	WORD		height;
 	string		name;
 
 	Texture();
@@ -35,6 +37,8 @@ public:
 			memset(data, 0, width * height * 4);
 		}
 	}
+
+	bool load_file(string name, string filename);
 
 	void add_pixel(int x, int y, BYTE colour)
 	{
@@ -65,9 +69,10 @@ public:
 		data[p++] = colour.a;
 	}
 
-	GdkPixbuf* get_pbuf();
-	GdkPixbuf* get_pbuf_scale(float scale = 1.0f, GdkInterpType interp = GDK_INTERP_BILINEAR);
-	GdkPixbuf* get_pbuf_scale_fit(int w, int h, float scaling = 1.0f, GdkInterpType interp = GDK_INTERP_BILINEAR);
+	GLuint get_gl_id();
+	//GdkPixbuf* get_pbuf();
+	//GdkPixbuf* get_pbuf_scale(float scale = 1.0f, GdkInterpType interp = GDK_INTERP_BILINEAR);
+	//GdkPixbuf* get_pbuf_scale_fit(int w, int h, float scaling = 1.0f, GdkInterpType interp = GDK_INTERP_BILINEAR);
 };
 
 void load_textures();

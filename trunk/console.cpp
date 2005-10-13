@@ -165,7 +165,7 @@ void console_parsecommand()
 
 	if (token == "tex_browse")
 	{
-		open_texture_browser(false, false, false);
+		open_texture_browser(true, false, false);
 		parsed = true;
 	}
 

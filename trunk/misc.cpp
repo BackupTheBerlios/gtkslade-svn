@@ -1,6 +1,8 @@
 
 #include "main.h"
 
+CVAR(Int, font_size, 0, CVAR_SAVE);
+
 void remove_duplicates_intvector(vector<int> *vec)
 {
 	vector<int> uniques;
@@ -32,9 +34,11 @@ string parse_string(char *str, ...)
 	return ret;
 }
 
-void widget_set_font(GtkWidget *w, string font)
+void widget_set_font(GtkWidget *w, string font, int size)
 {
-	gtk_widget_modify_font(w, pango_font_description_from_string(font.c_str()));
+	size += font_size;
+	string fontstring = parse_string("%s %d", font.c_str(), size);
+	gtk_widget_modify_font(w, pango_font_description_from_string(fontstring.c_str()));
 }
 
 string bool_yesno(bool val)

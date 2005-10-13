@@ -31,7 +31,7 @@ void update_vertex_info_bar(int vertex)
 	if (vertex == -1)
 	{
 		gtk_frame_set_label(GTK_FRAME(v_frame_main), "No Vertex Hilighted");
-		widget_set_font(gtk_frame_get_label_widget(GTK_FRAME(v_frame_main)), "Sans Bold 10");
+		widget_set_font(gtk_frame_get_label_widget(GTK_FRAME(v_frame_main)), "Sans Bold", 10);
 		gtk_label_set_text(GTK_LABEL(v_label_x), "X Position:");
 		gtk_label_set_text(GTK_LABEL(v_label_y), "Y Position:");
 
@@ -39,7 +39,7 @@ void update_vertex_info_bar(int vertex)
 	}
 
 	gtk_frame_set_label(GTK_FRAME(v_frame_main), parse_string("Vertex #%d", vertex).c_str());
-	widget_set_font(gtk_frame_get_label_widget(GTK_FRAME(v_frame_main)), "Sans Bold 10");
+	widget_set_font(gtk_frame_get_label_widget(GTK_FRAME(v_frame_main)), "Sans Bold", 10);
 
 	gtk_label_set_text(GTK_LABEL(v_label_x), parse_string("X Position: %d", map.verts[vertex]->x).c_str());
 	gtk_label_set_text(GTK_LABEL(v_label_y), parse_string("Y Position: %d", map.verts[vertex]->y).c_str());

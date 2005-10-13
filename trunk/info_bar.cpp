@@ -52,5 +52,5 @@ void setup_label(GtkWidget **label, char* text)
 {
 	*label = gtk_label_new(text);
 	gtk_misc_set_alignment(GTK_MISC(*label), 0.0, 0.5);
-	widget_set_font(*label, "Sans 8");
+	widget_set_font(*label, "Sans", 8);
 }

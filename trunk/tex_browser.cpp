@@ -5,7 +5,7 @@
 
 string selected_tex = "";
 
-CVAR(Int, browser_columns, 8, CVAR_SAVE)
+CVAR(Int, browser_columns, 4, CVAR_SAVE)
 
 extern GtkWidget *editor_window;
 extern vector<Texture*> textures;
@@ -15,11 +15,33 @@ extern vector<Texture*> sprites;
 GtkWidget* setup_texture_browser(vector<string> tex_names)
 {
 	GtkWidget *s_window = gtk_scrolled_window_new(NULL, NULL);
-	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(s_window), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(s_window), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
 
 	int rows = tex_names.size() / browser_columns;
 
 	GtkWidget *table = gtk_table_new(rows, browser_columns, true);
+
+	int tex = 0;
+
+	for (int row = 0; row < rows; row++)
+	{
+		for (int col = 0; col < browser_columns; col++)
+		{
+			if (tex > tex_names.size())
+				continue;
+
+			GtkWidget *frame = gtk_aspect_frame_new(NULL, 0.5, 0.5, 1.0, true);
+			gtk_frame_set_shadow_type(GTK_FRAME(frame), GTK_SHADOW_NONE);
+
+			tex_box_t* tbox = new tex_box_t(tex_names[tex], 0, 5.0f, rgba_t(0, 0, 0, 255, 0));
+			tbox->set_size(64, 64);
+			gtk_container_add(GTK_CONTAINER(frame), tbox->widget);
+
+			gtk_table_attach_defaults(GTK_TABLE(table), frame, col, col+1, row, row+1);
+			tex++;
+		}
+	}
+
 	gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(s_window), table);
 
 	return s_window;

@@ -31,6 +31,9 @@ Wad*		edit_wad = NULL;
 rect_t	sel_box(-1, -1, 0, 0, 0);
 point2_t mouse;
 
+GdkGLConfig *glconfig = NULL;
+GdkGLContext *glcontext = NULL;
+
 int vid_width;
 int vid_height;
 
@@ -71,7 +74,7 @@ bool init_opengl()
 // ------------------------------------------- >>
 static void realize_main(GtkWidget *widget, gpointer data)
 {
-	GdkGLContext *glcontext = gtk_widget_get_gl_context(widget);
+	//GdkGLContext *glcontext = gtk_widget_get_gl_context(widget);
 	GdkGLDrawable *gldrawable = gtk_widget_get_gl_drawable(widget);
 
 	if (!gdk_gl_drawable_gl_begin(gldrawable, glcontext))
@@ -107,15 +110,12 @@ static void realize_sub(GtkWidget *widget, gpointer data)
 }
 */
 
-// expose_event: Called when a part of the map_area needs to be redrawn
-// ----------------------------------------------------------------- >>
-gboolean expose_event(GtkWidget *widget, GdkEventExpose *event, gpointer user_data)
+void render_map()
 {
-	GdkGLContext *glcontext = gtk_widget_get_gl_context(widget);
-	GdkGLDrawable *gldrawable = gtk_widget_get_gl_drawable(widget);
+	GdkGLDrawable *gldrawable = gtk_widget_get_gl_drawable(map_area);
 
 	if (!gdk_gl_drawable_gl_begin(gldrawable, glcontext))
-		return FALSE;
+		return;
 
 	draw_map();
 
@@ -124,7 +124,20 @@ gboolean expose_event(GtkWidget *widget, GdkEventExpose *event, gpointer user_da
 	else
 		glFlush();
 
-	gdk_gl_drawable_gl_end (gldrawable);
+	gdk_gl_drawable_gl_end(gldrawable);
+
+	/*
+	PangoLayout *pl = gtk_widget_create_pango_layout(map_area, "Testing!");
+	gdk_draw_layout(map_area->window, map_area->style->text_aa_gc[GTK_STATE_NORMAL],
+					10, 10, pl);
+					*/
+}
+
+// expose_event: Called when a part of the map_area needs to be redrawn
+// ----------------------------------------------------------------- >>
+gboolean expose_event(GtkWidget *widget, GdkEventExpose *event, gpointer user_data)
+{
+	render_map();
 
 	return false;
 }
@@ -139,14 +152,13 @@ void force_map_redraw(bool map, bool grid)
 	if (map)
 		update_map();
 
-	gdk_window_invalidate_rect(map_area->window, &map_area->allocation, FALSE);
+	render_map();
 }
 
 // configure_event: Called when the map area is resized or initialised
 // ---------------------------------------------------------------- >>
 gboolean configure_event(GtkWidget *widget, GdkEventConfigure *event)
 {
-	GdkGLContext *glcontext = gtk_widget_get_gl_context(widget);
 	GdkGLDrawable *gldrawable = gtk_widget_get_gl_drawable(widget);
 
 	if (!gdk_gl_drawable_gl_begin(gldrawable, glcontext))
@@ -540,9 +552,6 @@ gboolean tbar_keypress(GtkWidget *widget, GdkEventKey *event, gpointer data)
 // ------------------------------------------------ >>
 void setup_editor_window()
 {
-	GdkGLConfig *glconfig;
-	GdkGLContext *glcontext;
-
 	// Setup OpenGL
 	glconfig = gdk_gl_config_new_by_mode((GdkGLConfigMode)(GDK_GL_MODE_RGB|GDK_GL_MODE_DEPTH|GDK_GL_MODE_DOUBLE));
 

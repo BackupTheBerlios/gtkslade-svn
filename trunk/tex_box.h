@@ -21,6 +21,8 @@ struct tex_box_t
 	BYTE		textype;
 	float		scale;
 	GtkWidget	*widget;
+	GdkPixmap	*pixmap;
+	bool		updated;
 	rgba_t		back_colour;
 
 	tex_box_t(string texture = "_notex", BYTE textype = 0, float scale = 1.0f, rgba_t back_colour = rgba_t(0, 0, 0, 255, 0));

@@ -14,6 +14,8 @@ rgba_t				palette[256];
 
 Texture				no_tex;
 
+CVAR(Bool, cache_textures, false, CVAR_SAVE)
+
 extern WadList wads;
 extern vector<string> spritenames;
 
@@ -23,12 +25,17 @@ Texture::Texture()
 	this->width = 0;
 	this->height = 0;
 	this->bpp = 8;
+	this->gl_tex_generated = false;
+	//this->gl_id = 0;
 }
 
 Texture::~Texture()
 {
 	if (data)
 		free(data);
+
+	if (gl_tex_generated)
+		glDeleteTextures(1, &gl_id);
 }
 
 void clear_textures(int type)
@@ -63,39 +70,151 @@ void destroy_pb(guchar *pixels, gpointer data)
 	free(pixels);
 }
 
-GdkPixbuf* Texture::get_pbuf()
+GLuint Texture::get_gl_id()
 {
-	if (bpp == 8)
+	// If the opengl texture doesn't exist, create it
+	if (!gl_tex_generated)
 	{
-		BYTE* temp = (BYTE*)malloc(width * height * 4);
-		memset(temp, 0, width * height * 4);
+		BYTE* temp = NULL;
+		gl_tex_generated = true;
 
-		DWORD p = 0;
-		for (int a = 0; a < width * height; a++)
+		if (bpp == 8)
 		{
-			temp[p++] = palette[data[a]].r;
-			temp[p++] = palette[data[a]].g;
-			temp[p++] = palette[data[a]].b;
+			temp = (BYTE*)malloc(width * height * 4);
+			memset(temp, 0, width * height * 4);
 
-			if (has_alpha)
-				temp[p++] = palette[data[a]].a;
-			else
-				temp[p++] = 255;
+			DWORD p = 0;
+			for (int a = 0; a < width * height; a++)
+			{
+				temp[p++] = palette[data[a]].r;
+				temp[p++] = palette[data[a]].g;
+				temp[p++] = palette[data[a]].b;
+
+				if (has_alpha)
+					temp[p++] = palette[data[a]].a;
+				else
+					temp[p++] = 255;
+			}
+		}
+		else if (bpp == 32)
+		{
+			temp = (BYTE*)malloc(width * height * 4);
+			memcpy(temp, data, width * height * 4);
+		}
+		
+		// Generate gl tex
+		int filter = 2;
+		
+		if (filter == 1)
+		{
+			glGenTextures(1, &gl_id);
+			glBindTexture(GL_TEXTURE_2D, gl_id);
+			glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+			glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, temp);
 		}
 
-		return gdk_pixbuf_new_from_data(temp, GDK_COLORSPACE_RGB, true,
-			8, width, height, width * 4,
-			destroy_pb, NULL);
-	}
-	else if (bpp == 32)
-	{
-		BYTE* temp = (BYTE*)malloc(width * height * 4);
-		memcpy(temp, data, width * height * 4);
+		if (filter == 2)
+		{
+			glGenTextures(1, &gl_id);
+			glBindTexture(GL_TEXTURE_2D, gl_id);
+			glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+			glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, temp);
+		}
 
-		return gdk_pixbuf_new_from_data(temp, GDK_COLORSPACE_RGB, true,
-			8, width, height, width * 4,
-			destroy_pb, NULL);
+		if (filter == 3)
+		{
+			glGenTextures(1, &gl_id);
+			glBindTexture(GL_TEXTURE_2D, gl_id);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+			gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, width, height, GL_RGBA, GL_UNSIGNED_BYTE, temp);
+		}
+
+		free(temp);
+		free(data);
+		//log_message("Gen ID: %d\n", gl_id);
 	}
+
+	return gl_id;
+}
+
+bool Texture::load_file(string name, string filename)
+{
+	GdkPixbuf *pbuf = gdk_pixbuf_new_from_file(filename.c_str(), NULL);
+
+	if (!pbuf)
+	{
+		log_message("Error loading \"%s\"\n", filename.c_str());
+		return false;
+	}
+
+	this->name = name;
+	width = gdk_pixbuf_get_width(pbuf);
+	height = gdk_pixbuf_get_height(pbuf);
+	bpp = 32;
+
+	log_message("%s: %dx%d\n", name.c_str(), width, height);
+
+	data = (BYTE *)malloc(width * height * 4);
+	memcpy(data, gdk_pixbuf_get_pixels(pbuf), width * height * 4);
+	//memset(data, 180, width * height * 4);
+
+	g_object_unref(pbuf);
+
+	return true;
+}
+
+/*
+GdkPixbuf* Texture::get_pbuf()
+{
+	if (!pbuf)
+	{
+		if (bpp == 8)
+		{
+			BYTE* temp = (BYTE*)malloc(width * height * 4);
+			memset(temp, 0, width * height * 4);
+
+			DWORD p = 0;
+			for (int a = 0; a < width * height; a++)
+			{
+				temp[p++] = palette[data[a]].r;
+				temp[p++] = palette[data[a]].g;
+				temp[p++] = palette[data[a]].b;
+
+				if (has_alpha)
+					temp[p++] = palette[data[a]].a;
+				else
+					temp[p++] = 255;
+			}
+
+			GdkPixbuf *ret = gdk_pixbuf_new_from_data(temp, GDK_COLORSPACE_RGB, true,
+				8, width, height, width * 4,
+				destroy_pb, NULL);
+
+			//if (cache_textures)
+			//	pbuf = gdk_pixbuf_copy(ret);
+
+			return ret;
+		}
+		else if (bpp == 32)
+		{
+			BYTE* temp = (BYTE*)malloc(width * height * 4);
+			memcpy(temp, data, width * height * 4);
+
+			GdkPixbuf *ret = gdk_pixbuf_new_from_data(temp, GDK_COLORSPACE_RGB, true,
+				8, width, height, width * 4,
+				destroy_pb, NULL);
+
+			//if (cache_textures)
+			//	pbuf = gdk_pixbuf_copy(ret);
+
+			return ret;
+		}
+	}
+	else
+		return gdk_pixbuf_copy(pbuf);
 
 	return NULL;
 }
@@ -154,6 +273,7 @@ GdkPixbuf* Texture::get_pbuf_scale_fit(int w, int h, float scaling, GdkInterpTyp
 	g_object_unref(original);
 	return ret;
 }
+*/
 
 Texture* get_texture(string name, int type)
 {
@@ -188,18 +308,21 @@ Texture* get_texture(string name, int type)
 	}
 
 	// Search editor textures
-	if (type == 0 || type == TEXTURES_EDITOR)
+	for (int a = 0; a < edit_textures.size(); a++)
 	{
-		for (int a = 0; a < edit_textures.size(); a++)
-		{
-			if (edit_textures[a]->name == name)
-				return edit_textures[a];
-		}
+		if (edit_textures[a]->name == name)
+			return edit_textures[a];
 	}
 
 	return &no_tex;
 }
 
+void load_editor_texture(string name, string filename)
+{
+	Texture* tex = new Texture();
+	tex->load_file(name, filename);
+	edit_textures.push_back(tex);
+}
 
 void init_textures()
 {
@@ -229,6 +352,14 @@ void init_textures()
 			}
 		}
 	}
+
+	load_editor_texture("_thing", "res/thing.png");
+	load_editor_texture("_unknownsprite", "res/no_thing.png");
+	load_editor_texture("_thing_sound", "res/thing_sound.png");
+	load_editor_texture("_thing_spot", "res/thing_spot.png");
+	load_editor_texture("_thing_light", "res/thing_light.png");
+	load_editor_texture("_thing_fountain", "res/thing_fountain.png");
+	load_editor_texture("_thing_slope", "res/thing_slope.png");
 }
 
 // read_palette: Reads the palette from a wad
@@ -353,7 +484,7 @@ void load_textures_lump(Wad* wad, Lump *lump)
 	fread(&n_tex, 4, 1, fp);
 	offsets = (long *)calloc(n_tex, 4);
 	fread(offsets, 4, n_tex, fp);
-	
+
 	show_progress();
 
 	for (int t = 0; t < n_tex; t++)
@@ -380,9 +511,13 @@ void load_textures_lump(Wad* wad, Lump *lump)
 		fread(&height, 2, 1, fp);
 
 		// Add texture
-		Texture *tex = new Texture();
-		tex->setup(texname, 8, width, height);
-		textures.push_back(tex);
+		Texture *tex = get_texture(texname, 1);
+		if (tex->name == "_notex")
+		{
+			tex = new Texture();
+			tex->setup(texname, 8, width, height);
+			textures.push_back(tex);
+		}
 
 		// Skip more unused stuff
 		fread(&temp, 4, 1, fp);

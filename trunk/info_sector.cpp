@@ -37,7 +37,7 @@ GtkWidget *get_sector_info_bar()
 
 	// Main frame
 	s_frame_main = gtk_frame_new("No Sector Hilighted");
-	widget_set_font(gtk_frame_get_label_widget(GTK_FRAME(s_frame_main)), "Sans Bold 10");
+	widget_set_font(gtk_frame_get_label_widget(GTK_FRAME(s_frame_main)), "Sans Bold", 10);
 	setup_label(&s_label_floor, "Floor Height:");
 	setup_label(&s_label_ceil, "Ceiling Height:");
 	setup_label(&s_label_height, "Sector Height:");
@@ -58,7 +58,7 @@ GtkWidget *get_sector_info_bar()
 
 	// Floor frame
 	s_frame_floor = gtk_frame_new("Floor");
-	widget_set_font(gtk_frame_get_label_widget(GTK_FRAME(s_frame_floor)), "Sans Bold 10");
+	widget_set_font(gtk_frame_get_label_widget(GTK_FRAME(s_frame_floor)), "Sans Bold", 10);
 	gtk_widget_set_size_request(s_frame_floor, 144, -1);
 
 	GtkWidget *frame = gtk_frame_new(NULL);
@@ -72,7 +72,7 @@ GtkWidget *get_sector_info_bar()
 
 	// Ceiling frame
 	s_frame_ceil = gtk_frame_new("Ceiling");
-	widget_set_font(gtk_frame_get_label_widget(GTK_FRAME(s_frame_ceil)), "Sans Bold 10");
+	widget_set_font(gtk_frame_get_label_widget(GTK_FRAME(s_frame_ceil)), "Sans Bold", 10);
 	gtk_widget_set_size_request(s_frame_ceil, 144, -1);
 
 	frame = gtk_frame_new(NULL);
@@ -98,11 +98,11 @@ void update_sector_info_bar(int sector)
 	if (sector == -1)
 	{
 		gtk_frame_set_label(GTK_FRAME(s_frame_main), "No Sector Hilighted");
-		widget_set_font(gtk_frame_get_label_widget(GTK_FRAME(s_frame_main)), "Sans Bold 10");
+		widget_set_font(gtk_frame_get_label_widget(GTK_FRAME(s_frame_main)), "Sans Bold", 10);
 		gtk_frame_set_label(GTK_FRAME(s_frame_floor), "Floor");
-		widget_set_font(gtk_frame_get_label_widget(GTK_FRAME(s_frame_floor)), "Sans Bold 10");
+		widget_set_font(gtk_frame_get_label_widget(GTK_FRAME(s_frame_floor)), "Sans Bold", 10);
 		gtk_frame_set_label(GTK_FRAME(s_frame_ceil), "Ceiling");
-		widget_set_font(gtk_frame_get_label_widget(GTK_FRAME(s_frame_ceil)), "Sans Bold 10");
+		widget_set_font(gtk_frame_get_label_widget(GTK_FRAME(s_frame_ceil)), "Sans Bold", 10);
 
 		gtk_label_set_text(GTK_LABEL(s_label_floor), "Floor Height:");
 		gtk_label_set_text(GTK_LABEL(s_label_ceil), "Ceiling Height:");
@@ -121,7 +121,7 @@ void update_sector_info_bar(int sector)
 
 	// Main frame
 	gtk_frame_set_label(GTK_FRAME(s_frame_main), parse_string("Sector #%d", sector).c_str());
-	widget_set_font(gtk_frame_get_label_widget(GTK_FRAME(s_frame_main)), "Sans Bold 10");
+	widget_set_font(gtk_frame_get_label_widget(GTK_FRAME(s_frame_main)), "Sans Bold", 10);
 
 	gtk_label_set_text(GTK_LABEL(s_label_floor), parse_string("Floor Height: %d", s->f_height).c_str());
 	gtk_label_set_text(GTK_LABEL(s_label_ceil), parse_string("Ceiling Height: %d", s->c_height).c_str());
@@ -132,11 +132,11 @@ void update_sector_info_bar(int sector)
 
 	// Floor frame
 	gtk_frame_set_label(GTK_FRAME(s_frame_floor), parse_string("Floor: %s", s->f_tex.c_str()).c_str());
-	widget_set_font(gtk_frame_get_label_widget(GTK_FRAME(s_frame_floor)), "Sans Bold 10");
+	widget_set_font(gtk_frame_get_label_widget(GTK_FRAME(s_frame_floor)), "Sans Bold", 10);
 	s_tbox_floor->change_texture(s->f_tex, 2, 2.0f);
 
 	// Ceiling frame
 	gtk_frame_set_label(GTK_FRAME(s_frame_ceil), parse_string("Ceiling: %s", s->c_tex.c_str()).c_str());
-	widget_set_font(gtk_frame_get_label_widget(GTK_FRAME(s_frame_ceil)), "Sans Bold 10");
+	widget_set_font(gtk_frame_get_label_widget(GTK_FRAME(s_frame_ceil)), "Sans Bold", 10);
 	s_tbox_ceil->change_texture(s->c_tex, 2, 2.0f);
 }

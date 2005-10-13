@@ -11,6 +11,7 @@
 #include "draw.h"
 #include "edit.h"
 #include "edit_move.h"
+#include "textures.h"
 
 // Variables ------------------------------ >>
 rgba_t	col_hilight(255, 255, 0, 160, 1);
@@ -126,6 +127,94 @@ void draw_rect(rect_t rect, rgba_t col, bool fill)
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
+// draw_texture: Draws a texture at x, y, resized to the given width & height
+// not resized if width or height = -1
+// ----------------------------------------------------------------------- >>
+void draw_texture(int x, int y, int width, int height, string texname, int textype, rgba_t col)
+{
+	Texture* tex = get_texture(texname, textype);
+
+	if (!tex)
+		return;
+
+	if (width == -1)
+		width = tex->width;
+
+	if (height == -1)
+		height = tex->height;
+
+	set_colour(col);
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, tex->get_gl_id());
+
+	glBegin(GL_QUADS);
+		glTexCoord2f(0.0f, 0.0f);	glVertex2d(x, y);
+		glTexCoord2f(1.0f, 0.0f);	glVertex2d(x + width, y);
+		glTexCoord2f(1.0f, 1.0f);	glVertex2d(x + width, y + height);
+		glTexCoord2f(0.0f, 1.0f);	glVertex2d(x, y + height);
+	glEnd();
+}
+
+// draw_texture_scale: Draws a texture to fit within a certain area, scaled correctly
+// ------------------------------------------------------------------------------- >>
+void draw_texture_scale(rect_t rect, string texname, int textype, rgba_t col, float scalef)
+{
+	Texture* tex = get_texture(texname, textype);
+
+	if (!tex)
+		return;
+
+	int width = rect.width();
+	int height = rect.height();
+	int texwidth = tex->width * scalef;
+	int texheight = tex->height * scalef;
+
+	int mid_x = rect.x1() + (width / 2);
+	int mid_y = rect.y1() + (height / 2);
+
+	int nx1 = rect.x1();
+	int nx2 = rect.x1() + width;
+	int ny1 = rect.y1();
+	int ny2 = rect.y1() + height;
+
+	if (texwidth > width)
+	{
+		float multiplier = (float)rect.width() / (float)texwidth;
+		
+		ny1 = mid_y - (float(texheight / 2.0f) * multiplier);
+		ny2 = mid_y + (float(texheight / 2.0f) * multiplier);
+		height = texheight * multiplier;
+	}
+	else
+	{
+		nx1 = mid_x - (texwidth / 2);
+		nx2 = mid_x + (texwidth / 2);
+	}
+
+	if (texheight > height)
+	{
+		float multiplier = (float)rect.height() / (float)texheight;
+		
+		nx1 = mid_x - (float(texwidth / 2.0f) * multiplier);
+		nx2 = mid_x + (float(texwidth / 2.0f) * multiplier);
+	}
+	else
+	{
+		ny1 = mid_y - (texheight / 2);
+		ny2 = mid_y + (texheight / 2);
+	}
+	
+	set_colour(col);
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, tex->get_gl_id());
+	
+	glBegin(GL_QUADS);
+		glTexCoord2f(0.0f, 0.0f);	glVertex2d(nx1, ny1);
+		glTexCoord2f(1.0f, 0.0f);	glVertex2d(nx2, ny1);
+		glTexCoord2f(1.0f, 1.0f);	glVertex2d(nx2, ny2);
+		glTexCoord2f(0.0f, 1.0f);	glVertex2d(nx1, ny2);
+	glEnd();
+}
 
 
 // -------------------------------------------------------------
@@ -336,9 +425,8 @@ void draw_things()
 		if (r < 0) r = 8;
 
 		// Draw thing rect
-		draw_rect(rect_t(s_x(map.things[t]->x), s_y(-map.things[t]->y), r*2, r*2, RECT_CENTER), colour, true);
-		colour.set(0, 0, 0, 100);
-		draw_rect(rect_t(s_x(map.things[t]->x), s_y(-map.things[t]->y), r*2, r*2, RECT_CENTER), colour, false);
+		rect_t t_rect(s_x(map.things[t]->x), s_y(-map.things[t]->y), r*2, r*2, RECT_CENTER);
+		draw_texture(t_rect.x1(), t_rect.y1(), t_rect.width(), t_rect.height(), "_thing", 0, colour);
 
 		// Draw the angle (if needed)
 		if (map.things[t]->ttype->show_angle)
@@ -349,19 +437,19 @@ void draw_things()
 			// east
 			if (map.things[t]->angle == 0)			{ x2 = p.x + r; y2 = p.y; }
 			// northeast
-			else if (map.things[t]->angle == 45)	{ x2 = p.x + r; y2 = p.y - r; }
+			else if (map.things[t]->angle == 45)	{ x2 = p.x + (r*0.75); y2 = p.y - (r*0.75); }
 			// north
 			else if (map.things[t]->angle == 90)	{ x2 = p.x; y2 = p.y - r; }
 			// northwest
-			else if (map.things[t]->angle == 135)	{ x2 = p.x - r; y2 = p.y - r; }
+			else if (map.things[t]->angle == 135)	{ x2 = p.x - (r*0.75); y2 = p.y - (r*0.75); }
 			// west
 			else if (map.things[t]->angle == 180)	{ x2 = p.x - r; y2 = p.y; }
 			// southwest
-			else if (map.things[t]->angle == 225)	{ x2 = p.x - r; y2 = p.y + r; }
+			else if (map.things[t]->angle == 225)	{ x2 = p.x - (r*0.75); y2 = p.y + (r*0.75); }
 			// south
 			else if (map.things[t]->angle == 270)	{ x2 = p.x; y2 = p.y + r; }
 			// southeast
-			else if (map.things[t]->angle == 315)	{ x2 = p.x + r; y2 = p.y + r; }
+			else if (map.things[t]->angle == 315)	{ x2 = p.x + (r*0.75); y2 = p.y + (r*0.75); }
 			// Invalid angle
 			else	{ x2 = p.x; y2 = p.y; }
 
@@ -445,7 +533,7 @@ void draw_hilight()
 
 	if (edit_mode == 3)
 	{
-		int r = ((map.things[hilight_item]->ttype->radius * zoom) / MAJOR_UNIT) + 4;
+		int r = ((map.things[hilight_item]->ttype->radius * zoom) / MAJOR_UNIT);
 		if (r < 0) r = 14;
 
 		rgba_t col(col_hilight.r, col_hilight.g, col_hilight.b, 150, col_hilight.blend);
@@ -675,6 +763,8 @@ void update_map()
 		draw_basic_lines();
 		draw_things();
 	}
+
+	//draw_texture(64, 64, 64, 64, "_thing", 0, rgba_t(255, 0, 0, 255, 0));
 
 	glEndList();
 }

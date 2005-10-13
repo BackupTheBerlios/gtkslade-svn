@@ -9,6 +9,7 @@
 // Includes ------------------------------ >>
 #include "main.h"
 #include "console.h"
+#include "misc.h"
 
 // Variables ----------------------------- >>
 GtkWidget	*console_window;
@@ -70,7 +71,8 @@ void setup_console_window()
 
 	GtkWidget *history_view = gtk_text_view_new_with_buffer(console_log);
 	gtk_container_add(GTK_CONTAINER(s_window), history_view);
-	gtk_widget_modify_font(history_view, pango_font_description_from_string("Courier 8"));
+	//gtk_widget_modify_font(history_view, pango_font_description_from_string("Courier 8"));
+	widget_set_font(history_view, "Courier", 8);
 	gtk_text_view_set_editable(GTK_TEXT_VIEW(history_view), false);
 	gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(history_view), false);
 
@@ -82,7 +84,8 @@ void setup_console_window()
 
 	// Command entry box
 	GtkWidget *cmd_entry = gtk_entry_new();
-	gtk_widget_modify_font(cmd_entry, pango_font_description_from_string("Courier 8"));
+	//gtk_widget_modify_font(cmd_entry, pango_font_description_from_string("Courier 8"));
+	widget_set_font(cmd_entry, "Courier", 8);
 	g_signal_connect(G_OBJECT(cmd_entry), "activate", G_CALLBACK(entry_activate), NULL);
 	gtk_box_pack_start(GTK_BOX(vbox), cmd_entry, false, false, 4);
 

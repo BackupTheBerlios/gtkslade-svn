@@ -26,6 +26,7 @@ GtkWidget *get_thing_info_bar()
 
 	// Main frame
 	t_frame_main = gtk_frame_new("No Thing Hilighted");
+	widget_set_font(gtk_frame_get_label_widget(GTK_FRAME(t_frame_main)), "Sans Bold", 10);
 	setup_label(&t_label_type, "Type:");
 	setup_label(&t_label_x, "X Position:");
 	setup_label(&t_label_y, "Y Position:");
@@ -48,6 +49,7 @@ GtkWidget *get_thing_info_bar()
 
 	// Sprite frame
 	t_frame_sprite = gtk_frame_new("Sprite");
+	widget_set_font(gtk_frame_get_label_widget(GTK_FRAME(t_frame_sprite)), "Sans Bold", 10);
 	gtk_widget_set_size_request(t_frame_sprite, 144, -1);
 	gtk_box_pack_start(GTK_BOX(hbox), t_frame_sprite, false, false, 0);
 
@@ -68,7 +70,7 @@ void update_thing_info_bar(int thing)
 	if (thing == -1)
 	{
 		gtk_frame_set_label(GTK_FRAME(t_frame_main), "No Thing Hilighted");
-		widget_set_font(gtk_frame_get_label_widget(GTK_FRAME(t_frame_main)), "Sans Bold 10");
+		widget_set_font(gtk_frame_get_label_widget(GTK_FRAME(t_frame_main)), "Sans Bold", 10);
 
 		gtk_label_set_text(GTK_LABEL(t_label_type), "Type:");
 		gtk_label_set_text(GTK_LABEL(t_label_x), "X Position:");
@@ -87,7 +89,7 @@ void update_thing_info_bar(int thing)
 
 	const char* ttype = get_thing_type(t->type)->name.c_str();
 	gtk_frame_set_label(GTK_FRAME(t_frame_main), parse_string("Thing #%d: %s", thing, ttype).c_str());
-	widget_set_font(gtk_frame_get_label_widget(GTK_FRAME(t_frame_main)), "Sans Bold 10");
+	widget_set_font(gtk_frame_get_label_widget(GTK_FRAME(t_frame_main)), "Sans Bold", 10);
 
 	gtk_label_set_text(GTK_LABEL(t_label_type), parse_string("Type: %d", t->type).c_str());
 	gtk_label_set_text(GTK_LABEL(t_label_x), parse_string("X Position: %d", t->x).c_str());
