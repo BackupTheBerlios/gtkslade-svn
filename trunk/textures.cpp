@@ -15,6 +15,9 @@ rgba_t				palette[256];
 Texture				no_tex;
 
 CVAR(Bool, cache_textures, false, CVAR_SAVE)
+CVAR(Bool, allow_np2_tex, false, CVAR_SAVE)
+
+static const WORD valid_dimensions[] = { 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096 };
 
 extern WadList wads;
 extern vector<string> spritenames;
@@ -36,6 +39,39 @@ Texture::~Texture()
 
 	if (gl_tex_generated)
 		glDeleteTextures(1, &gl_id);
+}
+
+// is_valid_dimension: Checks if a value is a power of 2
+// -------------------------------------------------- >>
+bool is_valid_dimension(WORD val)
+{
+	for (BYTE d = 0; d < 12; d++)
+	{
+		if (val == valid_dimensions[d])
+			return true;
+	}
+
+	return false;
+}
+
+// up_dimension: Increases a dimension to be a power of two
+// ----------------------------------------------------- >>
+WORD up_dimension(WORD val)
+{
+	WORD ret = val;
+
+	while (1)
+	{
+		ret++;
+
+		for (BYTE d = 0; d < 12; d++)
+		{
+			if (ret == valid_dimensions[d])
+				return ret;
+		}
+	}
+
+	return 0;
 }
 
 void clear_textures(int type)
@@ -101,7 +137,36 @@ GLuint Texture::get_gl_id()
 			temp = (BYTE*)malloc(width * height * 4);
 			memcpy(temp, data, width * height * 4);
 		}
-		
+
+		// Scale texture if it has invalid dimensions
+		int rwidth = width;
+		int rheight = height;
+
+		/*
+		if (!allow_np2_tex)
+		{
+			GdkPixbuf *pbuf = gdk_pixbuf_new_from_data(temp, GDK_COLORSPACE_RGB, true,
+					8, width, height, width * 4,
+					destroy_pb, NULL);
+
+			if (!is_valid_dimension(width))
+				rwidth = up_dimension(width);
+
+			if (!is_valid_dimension(height))
+				rheight = up_dimension(height);
+
+			if (rwidth != width || rheight != height)
+			{
+				GdkPixbuf *pb2 = gdk_pixbuf_scale_simple(pbuf, rwidth, rheight, GDK_INTERP_BILINEAR);
+				temp = (BYTE*)realloc(temp, rwidth * rheight * 4);
+				memcpy(temp, gdk_pixbuf_get_pixels(pb2), rwidth * rheight * 4);
+				g_object_unref(pb2);
+			}
+
+			g_object_unref(pbuf);
+		}
+		*/
+
 		// Generate gl tex
 		int filter = 2;
 		
@@ -111,7 +176,7 @@ GLuint Texture::get_gl_id()
 			glBindTexture(GL_TEXTURE_2D, gl_id);
 			glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
 			glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, temp);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, rwidth, rheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, temp);
 		}
 
 		if (filter == 2)
@@ -120,7 +185,7 @@ GLuint Texture::get_gl_id()
 			glBindTexture(GL_TEXTURE_2D, gl_id);
 			glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
 			glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, temp);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, rwidth, rheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, temp);
 		}
 
 		if (filter == 3)
@@ -129,11 +194,12 @@ GLuint Texture::get_gl_id()
 			glBindTexture(GL_TEXTURE_2D, gl_id);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-			gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, width, height, GL_RGBA, GL_UNSIGNED_BYTE, temp);
+			gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, rwidth, rheight, GL_RGBA, GL_UNSIGNED_BYTE, temp);
 		}
 
 		free(temp);
 		free(data);
+		data = NULL;
 		//log_message("Gen ID: %d\n", gl_id);
 	}
 

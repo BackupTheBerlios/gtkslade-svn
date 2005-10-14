@@ -52,7 +52,7 @@ gboolean browser_expose_event(GtkWidget *w, GdkEventExpose *event, gpointer data
 	rows = (tex_names.size() / browser_columns) + 1;
 	int rows_page = w->allocation.height / width;
 	double offset = gtk_range_get_value(GTK_RANGE(browse_vscroll));
-	int top = ((rows - rows_page) * width) * offset;
+	int top = ((rows - (rows_page - 1)) * width) * offset;
 
 	// Determine sizes for row and page steps (for the scrollbar)
 	double step, page;
@@ -73,7 +73,7 @@ gboolean browser_expose_event(GtkWidget *w, GdkEventExpose *event, gpointer data
 	{
 		for (int col = 0; col < browser_columns; col++)
 		{
-			if (a > tex_names.size())
+			if (a >= tex_names.size())
 				continue;
 
 			if (((row + 1) * width) > top && (row * width) < (top + w->allocation.height))
