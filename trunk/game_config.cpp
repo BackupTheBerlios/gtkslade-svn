@@ -14,6 +14,7 @@
 // Variables ------------------------------ >>
 vector<string> game_config_paths;
 vector<string> game_config_names;
+vector<string> valid_map_names;
 
 // External Variables --------------------- >>
 extern WadList wads;
@@ -132,6 +133,8 @@ bool load_game_config(int index)
 	wads.get_iwad()->close();
 	clear_action_specials();
 	clear_thing_types();
+	valid_map_names.clear();
+	bool map_names = false;
 
 	if (index > game_config_paths.size())
 	{
@@ -191,7 +194,23 @@ bool load_game_config(int index)
 		if (token == "zdoom")
 			map.zdoom = tz.get_bool();
 
+		if (token == "map_names")
+			map_names = tz.get_bool();
+
 		token = tz.get_token();
+	}
+
+	// Read map names
+	if (tz.get_token() == "map_names")
+	{
+		tz.check_token("{");
+		token = tz.get_token();
+
+		while (token != "}")
+		{
+			valid_map_names.push_back(token);
+			token = tz.get_token();
+		}
 	}
 
 	// Read defaults

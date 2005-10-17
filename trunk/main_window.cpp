@@ -21,6 +21,7 @@ CVAR(String, game_config, "Doom 2", CVAR_SAVE)
 extern WadList wads;
 extern vector<string> game_config_paths;
 extern vector<string> game_config_names;
+extern vector<string> valid_map_names;
 extern Map map;
 extern Wad *edit_wad;
 
@@ -182,18 +183,23 @@ void new_standalone_click()
 
 	if (mapname != "")
 	{
-		open_map(NULL, mapname);
-		gtk_widget_hide(wad_manager_window);
-
-		if (game_changed)
+		if (valid_map_names.size() > 0 && vector_exists(valid_map_names, mapname))
 		{
-			popup_console();
-			load_flats();
-			load_textures();
-			load_sprites();
-			game_changed = false;
-			hide_console();
+			open_map(NULL, mapname);
+			gtk_widget_hide(wad_manager_window);
+
+			if (game_changed)
+			{
+				popup_console();
+				load_flats();
+				load_textures();
+				load_sprites();
+				game_changed = false;
+				hide_console();
+			}
 		}
+		else
+			message_box("Invalid map name!", GTK_MESSAGE_ERROR);
 	}
 }
 

@@ -54,6 +54,14 @@ void tedit_browse_type_clicked(GtkWidget *widget, gpointer data)
 	gtk_entry_set_text(GTK_ENTRY(tedit_data.entry_type), parse_string("%d", type).c_str());
 }
 
+gboolean tedit_sprite_clicked(GtkWidget *widget, GdkEventButton *event, gpointer data)
+{
+	if (event->button == 1)
+		tedit_browse_type_clicked(widget, data);
+
+	return false;
+}
+
 void tedit_change_special_clicked(GtkWidget *widget, gpointer data)
 {
 	int special = open_special_select_dialog(tedit_data.special);
@@ -265,6 +273,8 @@ GtkWidget* setup_thing_edit()
 	thing_tbox = new tex_box_t("", 3, 2.0f, rgba_t(180, 180, 180, 255, 0));
 	gtk_container_add(GTK_CONTAINER(frame), thing_tbox->widget);
 	gtk_table_attach_defaults(GTK_TABLE(table), frame, 0, 3, 0, 3);
+	gtk_widget_set_events(thing_tbox->widget, GDK_BUTTON_PRESS_MASK);
+	g_signal_connect(G_OBJECT(thing_tbox->widget), "button_press_event", G_CALLBACK(tedit_sprite_clicked), NULL);
 
 	// Entry
 	tedit_data.entry_type = gtk_entry_new();
@@ -467,7 +477,7 @@ void open_thing_edit()
 	gtk_container_add(GTK_CONTAINER(GTK_DIALOG(dialog)->vbox), setup_thing_edit());
 	gtk_window_set_position(GTK_WINDOW(dialog), GTK_WIN_POS_CENTER_ON_PARENT);
 	//gtk_window_set_resizable(GTK_WINDOW(dialog), false);
-	//gtk_widget_set_size_request(dialog, 320, 320);
+	gtk_widget_set_size_request(dialog, 370, -1);
 	gtk_widget_show_all(dialog);
 
 	int response = gtk_dialog_run(GTK_DIALOG(dialog));

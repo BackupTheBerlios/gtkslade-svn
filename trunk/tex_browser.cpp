@@ -25,6 +25,23 @@ extern GdkGLContext *glcontext;
 extern rgba_t col_selbox;
 extern rgba_t col_selbox_line;
 
+void scroll_to_selected_texture(int width)
+{
+	int a = 0;
+	for (int y = 0; y < rows; y++)
+	{
+		for (int x = 0; x < browser_columns; x++)
+		{
+			if (tex_names[a] == selected_tex)
+			{
+				gtk_range_set_value(GTK_RANGE(browse_vscroll), y * width);
+				return;
+			}
+			a++;
+		}
+	}
+}
+
 gboolean browser_configure_event(GtkWidget *widget, GdkEventConfigure *event, gpointer data)
 {
 	GdkGLContext *context = gtk_widget_get_gl_context(widget);
@@ -54,6 +71,8 @@ gboolean browser_configure_event(GtkWidget *widget, GdkEventConfigure *event, gp
 	int width = widget->allocation.width / browser_columns;
 	int rows_page = widget->allocation.height / width;
 	gtk_range_set_range(GTK_RANGE(browse_vscroll), 0.0, (rows * width) - widget->allocation.height);
+
+	scroll_to_selected_texture(width);
 
 	return true;
 }
@@ -214,6 +233,9 @@ string open_texture_browser(bool tex, bool flat, bool sprite, string init_tex)
 			for (int a = 0; a < flats.size(); a++)
 				tex_names.push_back(flats[a]->name);
 		}
+
+		// Sort alphabetically for now
+		sort(tex_names.begin(), tex_names.end());
 	}
 	else
 	{

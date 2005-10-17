@@ -10,6 +10,9 @@ Goes in bottom-up order
 ': Note
 
 [18/10/05]
++ Valid map names are now read from game configurations (if defined)
++ Clicking on the sprite image in the thing edit dialog now brings up the thing browser, so it's consistent with the line edit dialog (clicking the textures opens the texture browser)
++ Texture browser now scrolls to the currently hilighted texture when appropriate
 * Fixed a possible crash on undo
 + Re-added quick thing angle selection (hold and drag the middle mouse button)
 + Added double right click in the editor window to edit an item
