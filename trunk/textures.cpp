@@ -27,6 +27,8 @@ Texture::Texture()
 	this->data = NULL;
 	this->width = 0;
 	this->height = 0;
+	this->rwidth = 0;
+	this->rheight = 0;
 	this->bpp = 8;
 	this->gl_tex_generated = false;
 	//this->gl_id = 0;
@@ -112,6 +114,8 @@ GLuint Texture::get_gl_id()
 	if (!gl_tex_generated)
 	{
 		BYTE* temp = NULL;
+		BYTE* temp2 = NULL;
+		BYTE* image = NULL;
 		gl_tex_generated = true;
 
 		if (bpp == 8)
@@ -134,33 +138,36 @@ GLuint Texture::get_gl_id()
 		}
 		else if (bpp == 32)
 		{
-			temp = (BYTE*)malloc(width * height * 4);
-			memcpy(temp, data, width * height * 4);
+			temp = (BYTE*)malloc(rwidth * rheight * 4);
+			memcpy(temp, data, rwidth * rheight * 4);
 		}
 
+		image = temp;
+
 		// Scale texture if it has invalid dimensions
-		int rwidth = width;
-		int rheight = height;
+		int nwidth = rwidth;
+		int nheight = rheight;
 
 		/*
 		if (!allow_np2_tex)
 		{
 			GdkPixbuf *pbuf = gdk_pixbuf_new_from_data(temp, GDK_COLORSPACE_RGB, true,
-					8, width, height, width * 4,
+					8, rwidth, rheight, rwidth * 4,
 					destroy_pb, NULL);
 
-			if (!is_valid_dimension(width))
-				rwidth = up_dimension(width);
+			if (!is_valid_dimension(rwidth))
+				nwidth = up_dimension(rwidth);
 
-			if (!is_valid_dimension(height))
-				rheight = up_dimension(height);
+			if (!is_valid_dimension(rheight))
+				nheight = up_dimension(rheight);
 
-			if (rwidth != width || rheight != height)
+			if (nwidth != rwidth || nheight != rheight)
 			{
-				GdkPixbuf *pb2 = gdk_pixbuf_scale_simple(pbuf, rwidth, rheight, GDK_INTERP_BILINEAR);
-				temp = (BYTE*)realloc(temp, rwidth * rheight * 4);
-				memcpy(temp, gdk_pixbuf_get_pixels(pb2), rwidth * rheight * 4);
+				GdkPixbuf *pb2 = gdk_pixbuf_scale_simple(pbuf, nwidth, nheight, GDK_INTERP_BILINEAR);
+				temp2 = (BYTE*)realloc(temp, nwidth * nheight * 4);
+				memcpy(temp2, gdk_pixbuf_get_pixels(pb2), nwidth * nheight * 4);
 				g_object_unref(pb2);
+				image = temp2;
 			}
 
 			g_object_unref(pbuf);
@@ -176,7 +183,7 @@ GLuint Texture::get_gl_id()
 			glBindTexture(GL_TEXTURE_2D, gl_id);
 			glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
 			glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, rwidth, rheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, temp);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, rwidth, rheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
 		}
 
 		if (filter == 2)
@@ -185,7 +192,7 @@ GLuint Texture::get_gl_id()
 			glBindTexture(GL_TEXTURE_2D, gl_id);
 			glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
 			glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, rwidth, rheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, temp);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, rwidth, rheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
 		}
 
 		if (filter == 3)
@@ -194,10 +201,11 @@ GLuint Texture::get_gl_id()
 			glBindTexture(GL_TEXTURE_2D, gl_id);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-			gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, rwidth, rheight, GL_RGBA, GL_UNSIGNED_BYTE, temp);
+			gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, rwidth, rheight, GL_RGBA, GL_UNSIGNED_BYTE, image);
 		}
 
 		free(temp);
+		free(temp2);
 		free(data);
 		data = NULL;
 		//log_message("Gen ID: %d\n", gl_id);
@@ -219,6 +227,8 @@ bool Texture::load_file(string name, string filename)
 	this->name = name;
 	width = gdk_pixbuf_get_width(pbuf);
 	height = gdk_pixbuf_get_height(pbuf);
+	rwidth = width;
+	rheight = height;
 	bpp = 32;
 
 	log_message("%s: %dx%d\n", name.c_str(), width, height);
@@ -362,7 +372,7 @@ Texture* get_texture(string name, int type)
 				return flats[a];
 		}
 	}
-	
+
 	// Search sprites
 	if (type == 0 || type == TEXTURES_SPRITES)
 	{
@@ -383,11 +393,15 @@ Texture* get_texture(string name, int type)
 	return &no_tex;
 }
 
-void load_editor_texture(string name, string filename)
+void load_editor_texture(string name, string filename, int width = -1, int height = -1)
 {
 	Texture* tex = new Texture();
 	tex->load_file(name, filename);
 	edit_textures.push_back(tex);
+	if (width >= 0)
+		tex->width = width;
+	if (height >= 0)
+		tex->height = height;
 }
 
 void init_textures()
@@ -419,13 +433,14 @@ void init_textures()
 		}
 	}
 
+	load_editor_texture("_font", "res/font.png");
 	load_editor_texture("_thing", "res/thing.png");
 	load_editor_texture("_unknownsprite", "res/no_thing.png");
-	load_editor_texture("_thing_sound", "res/thing_sound.png");
-	load_editor_texture("_thing_spot", "res/thing_spot.png");
-	load_editor_texture("_thing_light", "res/thing_light.png");
-	load_editor_texture("_thing_fountain", "res/thing_fountain.png");
-	load_editor_texture("_thing_slope", "res/thing_slope.png");
+	load_editor_texture("_thing_sound", "res/thing_sound.png", 32, 32);
+	load_editor_texture("_thing_spot", "res/thing_spot.png", 32, 32);
+	load_editor_texture("_thing_light", "res/thing_light.png", 32, 32);
+	load_editor_texture("_thing_fountain", "res/thing_fountain.png", 32, 32);
+	load_editor_texture("_thing_slope", "res/thing_slope.png", 32, 32);
 }
 
 // read_palette: Reads the palette from a wad

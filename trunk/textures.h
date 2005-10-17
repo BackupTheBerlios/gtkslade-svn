@@ -8,6 +8,8 @@ private:
 	bool		gl_tex_generated;
 	//GdkPixbuf	*pbuf;
 	GLuint		gl_id;
+	WORD		rwidth;
+	WORD		rheight;
 
 public:
 	WORD		width;
@@ -21,6 +23,8 @@ public:
 	{
 		this->width = width;
 		this->height = height;
+		this->rwidth = width;
+		this->rheight = height;
 		this->bpp = bpp;
 		this->name = name;
 		this->has_alpha = has_alpha;
@@ -42,26 +46,26 @@ public:
 
 	void add_pixel(int x, int y, BYTE colour)
 	{
-		if (x < 0 || x >= width)
+		if (x < 0 || x >= rwidth)
 			return;
 
-		if (y < 0 || y >= height)
+		if (y < 0 || y >= rheight)
 			return;
 
-		DWORD p = (y * (width)) + x;
+		DWORD p = (y * (rwidth)) + x;
 
 		data[p] = colour;
 	}
 
 	void add_pixel(int x, int y, rgba_t colour)
 	{
-		if (x < 0 || x >= width)
+		if (x < 0 || x >= rwidth)
 			return;
 
-		if (y < 0 || y >= height)
+		if (y < 0 || y >= rheight)
 			return;
 
-		DWORD p = ((y * (width)) + x) * 4;
+		DWORD p = ((y * (rwidth)) + x) * 4;
 
 		data[p++] = colour.r;
 		data[p++] = colour.g;

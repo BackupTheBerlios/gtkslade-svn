@@ -42,12 +42,57 @@ extern int hilight_item;
 
 static gboolean tex_box_clicked(GtkWidget *widget, GdkEventButton *event, gpointer data)
 {
-	string* tex = (string*)data;
+	GtkEntry *entry = (GtkEntry*)data;
+	string tex;
 
 	if (event->button == 1)
-		open_texture_browser(true, false, false);
+		tex = open_texture_browser(true, false, false, gtk_entry_get_text(entry));
+
+	gtk_entry_set_text(entry, tex.c_str());
 
 	return true;
+}
+
+void tex_upper_changed(GtkEditable *editable, gpointer data)
+{
+	side_data *sdat = (side_data*)data;
+	GtkEntry *entry = (GtkEntry*)editable;
+	string tex = str_upper(gtk_entry_get_text(entry));
+	gtk_entry_set_text(entry, tex.c_str());
+	sdat->tex_upper = tex;
+
+	if (tex == "-")
+		tex = "";
+
+	sdat->tbox_upper->change_texture(tex, sdat->tbox_upper->textype, sdat->tbox_upper->scale);
+}
+
+void tex_middle_changed(GtkEditable *editable, gpointer data)
+{
+	side_data *sdat = (side_data*)data;
+	GtkEntry *entry = (GtkEntry*)editable;
+	string tex = str_upper(gtk_entry_get_text(entry));
+	gtk_entry_set_text(entry, tex.c_str());
+	sdat->tex_middle = tex;
+
+	if (tex == "-")
+		tex = "";
+
+	sdat->tbox_middle->change_texture(tex, sdat->tbox_middle->textype, sdat->tbox_middle->scale);
+}
+
+void tex_lower_changed(GtkEditable *editable, gpointer data)
+{
+	side_data *sdat = (side_data*)data;
+	GtkEntry *entry = (GtkEntry*)editable;
+	string tex = str_upper(gtk_entry_get_text(entry));
+	gtk_entry_set_text(entry, tex.c_str());
+	sdat->tex_lower = tex;
+
+	if (tex == "-")
+		tex = "";
+
+	sdat->tbox_lower->change_texture(tex, sdat->tbox_lower->textype, sdat->tbox_lower->scale);
 }
 
 GtkWidget* setup_side_edit(int side)
@@ -144,8 +189,12 @@ GtkWidget* setup_side_edit(int side)
 	gtk_widget_set_size_request(entry, 96, -1);
 	sdat->widgets.push_back(entry);
 	gtk_entry_set_text(GTK_ENTRY(entry), sdat->tex_upper.c_str());
+	g_signal_connect(G_OBJECT(entry), "changed", G_CALLBACK(tex_upper_changed), sdat);
 	gtk_box_pack_start(GTK_BOX(vbox), entry, false, false, 4);
 	gtk_box_pack_start(GTK_BOX(hbox), vbox, true, true, 0);
+	gtk_widget_set_events(sdat->tbox_upper->widget, GDK_BUTTON_PRESS_MASK);
+	if (side_exists)
+		g_signal_connect(G_OBJECT(sdat->tbox_upper->widget), "button_press_event", G_CALLBACK(tex_box_clicked), entry);
 
 	// Middle tex
 	vbox = gtk_vbox_new(false, 0);
@@ -157,8 +206,12 @@ GtkWidget* setup_side_edit(int side)
 	gtk_widget_set_size_request(entry, 96, -1);
 	sdat->widgets.push_back(entry);
 	gtk_entry_set_text(GTK_ENTRY(entry), sdat->tex_middle.c_str());
+	g_signal_connect(G_OBJECT(entry), "changed", G_CALLBACK(tex_middle_changed), sdat);
 	gtk_box_pack_start(GTK_BOX(vbox), entry, false, false, 4);
 	gtk_box_pack_start(GTK_BOX(hbox), vbox, true, true, 4);
+	gtk_widget_set_events(sdat->tbox_middle->widget, GDK_BUTTON_PRESS_MASK);
+	if (side_exists)
+		g_signal_connect(G_OBJECT(sdat->tbox_middle->widget), "button_press_event", G_CALLBACK(tex_box_clicked), entry);
 
 	// Lower tex
 	vbox = gtk_vbox_new(false, 0);
@@ -170,18 +223,12 @@ GtkWidget* setup_side_edit(int side)
 	gtk_widget_set_size_request(entry, 96, -1);
 	sdat->widgets.push_back(entry);
 	gtk_entry_set_text(GTK_ENTRY(entry), sdat->tex_lower.c_str());
+	g_signal_connect(G_OBJECT(entry), "changed", G_CALLBACK(tex_lower_changed), sdat);
 	gtk_box_pack_start(GTK_BOX(vbox), entry, false, false, 4);
 	gtk_box_pack_start(GTK_BOX(hbox), vbox, true, true, 4);
-
+	gtk_widget_set_events(sdat->tbox_lower->widget, GDK_BUTTON_PRESS_MASK);
 	if (side_exists)
-	{
-		gtk_widget_set_events(sdat->tbox_upper->widget, GDK_BUTTON_PRESS_MASK);
-		gtk_widget_set_events(sdat->tbox_middle->widget, GDK_BUTTON_PRESS_MASK);
-		gtk_widget_set_events(sdat->tbox_lower->widget, GDK_BUTTON_PRESS_MASK);
-		g_signal_connect(G_OBJECT(sdat->tbox_upper->widget), "button_press_event", G_CALLBACK(tex_box_clicked), &sdat->tex_upper);
-		g_signal_connect(G_OBJECT(sdat->tbox_middle->widget), "button_press_event", G_CALLBACK(tex_box_clicked), &sdat->tex_middle);
-		g_signal_connect(G_OBJECT(sdat->tbox_lower->widget), "button_press_event", G_CALLBACK(tex_box_clicked), &sdat->tex_lower);
-	}
+		g_signal_connect(G_OBJECT(sdat->tbox_lower->widget), "button_press_event", G_CALLBACK(tex_box_clicked), entry);
 
 	if (line != -1)
 	{
@@ -262,4 +309,94 @@ GtkWidget* setup_side_edit(int side)
 
 
 	return widget;
+}
+
+void apply_side_edit()
+{
+	vector<sidedef_t*> side1s;
+	vector<sidedef_t*> side2s;
+
+	// Get sidedefs that are to be modified
+	if (selected_items.size() == 0)
+	{
+		if (map.l_getside(hilight_item, 1))
+			vector_add_nodup(side1s, map.l_getside(hilight_item, 1));
+		if (map.l_getside(hilight_item, 2))
+			vector_add_nodup(side2s, map.l_getside(hilight_item, 2));
+	}
+	else
+	{
+		for (int a = 0; a < selected_items.size(); a++)
+		{
+			if (map.l_getside(selected_items[a], 1))
+				vector_add_nodup(side1s, map.l_getside(selected_items[a], 1));
+			if (map.l_getside(selected_items[a], 2))
+				vector_add_nodup(side2s, map.l_getside(selected_items[a], 2));
+		}
+	}
+
+	// Upper texture
+	if (side1.tex_upper != "")
+	{
+		for (int a = 0; a < side1s.size(); a++)
+			side1s[a]->tex_upper = side1.tex_upper;
+	}
+
+	if (side2.tex_upper != "")
+	{
+		for (int a = 0; a < side2s.size(); a++)
+			side2s[a]->tex_upper = side2.tex_upper;
+	}
+
+	// Middle texture
+	if (side1.tex_middle != "")
+	{
+		for (int a = 0; a < side1s.size(); a++)
+			side1s[a]->tex_middle = side1.tex_middle;
+	}
+
+	if (side2.tex_middle != "")
+	{
+		for (int a = 0; a < side2s.size(); a++)
+			side2s[a]->tex_middle = side2.tex_middle;
+	}
+
+	// Lower texture
+	if (side1.tex_lower != "")
+	{
+		for (int a = 0; a < side1s.size(); a++)
+			side1s[a]->tex_lower = side1.tex_lower;
+	}
+
+	if (side2.tex_lower != "")
+	{
+		for (int a = 0; a < side2s.size(); a++)
+			side2s[a]->tex_lower = side2.tex_lower;
+	}
+
+	// X Offset
+	if (side1.xoff_consistent)
+	{
+		for (int a = 0; a < side1s.size(); a++)
+			side1s[a]->x_offset = side1.x_offset;
+	}
+
+	if (side2.xoff_consistent)
+	{
+		for (int a = 0; a < side2s.size(); a++)
+			side2s[a]->x_offset = side2.x_offset;
+	}
+
+	// Y Offset
+	if (side1.yoff_consistent)
+	{
+		for (int a = 0; a < side1s.size(); a++)
+			side1s[a]->y_offset = side1.y_offset;
+	}
+
+	if (side2.yoff_consistent)
+	{
+		for (int a = 0; a < side2s.size(); a++)
+			side2s[a]->y_offset = side2.y_offset;
+	}
 }

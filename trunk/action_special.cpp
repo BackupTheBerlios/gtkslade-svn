@@ -151,3 +151,22 @@ action_special_t* get_special(int type)
 
 	return &special_unknown;
 }
+
+void populate_tree_store_specials(GtkTreeStore *store)
+{
+	GtkTreeIter iter, child;
+
+	for (int a = 0; a < action_specials.size(); a++)
+	{
+		gtk_tree_store_append(store, &iter, NULL);
+		gtk_tree_store_set(store, &iter, 0, action_specials[a]->name.c_str(), 1, -1, -1);
+
+		for (int b = 0; b < action_specials[a]->actions.size(); b++)
+		{
+			gtk_tree_store_append(store, &child, &iter);
+			gtk_tree_store_set(store, &child,	0, action_specials[a]->actions[b].name.c_str(),
+												1, action_specials[a]->actions[b].type,
+												-1);
+		}
+	}
+}

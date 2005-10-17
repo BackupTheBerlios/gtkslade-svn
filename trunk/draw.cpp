@@ -43,6 +43,27 @@ float moving_size = 5.0f;
 
 GLuint map_list;
 GLuint grid_list;
+GLuint font_list;
+
+char charmap[16][16] =
+{
+	{ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P'},
+	{ 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f'},
+	{ 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v'},
+	{ 'w', 'x', 'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '(', ')'},
+	{ '!', '?', '#', '&', '*', '.', ',', ':', ';', '"', '\'', '/', '-', '+', '_', '%'},
+	{ '=', '{', '}', '<', '>', '[', ']', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+	{ ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+	{ ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+	{ ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+	{ ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+	{ ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+	{ ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+	{ ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+	{ ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+	{ ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+	{ ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}
+};
 
 // External Variables --------------------- >>
 extern Map map;
@@ -54,6 +75,12 @@ extern rect_t sel_box;
 extern point2_t mouse;
 extern bool line_draw;
 extern movelist_t move_list;
+
+void setup_font()
+{
+	//font_list = glGenLists(256);
+	
+}
 
 // -------------------------------------------------------------
 // BASIC DRAWING STUFF -----------------------------------------
@@ -211,6 +238,87 @@ void draw_texture_scale(rect_t rect, string texname, int textype, rgba_t col, fl
 	glEnd();
 }
 
+/*
+void draw_text(int x, int y, rgba_t col, const char *fmt, ...)
+{
+	char		text[256];
+	va_list		ap;
+
+	if (fmt == NULL)
+		return;
+
+	va_start(ap, fmt);
+	vsprintf(text, fmt, ap);
+	va_end(ap);
+
+	set_colour(col);
+	//glTranslated(x, y, 0);
+
+	glPushAttrib(GL_LIST_BIT);
+	//glListBase(font_list - 32);
+	glCallLists(strlen(text), GL_UNSIGNED_BYTE, text);
+	glPopAttrib();
+}
+*/
+
+// draw_text: Draws a string of text at x, y (characters are 8x8)
+// ----------------------------------------------------------- >>
+void draw_text(int x, int y, rgba_t colour, BYTE alignment, const char* text, ...)
+{
+	float tx1, tx2, ty1, ty2;
+	char string[256];
+	va_list ap;
+
+	va_start(ap, text);
+	vsprintf(string, text, ap);
+	va_end(ap);
+
+	float size_x = 8;
+	float size_y = 8;
+
+	// Alignment
+	if (alignment == 1) // Center
+		x -= (((int)strlen(string) * size_x) / 2);
+
+	if (alignment == 2) // Right
+		x -= ((int)strlen(string) * size_x);
+
+	set_colour(colour);
+
+	Texture* tex = get_texture("_font", 4);
+
+	if (!tex)
+		return;
+
+	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBindTexture(GL_TEXTURE_2D, tex->get_gl_id());
+
+	for (DWORD char_num = 0; char_num < strlen(string); char_num++)
+	{
+		for (int row = 0; row < 16; row++)
+		{
+			for (int column = 0; column < 16; column++)
+			{
+				if (string[char_num] == charmap[row][column])
+				{
+					tx1 = (float)column * 0.0625f;
+					tx2 = (float)(column + 1) * 0.0625f;
+					ty1 = (float)row * 0.0625f;
+					ty2 = (float)(row + 1) * 0.0625f;
+
+					glBegin(GL_QUADS);
+						glTexCoord2f(tx1, ty1); glVertex2d((char_num * size_x) + x, y);
+						glTexCoord2f(tx2, ty1); glVertex2d((char_num * size_x) + x + size_x, y);
+						glTexCoord2f(tx2, ty2); glVertex2d((char_num * size_x) + x + size_x, y + size_y);
+						glTexCoord2f(tx1, ty2); glVertex2d((char_num * size_x) + x, y + size_y);
+					glEnd();
+				}
+			}
+		}
+	}
+}
 
 // -------------------------------------------------------------
 // MAP DRAWING STUFF -------------------------------------------
@@ -635,7 +743,7 @@ void draw_drawlines()
 
 			draw_line(rect_t(p1, p2), col_linedraw, true);
 			draw_point(p1.x, p1.y, 6, col_linedraw);
-			//draw_text(midpoint(p1, p2).x, midpoint(p1, p2).y - 4, col_linedraw, 1, "%d", (int)distance(m_x(p1.x), m_y(p1.y), m_x(p2.x), m_y(p2.y)));
+			draw_text(midpoint(p1, p2).x, midpoint(p1, p2).y - 4, col_linedraw, 1, "%d", (int)distance(m_x(p1.x), m_y(p1.y), m_x(p2.x), m_y(p2.y)));
 		}
 
 		if (ldraw_points.n_points == 1)
@@ -647,7 +755,7 @@ void draw_drawlines()
 			draw_line(rect_t(s_p(p1), p2), col_linedraw, true);
 			draw_point(s_x(p1.x), s_y(p1.y), 8, col_linedraw);
 			draw_point(p2.x, p2.y, 6, col_linedraw);
-			//draw_text(midpoint(s_p(p1), p2).x, midpoint(s_p(p1), p2).y, col_linedraw, 1, "%d", (int)distance(p1.x, p1.y, m_x(p2.x), m_y(p2.y)));
+			draw_text(midpoint(s_p(p1), p2).x, midpoint(s_p(p1), p2).y, col_linedraw, 1, "%d", (int)distance(p1.x, p1.y, m_x(p2.x), m_y(p2.y)));
 		}
 
 		glDisable(GL_LINE_STIPPLE);
@@ -758,8 +866,6 @@ void update_map()
 		draw_basic_lines();
 		draw_things();
 	}
-
-	//draw_texture(64, 64, 64, 64, "_thing", 0, rgba_t(255, 0, 0, 255, 0));
 
 	glEndList();
 }

@@ -5,6 +5,7 @@
 #include "checks.h"
 #include "editor_window.h"
 #include "line_edit.h"
+#include "special_select.h"
 
 linedef_t line;
 
@@ -42,6 +43,15 @@ void find_unused_click(GtkWidget *w, gpointer data)
 {
 	GtkWidget *entry = GTK_WIDGET(data);
 	gtk_entry_set_text(GTK_ENTRY(data), parse_string("%d", get_free_tag()).c_str());
+}
+
+void change_special_click(GtkWidget *w, gpointer data)
+{
+	GtkEntry *entry = (GtkEntry*)data;
+	int spec = atoi(gtk_entry_get_text(entry));
+
+	int newspec = open_special_select_dialog(spec);
+	gtk_entry_set_text(entry, parse_string("%d", newspec).c_str());
 }
 
 void flag_click(GtkWidget *w, gpointer data)
@@ -181,6 +191,7 @@ GtkWidget* setup_line_edit_props()
 	gtk_box_pack_start(GTK_BOX(hbox), entry, false, false, 4);
 
 	GtkWidget *button = gtk_button_new_with_label("Change");
+	g_signal_connect(G_OBJECT(button), "clicked", G_CALLBACK(change_special_click), entry);
 	gtk_widget_set_size_request(button, 96, -1);
 	gtk_box_pack_start(GTK_BOX(hbox), button, false, false, 0);
 
@@ -317,8 +328,10 @@ void open_line_edit()
 	if (response == GTK_RESPONSE_ACCEPT)
 	{
 		apply_line_edit();
+		apply_side_edit();
 		force_map_redraw(true, false);
 	}
 
 	gtk_widget_destroy(dialog);
+	gtk_window_present(GTK_WINDOW(editor_window));
 }

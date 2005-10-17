@@ -165,7 +165,8 @@ void console_parsecommand()
 
 	if (token == "tex_browse")
 	{
-		open_texture_browser(true, true, true);
+		string stex = open_texture_browser(true, true, true);
+		console_print(parse_string("Selected \"%s\"", stex.c_str()));
 		parsed = true;
 	}
 

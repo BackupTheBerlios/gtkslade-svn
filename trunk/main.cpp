@@ -21,6 +21,7 @@ CVAR(String, col_config, "Default", CVAR_SAVE)
 extern WadList wads;
 extern Map map;
 extern GtkWidget *editor_window;
+extern GLuint font_list;
 
 // str_upper: Returns a string in uppercase
 // ------------------------------------- >>
@@ -244,6 +245,12 @@ int main(int argc, char *argv[])
 	setup_editor_window();
 	setup_main_window();
 	open_main_window();
+
+	// Setup gl font
+	font_list = glGenLists(256);
+	PangoFontDescription *font_desc = pango_font_description_from_string("Monospace 10");
+	gdk_gl_font_use_pango_font(font_desc, 0, 255, font_list);
+
 	gtk_main();
 	
 	save_main_config();

@@ -7,6 +7,17 @@ Goes in bottom-up order
 +: Added
 -: Removed
 ~: Changed
+': Note
+
+[17/10/05]
++ Added action special selection dialog
++ Texture names are now shown in the texture browser
+
+[16/10/05]
++ Defaults are now read from game configurations again (something I forgot to do before)
++ Added in the old text drawing code
++ Textures can now be selected from the texture browser (mouse only for now)
+' Got a nice new 19" LCD monitor after my old 17" CRT died ;)
 
 [14/10/05]
 + The texture browser is up, can't do anything but view the textures for now.

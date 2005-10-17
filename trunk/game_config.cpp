@@ -19,6 +19,9 @@ vector<string> game_config_names;
 extern WadList wads;
 extern Map map;
 
+extern string def_midtex, def_uptex, def_lotex, def_ftex, def_ctex;
+extern short def_fheight, def_cheight, def_light;
+
 // read_types: Reads either line, sector, thing or arg types from a file
 // ------------------------------------------------------------------ >>
 void read_types(Tokenizer *mr, bool things, bool lines, bool sectors, bool args)
@@ -189,6 +192,42 @@ bool load_game_config(int index)
 			map.zdoom = tz.get_bool();
 
 		token = tz.get_token();
+	}
+
+	// Read defaults
+	if (tz.get_token() == "defaults")
+	{
+		tz.check_token("{");
+		token = tz.get_token();
+
+		while (token != "}")
+		{
+			if (token == "floor_tex")
+				def_ftex = tz.get_token();
+
+			if (token == "ceil_tex")
+				def_ctex = tz.get_token();
+
+			if (token == "upper_tex")
+				def_uptex = tz.get_token();
+
+			if (token == "lower_tex")
+				def_lotex = tz.get_token();
+
+			if (token == "middle_tex")
+				def_midtex = tz.get_token();
+
+			if (token == "floor_height")
+				def_fheight = tz.get_integer();
+
+			if (token == "ceil_height")
+				def_cheight = tz.get_integer();
+
+			if (token == "light")
+				def_light = tz.get_integer();
+
+			token = tz.get_token();
+		}
 	}
 
 	// Read action specials & thing/sector types

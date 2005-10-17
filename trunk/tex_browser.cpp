@@ -43,6 +43,11 @@ gboolean browser_configure_event(GtkWidget *widget, GdkEventConfigure *event, gp
 
 	gdk_gl_drawable_gl_end(gldrawable);
 
+	rows = (tex_names.size() / browser_columns) + 1;
+	int width = widget->allocation.width / browser_columns;
+	int rows_page = widget->allocation.height / width;
+	gtk_range_set_range(GTK_RANGE(browse_vscroll), 0.0, (rows * width) - widget->allocation.height);
+
 	return true;
 }
 
@@ -50,15 +55,11 @@ gboolean browser_expose_event(GtkWidget *w, GdkEventExpose *event, gpointer data
 {
 	int width = w->allocation.width / browser_columns;
 	rows = (tex_names.size() / browser_columns) + 1;
-	int rows_page = w->allocation.height / width;
-	double offset = gtk_range_get_value(GTK_RANGE(browse_vscroll));
-	int top = ((rows - (rows_page - 1)) * width) * offset;
+	int top = gtk_range_get_value(GTK_RANGE(browse_vscroll));
 
-	// Determine sizes for row and page steps (for the scrollbar)
-	double step, page;
-	step = (double)width / double(rows * width);
-	page = double(rows_page * width) / double(rows * width);
-	gtk_range_set_increments(GTK_RANGE(browse_vscroll), step, page);
+	// Set sizes for row and page steps (for the scrollbar)
+	int rows_page = w->allocation.height / width;
+	gtk_range_set_increments(GTK_RANGE(browse_vscroll), width, rows_page * width);
 
 	GdkGLContext *context = gtk_widget_get_gl_context(w);
 	GdkGLDrawable *gldrawable = gtk_widget_get_gl_drawable(w);
@@ -76,9 +77,19 @@ gboolean browser_expose_event(GtkWidget *w, GdkEventExpose *event, gpointer data
 			if (a >= tex_names.size())
 				continue;
 
-			if (((row + 1) * width) > top && (row * width) < (top + w->allocation.height))
-				draw_texture_scale(rect_t(col * width, (row * width) - top, width, width, 0), tex_names[a], 0);
+			rect_t rect(col * width, (row * width) - top, width, width, 0);
+
+			glLineWidth(2.0f);
+			if (selected_tex == tex_names[a])
+				draw_rect(rect, rgba_t(255, 255, 255, 255, 0), false);
 			
+			glLineWidth(1.0f);
+			rect.resize(-8, -8);
+			if (((row + 1) * width) > top && (row * width) < (top + w->allocation.height))
+				draw_texture_scale(rect, tex_names[a], 0);
+
+			draw_text(rect.x1() + (width/2) - 8, rect.y2() - 4, rgba_t(255, 255, 255, 255, 0), 1, tex_names[a].c_str());
+
 			a++;
 		}
 	}
@@ -100,14 +111,31 @@ gboolean browse_vscroll_change(GtkRange *range, GtkScrollType scroll, gdouble va
 	return false;
 }
 
+static gboolean browser_click_event(GtkWidget *widget, GdkEventButton *event)
+{
+	if (event->button == 1)
+	{
+		int width = widget->allocation.width / browser_columns;
+		int row = (gtk_range_get_value(GTK_RANGE(browse_vscroll)) + event->y) / width;
+		int col = event->x / width;
+		int index = (row * browser_columns) + col;
+		selected_tex = tex_names[index];
+		gdk_window_invalidate_rect(widget->window, &widget->allocation, false);
+	}
+
+	return true;
+}
+
 GtkWidget* setup_texture_browser()
 {
 	GtkWidget *hbox = gtk_hbox_new(false, 0);
 
 	GtkWidget *draw_area = gtk_drawing_area_new();
 	gtk_widget_set_gl_capability(draw_area, glconfig, glcontext, TRUE, GDK_GL_RGBA_TYPE);
+	gtk_widget_set_events(draw_area, GDK_EXPOSURE_MASK|GDK_LEAVE_NOTIFY_MASK|GDK_BUTTON_PRESS_MASK);
 	g_signal_connect(G_OBJECT(draw_area), "expose-event", G_CALLBACK(browser_expose_event), NULL);
 	g_signal_connect(G_OBJECT(draw_area), "configure-event", G_CALLBACK(browser_configure_event), NULL);
+	g_signal_connect(G_OBJECT(draw_area), "button_press_event", G_CALLBACK(browser_click_event), NULL);
 
 	gtk_box_pack_start(GTK_BOX(hbox), draw_area, true, true, 0);
 
@@ -119,9 +147,12 @@ GtkWidget* setup_texture_browser()
 	return hbox;
 }
 
-string open_texture_browser(bool tex, bool flat, bool sprite)
+string open_texture_browser(bool tex, bool flat, bool sprite, string init_tex)
 {
 	tex_names.clear();
+	selected_tex = init_tex;
+
+	tex_names.push_back("-");
 
 	if (tex)
 	{
@@ -152,13 +183,17 @@ string open_texture_browser(bool tex, bool flat, bool sprite)
 
 	gtk_container_add(GTK_CONTAINER(GTK_DIALOG(dialog)->vbox), setup_texture_browser());
 	gtk_window_set_position(GTK_WINDOW(dialog), GTK_WIN_POS_CENTER_ON_PARENT);
-	gtk_window_set_default_size(GTK_WINDOW(dialog), 400, 400);
+	gtk_window_set_default_size(GTK_WINDOW(dialog), 640, 480);
 	gtk_widget_show_all(dialog);
 
+	string ret = init_tex;
 	int response = gtk_dialog_run(GTK_DIALOG(dialog));
+
+	if (response == GTK_RESPONSE_ACCEPT)
+		ret = selected_tex;
 
 	gtk_widget_destroy(dialog);
 	gtk_window_present(GTK_WINDOW(editor_window));
 
-	return "";
+	return ret;
 }

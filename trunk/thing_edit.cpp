@@ -89,4 +89,5 @@ void open_thing_edit()
 	*/
 
 	gtk_widget_destroy(dialog);
+	gtk_window_present(GTK_WINDOW(editor_window));
 }

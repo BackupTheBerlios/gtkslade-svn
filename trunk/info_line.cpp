@@ -168,28 +168,22 @@ void update_line_info_bar(int line)
 		widget_set_font(gtk_frame_get_label_widget(GTK_FRAME(frame_side1)), "Sans Bold", 10);
 
 		if (map.l_needsuptex(line, 1))
-		{
 			tbox_uptex1->change_texture(side->tex_upper, 1, 1.0f);
-			gtk_label_set_text(GTK_LABEL(label_uptex1), side->tex_upper.c_str());
-		}
 		else
 			tbox_uptex1->change_texture("");
+		gtk_label_set_text(GTK_LABEL(label_uptex1), side->tex_upper.c_str());
 
 		if (map.l_needsmidtex(line, 1))
-		{
 			tbox_midtex1->change_texture(side->tex_middle, 1, 1.0f);
-			gtk_label_set_text(GTK_LABEL(label_midtex1), side->tex_middle.c_str());
-		}
 		else
 			tbox_midtex1->change_texture("");
+		gtk_label_set_text(GTK_LABEL(label_midtex1), side->tex_middle.c_str());
 
 		if (map.l_needslotex(line, 1))
-		{
 			tbox_lotex1->change_texture(side->tex_lower, 1, 1.0f);
-			gtk_label_set_text(GTK_LABEL(label_lotex1), side->tex_lower.c_str());
-		}
 		else
 			tbox_lotex1->change_texture("");
+		gtk_label_set_text(GTK_LABEL(label_lotex1), side->tex_lower.c_str());
 	}
 	else
 	{
@@ -205,28 +199,22 @@ void update_line_info_bar(int line)
 		widget_set_font(gtk_frame_get_label_widget(GTK_FRAME(frame_side2)), "Sans Bold", 10);
 
 		if (map.l_needsuptex(line, 2))
-		{
 			tbox_uptex2->change_texture(side->tex_upper, 1, 1.0f);
-			gtk_label_set_text(GTK_LABEL(label_uptex2), side->tex_upper.c_str());
-		}
 		else
 			tbox_uptex2->change_texture("");
+		gtk_label_set_text(GTK_LABEL(label_uptex2), side->tex_upper.c_str());
 
 		if (map.l_needsmidtex(line, 2))
-		{
 			tbox_midtex2->change_texture(side->tex_middle, 1, 1.0f);
-			gtk_label_set_text(GTK_LABEL(label_midtex2), side->tex_middle.c_str());
-		}
 		else
 			tbox_midtex2->change_texture("");
+		gtk_label_set_text(GTK_LABEL(label_midtex2), side->tex_middle.c_str());
 
 		if (map.l_needslotex(line, 2))
-		{
 			tbox_lotex2->change_texture(side->tex_lower, 1, 1.0f);
-			gtk_label_set_text(GTK_LABEL(label_lotex2), side->tex_lower.c_str());
-		}
 		else
 			tbox_lotex2->change_texture("");
+		gtk_label_set_text(GTK_LABEL(label_lotex2), side->tex_lower.c_str());
 	}
 	else
 	{
