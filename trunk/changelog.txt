@@ -9,6 +9,9 @@ Goes in bottom-up order
 ~: Changed
 ': Note
 
+[18/10/05]
++ Added cvar 'allow_np2_tex'. If set to false, non-power-of-two textures will be resized. Should be set to true only if the video card supports opengl 2.0.
+
 [17/10/05]
 + Added TID and action special selection to the thing edit dialog
 + Re-added drawing things as sprites on the 2d editor (cvar thing_sprites)

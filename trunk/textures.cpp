@@ -114,8 +114,6 @@ GLuint Texture::get_gl_id()
 	if (!gl_tex_generated)
 	{
 		BYTE* temp = NULL;
-		BYTE* temp2 = NULL;
-		BYTE* image = NULL;
 		gl_tex_generated = true;
 
 		if (bpp == 8)
@@ -142,19 +140,12 @@ GLuint Texture::get_gl_id()
 			memcpy(temp, data, rwidth * rheight * 4);
 		}
 
-		image = temp;
-
 		// Scale texture if it has invalid dimensions
 		int nwidth = rwidth;
 		int nheight = rheight;
 
-		/*
 		if (!allow_np2_tex)
 		{
-			GdkPixbuf *pbuf = gdk_pixbuf_new_from_data(temp, GDK_COLORSPACE_RGB, true,
-					8, rwidth, rheight, rwidth * 4,
-					destroy_pb, NULL);
-
 			if (!is_valid_dimension(rwidth))
 				nwidth = up_dimension(rwidth);
 
@@ -163,16 +154,27 @@ GLuint Texture::get_gl_id()
 
 			if (nwidth != rwidth || nheight != rheight)
 			{
-				GdkPixbuf *pb2 = gdk_pixbuf_scale_simple(pbuf, nwidth, nheight, GDK_INTERP_BILINEAR);
-				temp2 = (BYTE*)realloc(temp, nwidth * nheight * 4);
-				memcpy(temp2, gdk_pixbuf_get_pixels(pb2), nwidth * nheight * 4);
-				g_object_unref(pb2);
-				image = temp2;
-			}
+				// Create a pixbuf
+				GdkPixbuf *pbuf = gdk_pixbuf_new_from_data(temp, GDK_COLORSPACE_RGB, true,
+					8, rwidth, rheight, rwidth * 4,
+					destroy_pb, NULL);
 
-			g_object_unref(pbuf);
+				// Create a new, resized pixbuf
+				GdkPixbuf *pb2 = gdk_pixbuf_scale_simple(pbuf, nwidth, nheight, GDK_INTERP_BILINEAR);
+				g_object_unref(pbuf);
+				temp = NULL;
+
+				// Copy the new data
+				temp = (BYTE*)malloc(nwidth * nheight * 4);
+				memcpy(temp, gdk_pixbuf_get_pixels(pb2), nwidth * nheight * 4);
+
+				// Delete the resized pixbuf
+				g_object_unref(pb2);
+
+				rwidth = nwidth;
+				rheight = nheight;
+			}
 		}
-		*/
 
 		// Generate gl tex
 		int filter = 2;
@@ -183,7 +185,7 @@ GLuint Texture::get_gl_id()
 			glBindTexture(GL_TEXTURE_2D, gl_id);
 			glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
 			glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, rwidth, rheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, rwidth, rheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, temp);
 		}
 
 		if (filter == 2)
@@ -192,7 +194,7 @@ GLuint Texture::get_gl_id()
 			glBindTexture(GL_TEXTURE_2D, gl_id);
 			glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
 			glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, rwidth, rheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, rwidth, rheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, temp);
 		}
 
 		if (filter == 3)
@@ -201,11 +203,10 @@ GLuint Texture::get_gl_id()
 			glBindTexture(GL_TEXTURE_2D, gl_id);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-			gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, rwidth, rheight, GL_RGBA, GL_UNSIGNED_BYTE, image);
+			gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, rwidth, rheight, GL_RGBA, GL_UNSIGNED_BYTE, temp);
 		}
-
+		
 		free(temp);
-		free(temp2);
 		free(data);
 		data = NULL;
 		//log_message("Gen ID: %d\n", gl_id);
