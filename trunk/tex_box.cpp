@@ -84,6 +84,14 @@ gboolean tbox_configure_event(GtkWidget *widget, GdkEventConfigure *event, gpoin
 
 	glViewport(0, 0, widget->allocation.width, widget->allocation.height);
 
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+
+	glOrtho(0.0f, widget->allocation.width, widget->allocation.height, 0.0f, -1.0f, 1.0f);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
 	gdk_gl_drawable_gl_end(gldrawable);
 
 	return true;

@@ -19,3 +19,6 @@ struct thing_type_t
 void parse_thing_group(Tokenizer *tz);
 thing_type_t* get_thing_type(int type);
 void clear_thing_types();
+void populate_tree_store_ttypes(GtkTreeStore *store);
+get_ttype_names(vector<string> *vec);
+thing_type_t* get_thing_type_from_name(string name);

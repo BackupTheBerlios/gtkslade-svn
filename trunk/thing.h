@@ -60,6 +60,23 @@ struct thing_t
 		//radius = 20;
 	}
 
+	bool toggle_flag(WORD flag)
+	{
+		flags ^= flag;
+
+		return !!(flags & flag);
+	}
+
+	void set_flag(WORD flag)
+	{
+		flags |= flag;
+	}
+
+	void clear_flag(WORD flag)
+	{
+		flags = (flags & ~flag);
+	}
+
 	void increment_angle(int amount)
 	{
 		angle += amount;

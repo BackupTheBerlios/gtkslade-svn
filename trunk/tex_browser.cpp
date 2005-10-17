@@ -2,11 +2,14 @@
 #include "main.h"
 #include "textures.h"
 #include "tex_box.h"
+#include "thing_type.h"
 #include "draw.h"
 
+bool browse_sprites = false;
 string selected_tex = "";
 int rows = 0;
 vector<string> tex_names;
+vector<string> browsesprites;
 GtkWidget *browse_vscroll;
 
 CVAR(Int, browser_columns, 4, CVAR_SAVE)
@@ -17,6 +20,9 @@ extern vector<Texture*> flats;
 extern vector<Texture*> sprites;
 extern GdkGLConfig *glconfig;
 extern GdkGLContext *glcontext;
+
+extern rgba_t col_selbox;
+extern rgba_t col_selbox_line;
 
 gboolean browser_configure_event(GtkWidget *widget, GdkEventConfigure *event, gpointer data)
 {
@@ -69,6 +75,7 @@ gboolean browser_expose_event(GtkWidget *w, GdkEventExpose *event, gpointer data
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	int sel_index = -1;
 	int a = 0;
 	for (int row = 0; row < rows; row++)
 	{
@@ -81,18 +88,32 @@ gboolean browser_expose_event(GtkWidget *w, GdkEventExpose *event, gpointer data
 
 			glLineWidth(2.0f);
 			if (selected_tex == tex_names[a])
-				draw_rect(rect, rgba_t(255, 255, 255, 255, 0), false);
+			{
+				draw_rect(rect, rgba_t(0, 180, 255, 150, 0), true);
+				draw_rect(rect, rgba_t(100, 220, 255, 255, 0), false);
+				sel_index = a;
+			}
 			
 			glLineWidth(1.0f);
 			rect.resize(-8, -8);
-			if (((row + 1) * width) > top && (row * width) < (top + w->allocation.height))
-				draw_texture_scale(rect, tex_names[a], 0);
 
-			draw_text(rect.x1() + (width/2) - 8, rect.y2() - 4, rgba_t(255, 255, 255, 255, 0), 1, tex_names[a].c_str());
+			if (((row + 1) * width) > top && (row * width) < (top + w->allocation.height))
+			{
+				if (!browse_sprites)
+				{
+					draw_texture_scale(rect, tex_names[a], 0);
+					draw_text(rect.x1() + (width/2) - 8, rect.y2() - 4, rgba_t(255, 255, 255, 255, 0), 1, tex_names[a].c_str());
+				}
+				else
+					draw_texture_scale(rect, browsesprites[a], 3);
+			}
 
 			a++;
 		}
 	}
+
+	if (browse_sprites && sel_index != -1)
+		draw_text(0, 0, rgba_t(255, 255, 255, 255, 0), 0, tex_names[sel_index].c_str());
 
 	if (gdk_gl_drawable_is_double_buffered(gldrawable))
 		gdk_gl_drawable_swap_buffers(gldrawable);
@@ -111,11 +132,26 @@ gboolean browse_vscroll_change(GtkRange *range, GtkScrollType scroll, gdouble va
 	return false;
 }
 
+gboolean browser_scroll_event(GtkWidget *widget, GdkEventScroll *event, gpointer user_data)
+{
+	int width = (widget->allocation.width / browser_columns) / 2;
+	int top = gtk_range_get_value(GTK_RANGE(browse_vscroll));
+
+	if (event->direction == GDK_SCROLL_UP)
+		gtk_range_set_value(GTK_RANGE(browse_vscroll), top - width);
+	else if (event->direction = GDK_SCROLL_DOWN)
+		gtk_range_set_value(GTK_RANGE(browse_vscroll), top + width);
+
+	gdk_window_invalidate_rect(widget->window, &widget->allocation, false);
+	return false;
+}
+
 static gboolean browser_click_event(GtkWidget *widget, GdkEventButton *event)
 {
+	int width = widget->allocation.width / browser_columns;
+
 	if (event->button == 1)
 	{
-		int width = widget->allocation.width / browser_columns;
 		int row = (gtk_range_get_value(GTK_RANGE(browse_vscroll)) + event->y) / width;
 		int col = event->x / width;
 		int index = (row * browser_columns) + col;
@@ -136,6 +172,7 @@ GtkWidget* setup_texture_browser()
 	g_signal_connect(G_OBJECT(draw_area), "expose-event", G_CALLBACK(browser_expose_event), NULL);
 	g_signal_connect(G_OBJECT(draw_area), "configure-event", G_CALLBACK(browser_configure_event), NULL);
 	g_signal_connect(G_OBJECT(draw_area), "button_press_event", G_CALLBACK(browser_click_event), NULL);
+	g_signal_connect(G_OBJECT(draw_area), "scroll-event", G_CALLBACK(browser_scroll_event), NULL);
 
 	gtk_box_pack_start(GTK_BOX(hbox), draw_area, true, true, 0);
 
@@ -150,26 +187,32 @@ GtkWidget* setup_texture_browser()
 string open_texture_browser(bool tex, bool flat, bool sprite, string init_tex)
 {
 	tex_names.clear();
+	browsesprites.clear();
 	selected_tex = init_tex;
+	browse_sprites = sprite;
 
-	tex_names.push_back("-");
-
-	if (tex)
+	if (!sprite)
 	{
-		for (int a = 0; a < textures.size(); a++)
-			tex_names.push_back(textures[a]->name);
+		tex_names.push_back("-");
+
+		if (tex)
+		{
+			for (int a = 0; a < textures.size(); a++)
+				tex_names.push_back(textures[a]->name);
+		}
+
+		if (flat)
+		{
+			for (int a = 0; a < flats.size(); a++)
+				tex_names.push_back(flats[a]->name);
+		}
 	}
-
-	if (flat)
+	else
 	{
-		for (int a = 0; a < flats.size(); a++)
-			tex_names.push_back(flats[a]->name);
-	}
+		get_ttype_names(&tex_names);
 
-	if (sprite)
-	{
-		for (int a = 0; a < sprites.size(); a++)
-			tex_names.push_back(sprites[a]->name);
+		for (int a = 0; a < tex_names.size(); a++)
+			browsesprites.push_back(get_thing_type_from_name(tex_names[a])->spritename);
 	}
 
 	GtkWidget *dialog = gtk_dialog_new_with_buttons("Textures",

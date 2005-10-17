@@ -144,7 +144,7 @@ DWORD remove_unused_sectors()
 // ------------------------------------------------------------------- >>
 WORD get_free_tag()
 {
-	WORD tag = 0;
+	WORD tag = 1;
 	bool tagmoved = false;
 	
 	while (1)
@@ -176,11 +176,11 @@ WORD get_free_tag()
 	return tag;
 }
 
-// get_free_tag: Gets the lowest free thing id
+// get_free_tid: Gets the lowest free thing id
 // ---------------------------------------- >>
 WORD get_free_tid()
 {
-	WORD tid = 0;
+	WORD tid = 1;
 	bool moved = false;
 	
 	while (1)

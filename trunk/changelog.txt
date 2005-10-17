@@ -10,6 +10,10 @@ Goes in bottom-up order
 ': Note
 
 [17/10/05]
++ Added TID and action special selection to the thing edit dialog
++ Re-added drawing things as sprites on the 2d editor (cvar thing_sprites)
++ Mouse scroll wheel now works in the texture browser
++ Added thing type and angle selection to the thing edit dialog (including thing browser)
 + Added action special selection dialog
 + Texture names are now shown in the texture browser
 

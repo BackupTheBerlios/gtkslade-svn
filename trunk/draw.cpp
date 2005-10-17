@@ -525,11 +525,22 @@ void draw_things()
 
 		// Setup the radius
 		int r = (ttype->radius * zoom) / MAJOR_UNIT;
-		if (r < 0) r = 8;
+		if (ttype->radius == -1) r = 8;
 
-		// Draw thing rect
+		// Draw thing
 		rect_t t_rect(s_x(map.things[t]->x), s_y(-map.things[t]->y), r*2, r*2, RECT_CENTER);
-		draw_texture(t_rect.x1(), t_rect.y1(), t_rect.width(), t_rect.height(), "_thing", 0, colour);
+
+		if (thing_sprites)
+		{
+			Texture* tex = get_texture(ttype->spritename, 3);
+			int width = (tex->width * zoom) / MAJOR_UNIT;
+			int height = (tex->height * zoom) / MAJOR_UNIT;
+			draw_texture(s_x(map.things[t]->x) - (width / 2),
+						s_y(-map.things[t]->y) - (height / 2),
+						width, height, tex->name, 3, COL_WHITE);
+		}
+		else
+			draw_texture(t_rect.x1(), t_rect.y1(), t_rect.width(), t_rect.height(), "_thing", 0, colour);
 
 		// Draw the angle (if needed)
 		if (map.things[t]->ttype->show_angle)
@@ -556,15 +567,17 @@ void draw_things()
 			// Invalid angle
 			else	{ x2 = p.x; y2 = p.y; }
 
-			//if (thing_sprites)
-			//{
-			//	draw_point(p.x, p.y, 8 * zoom / MAJOR_UNIT, COL_WHITE);
-			//	draw_line(rect_t(p.x, p.y, x2, y2), rgba_t(255, 255, 255, 200), line_aa);
-			//}
-			//else
-
 			glLineWidth(2.0f);
-			draw_line(rect_t(p.x, p.y, x2, y2), rgba_t(0, 0, 0, 200), line_aa);
+			glEnable(GL_POINT_SMOOTH);
+
+			if (thing_sprites)
+			{
+				draw_point(p.x, p.y, 8 * zoom / MAJOR_UNIT, COL_WHITE);
+				draw_line(rect_t(p.x, p.y, x2, y2), rgba_t(255, 255, 255, 200), line_aa);
+			}
+			else
+				draw_line(rect_t(p.x, p.y, x2, y2), rgba_t(0, 0, 0, 200), line_aa);
+
 			glLineWidth(1.0f);
 		}
 
@@ -637,7 +650,7 @@ void draw_hilight()
 	if (edit_mode == 3)
 	{
 		int r = ((map.things[hilight_item]->ttype->radius * zoom) / MAJOR_UNIT);
-		if (r < 0) r = 14;
+		if (r <= 0) r = 10;
 
 		rgba_t col(col_hilight.r, col_hilight.g, col_hilight.b, 150, col_hilight.blend);
 		draw_rect(rect_t(s_x(map.things[hilight_item]->x), s_y(-map.things[hilight_item]->y), r*2, r*2, RECT_CENTER), col, true);

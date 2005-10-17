@@ -37,7 +37,7 @@ thing_type_t::thing_type_t(int type, string name)
 
 	colour.set(200, 200, 200, 255, 0);
 	radius = -1;
-	spritename = "";
+	spritename = "_unknownsprite";
 	show_angle = true;
 	hanging = false;
 
@@ -170,4 +170,46 @@ thing_type_t* get_thing_type(int type)
 	}
 
 	return &thing_unknown;
+}
+
+thing_type_t* get_thing_type_from_name(string name)
+{
+	for (int a = 0; a < thing_types.size(); a++)
+	{
+		for (int b = 0; b < thing_types[a]->things.size(); b++)
+		{
+			if (thing_types[a]->things[b].name == name)
+				return &thing_types[a]->things[b];
+		}
+	}
+
+	return &thing_unknown;
+}
+
+void populate_tree_store_ttypes(GtkTreeStore *store)
+{
+	GtkTreeIter iter, child;
+
+	for (int a = 0; a < thing_types.size(); a++)
+	{
+		gtk_tree_store_append(store, &iter, NULL);
+		gtk_tree_store_set(store, &iter, 0, thing_types[a]->name.c_str(), 1, -1, -1);
+
+		for (int b = 0; b < thing_types[a]->things.size(); b++)
+		{
+			gtk_tree_store_append(store, &child, &iter);
+			gtk_tree_store_set(store, &child,	0, thing_types[a]->things[b].name.c_str(),
+												1, thing_types[a]->things[b].type,
+												-1);
+		}
+	}
+}
+
+get_ttype_names(vector<string> *vec)
+{
+	for (int a = 0; a < thing_types.size(); a++)
+	{
+		for (int b = 0; b < thing_types[a]->things.size(); b++)
+			vec->push_back(thing_types[a]->things[b].name);
+	}
 }

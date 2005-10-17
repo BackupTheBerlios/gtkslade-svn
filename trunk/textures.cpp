@@ -435,12 +435,12 @@ void init_textures()
 
 	load_editor_texture("_font", "res/font.png");
 	load_editor_texture("_thing", "res/thing.png");
-	load_editor_texture("_unknownsprite", "res/no_thing.png");
-	load_editor_texture("_thing_sound", "res/thing_sound.png", 32, 32);
-	load_editor_texture("_thing_spot", "res/thing_spot.png", 32, 32);
-	load_editor_texture("_thing_light", "res/thing_light.png", 32, 32);
-	load_editor_texture("_thing_fountain", "res/thing_fountain.png", 32, 32);
-	load_editor_texture("_thing_slope", "res/thing_slope.png", 32, 32);
+	load_editor_texture("_unknownsprite", "res/no_thing.png", 64, 64);
+	load_editor_texture("_thing_sound", "res/thing_sound.png", 64, 64);
+	load_editor_texture("_thing_spot", "res/thing_spot.png", 64, 64);
+	load_editor_texture("_thing_light", "res/thing_light.png", 64, 64);
+	load_editor_texture("_thing_fountain", "res/thing_fountain.png", 64, 64);
+	load_editor_texture("_thing_slope", "res/thing_slope.png", 64, 64);
 }
 
 // read_palette: Reads the palette from a wad
