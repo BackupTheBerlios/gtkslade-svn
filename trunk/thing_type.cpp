@@ -205,7 +205,7 @@ void populate_tree_store_ttypes(GtkTreeStore *store)
 	}
 }
 
-get_ttype_names(vector<string> *vec)
+void get_ttype_names(vector<string> *vec)
 {
 	for (int a = 0; a < thing_types.size(); a++)
 	{
