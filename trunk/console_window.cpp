@@ -28,15 +28,11 @@ void entry_activate(GtkWidget *w, gpointer data)
 	console_parsecommand();
 	wait_gtk_events();
 
-	/*
 	GtkWidget *sbar = gtk_scrolled_window_get_vscrollbar(GTK_SCROLLED_WINDOW(s_window));
 	double upper = GTK_ADJUSTMENT(GTK_RANGE(sbar)->adjustment)->upper;
 	gtk_range_set_value(GTK_RANGE(sbar), upper);
-	*/
 
-	// Doing it this way is terrible, but gtk pre-2.8 doesn't have any way to get
-	// a scrolled window's scrollbar. So until a decent win32 port of gtk 2.8 is released
-	// I have to use this
+	/*
 	GtkAdjustment *a = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(s_window));
 	GtkAdjustment *na = GTK_ADJUSTMENT(gtk_adjustment_new(a->upper,
 															a->lower,
@@ -45,6 +41,7 @@ void entry_activate(GtkWidget *w, gpointer data)
 															a->page_increment,
 															a->page_size));
 	gtk_scrolled_window_set_vadjustment(GTK_SCROLLED_WINDOW(s_window), na);
+	*/
 
 	wait_gtk_events();
 }

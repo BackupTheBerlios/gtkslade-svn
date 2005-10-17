@@ -94,8 +94,13 @@ void console_parsecommand()
 				string ccfg = ((CStringCVar *)cvar)->value;
 				set_colour_config(ccfg);
 				console_print(parse_string("Colour config \"%s\" applied", ccfg.c_str()));
-				force_map_redraw(true, true);
 			}
+
+			// If a map display-related cvar is changed
+			if (cvar->name == "col_config" ||
+				cvar->name == "grid_dashed" ||
+				cvar->name == "thing_sprites")
+				force_map_redraw(true, true);
 
 			changed = true;
 		}

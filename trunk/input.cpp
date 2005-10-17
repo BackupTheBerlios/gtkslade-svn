@@ -363,6 +363,8 @@ void keys_edit()
 	if (binds.pressed("edit_undo"))
 	{
 		undo();
+		clear_selection();
+		hilight_item = -1;
 		force_map_redraw(true, true);
 		map_changelevel(3);
 		binds.clear("edit_undo");

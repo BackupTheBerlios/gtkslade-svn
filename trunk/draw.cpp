@@ -74,6 +74,7 @@ extern pointlist_t ldraw_points;
 extern rect_t sel_box;
 extern point2_t mouse;
 extern bool line_draw;
+extern bool thing_quickangle;
 extern movelist_t move_list;
 
 void setup_font()
@@ -543,9 +544,9 @@ void draw_things()
 			draw_texture(t_rect.x1(), t_rect.y1(), t_rect.width(), t_rect.height(), "_thing", 0, colour);
 
 		// Draw the angle (if needed)
+		point2_t p(s_x(map.things[t]->x), s_y(-map.things[t]->y));
 		if (map.things[t]->ttype->show_angle)
 		{
-			point2_t p(s_x(map.things[t]->x), s_y(-map.things[t]->y));
 			int x2, y2;
 
 			// east
@@ -579,6 +580,17 @@ void draw_things()
 				draw_line(rect_t(p.x, p.y, x2, y2), rgba_t(0, 0, 0, 200), line_aa);
 
 			glLineWidth(1.0f);
+		}
+
+		if (thing_quickangle)
+		{
+			glLineStipple(4, 0xAAAA);
+			glEnable(GL_LINE_STIPPLE);
+
+			if (vector_exists(selected_items, t) || hilight_item == t)
+				draw_line(rect_t(p.x, p.y, mouse.x, mouse.y), col_linedraw, line_aa);
+
+			glDisable(GL_LINE_STIPPLE);
 		}
 
 		// Draw moving hilight
@@ -819,12 +831,11 @@ void update_grid()
 		}
 	}
 
-	glDisable(GL_LINE_STIPPLE);
-
 	// Don't draw 64x64 grid if it'll be too small
 	if (64 < (grid_hidelevel / zoom))
 	{
 		glEndList();
+		glDisable(GL_LINE_STIPPLE);
 		return;
 	}
 
@@ -832,6 +843,7 @@ void update_grid()
 	if (gridsize >= 64)
 	{
 		glEndList();
+		glDisable(GL_LINE_STIPPLE);
 		return;
 	}
 
@@ -846,6 +858,8 @@ void update_grid()
 		if (y % 64 == 0)
 			draw_line(rect_t(0, s_y(y), vid_width, s_y(y)), col_64grid, false);
 	}
+
+	glDisable(GL_LINE_STIPPLE);
 
 	glEndList();
 }

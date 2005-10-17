@@ -26,8 +26,6 @@ int map_changed = 3;	// 0 = no change
 bool browser = false;	// Is the texture browser active?
 bool mix_tex = false;	// Mix textures & flats (zdoom)?
 
-bool thing_quickangle = false;	// Is quick thing angle mode active?
-
 thing_t	last_thing;
 
 movelist_t	move_list;
@@ -1140,4 +1138,58 @@ void init_map()
 	camera.view.set(pos + view);
 	map_changelevel(3);
 	*/
+}
+
+// get_angle: Gets a doom thing angle from two points
+// ----------------------------------------------- >>
+short get_angle(point2_t origin, point2_t point)
+{
+	// Get a direction vector
+	point2_t vec(point.x - origin.x, point.y - origin.y);
+	float mag = (float)sqrt(float((vec.x * vec.x) + (vec.y * vec.y)));
+	float x = vec.x / mag;
+	float y = vec.y / mag;
+
+	//draw_text(s_x(origin.x), s_y(origin.y), COL_WHITE, 0, "%1.2f, %1.2f", x, y);
+	//draw_text(s_x(point.x), s_y(point.y), COL_WHITE, 0, "%d, %d", vec.x, vec.y);
+
+	if (x > 0.89)	// east
+		return 0;
+	if (x < -0.89)	// west
+		return 180;
+	if (y > 0.89)	// north
+		return 90;
+	if (y < -0.89)	// south
+		return 270;
+	if (x > 0 && y > 0)	// northeast
+		return 45;
+	if (x < 0 && y > 0)	// northwest
+		return 135;
+	if (x < 0 && y < 0)	// southwest
+		return 225;
+	if (x > 0 && y < 0)	// southeast
+		return 315;
+
+	return 0;
+}
+
+void thing_setquickangle()
+{
+	point2_t m_mouse(m_x(mouse.x), -m_y(mouse.y));
+
+	if (selected_items.size() != 0)
+	{
+		for (DWORD a = 0; a < selected_items.size(); a++)
+		{
+			int t = selected_items[a];
+			map.things[t]->angle = get_angle(point2_t(map.things[t]->x, map.things[t]->y), m_mouse);
+		}
+	}
+	else if (hilight_item != -1)
+	{
+		map.things[hilight_item]->angle = get_angle(point2_t(map.things[hilight_item]->x, map.things[hilight_item]->y), m_mouse);
+		last_thing.angle = get_angle(point2_t(map.things[hilight_item]->x, map.things[hilight_item]->y), m_mouse);
+	}
+
+	//update_map();
 }

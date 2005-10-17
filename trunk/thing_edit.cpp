@@ -38,6 +38,7 @@ extern vector<int> set_flags;
 extern vector<int> unset_flags;
 extern vector<int> selected_items;
 extern int hilight_item;
+extern thing_t	last_thing;
 
 void tedit_change_type_clicked(GtkWidget *widget, gpointer data)
 {
@@ -47,7 +48,8 @@ void tedit_change_type_clicked(GtkWidget *widget, gpointer data)
 
 void tedit_browse_type_clicked(GtkWidget *widget, gpointer data)
 {
-	string name = open_texture_browser(false, false, true, thing_tbox->texture);
+	string name = open_texture_browser(false, false, true, get_thing_type(tedit_data.type)->name);
+
 	int type = get_thing_type_from_name(name)->type;
 	gtk_entry_set_text(GTK_ENTRY(tedit_data.entry_type), parse_string("%d", type).c_str());
 }
@@ -389,6 +391,8 @@ void apply_thing_edit()
 {
 	// Get things to be changed
 	vector<thing_t*> edit_things;
+	edit_things.push_back(&last_thing);
+
 	if (selected_items.size() == 0)
 		edit_things.push_back(map.things[hilight_item]);
 	else

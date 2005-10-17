@@ -37,6 +37,8 @@ GdkGLContext *glcontext = NULL;
 int vid_width;
 int vid_height;
 
+bool thing_quickangle = false;
+
 // External Variables --------------------- >>
 extern Map map;
 extern int hilight_item, edit_mode;
@@ -208,6 +210,15 @@ static gboolean motion_notify_event(GtkWidget *widget, GdkEventMotion *event)
 		update_map = true;
 	}
 
+	if (state & GDK_BUTTON2_MASK)
+	{
+		// Quick thing angle
+		thing_quickangle = true;
+		thing_setquickangle();
+		redraw_map = true;
+		update_map = true;
+	}
+
 	if (sel_box.x1() != -1)
 	{
 		sel_box.br.set(x, y);
@@ -221,7 +232,7 @@ static gboolean motion_notify_event(GtkWidget *widget, GdkEventMotion *event)
 	{
 		if (line_draw)
 			force_map_redraw();
-		else
+		else if (!thing_quickangle)
 		{
 			int old_hilight = hilight_item;
 			get_hilight_item(x, y);
@@ -273,8 +284,17 @@ static gboolean button_press_event(GtkWidget *widget, GdkEventButton *event)
 		}
 		else
 		{
-			add_move_items();
-			redraw_map = update_map = true;
+			if (event->type == GDK_2BUTTON_PRESS)
+			{
+				clear_move_items();
+				edit_item();
+				redraw_map = update_map = true;
+			}
+			else
+			{
+				add_move_items();
+				redraw_map = update_map = true;
+			}
 		}
 	}
 
@@ -308,6 +328,12 @@ static gboolean button_release_event(GtkWidget *widget, GdkEventButton *event)
 			clear_move_items();
 			redraw_map = update_map = true;
 		}
+	}
+
+	if (event->button == 2)
+	{
+		thing_quickangle = false;
+		redraw_map = update_map = true;
 	}
 
 	if (redraw_map)

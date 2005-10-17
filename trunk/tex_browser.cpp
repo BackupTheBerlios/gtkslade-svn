@@ -11,8 +11,9 @@ int rows = 0;
 vector<string> tex_names;
 vector<string> browsesprites;
 GtkWidget *browse_vscroll;
+GtkWidget *browser_dialog;
 
-CVAR(Int, browser_columns, 4, CVAR_SAVE)
+CVAR(Int, browser_columns, 6, CVAR_SAVE)
 
 extern GtkWidget *editor_window;
 extern vector<Texture*> textures;
@@ -93,7 +94,7 @@ gboolean browser_expose_event(GtkWidget *w, GdkEventExpose *event, gpointer data
 				draw_rect(rect, rgba_t(100, 220, 255, 255, 0), false);
 				sel_index = a;
 			}
-			
+
 			glLineWidth(1.0f);
 			rect.resize(-8, -8);
 
@@ -101,7 +102,9 @@ gboolean browser_expose_event(GtkWidget *w, GdkEventExpose *event, gpointer data
 			{
 				if (!browse_sprites)
 				{
-					draw_texture_scale(rect, tex_names[a], 0);
+					if (tex_names[a] != "-")
+						draw_texture_scale(rect, tex_names[a], 0);
+
 					draw_text(rect.x1() + (width/2) - 8, rect.y2() - 4, rgba_t(255, 255, 255, 255, 0), 1, tex_names[a].c_str());
 				}
 				else
@@ -152,11 +155,16 @@ static gboolean browser_click_event(GtkWidget *widget, GdkEventButton *event)
 
 	if (event->button == 1)
 	{
-		int row = (gtk_range_get_value(GTK_RANGE(browse_vscroll)) + event->y) / width;
-		int col = event->x / width;
-		int index = (row * browser_columns) + col;
-		selected_tex = tex_names[index];
-		gdk_window_invalidate_rect(widget->window, &widget->allocation, false);
+		if (event->type == GDK_2BUTTON_PRESS)
+			gtk_dialog_response(GTK_DIALOG(browser_dialog), GTK_RESPONSE_ACCEPT);
+		else
+		{
+			int row = (gtk_range_get_value(GTK_RANGE(browse_vscroll)) + event->y) / width;
+			int col = event->x / width;
+			int index = (row * browser_columns) + col;
+			selected_tex = tex_names[index];
+			gdk_window_invalidate_rect(widget->window, &widget->allocation, false);
+		}
 	}
 
 	return true;
@@ -215,27 +223,27 @@ string open_texture_browser(bool tex, bool flat, bool sprite, string init_tex)
 			browsesprites.push_back(get_thing_type_from_name(tex_names[a])->spritename);
 	}
 
-	GtkWidget *dialog = gtk_dialog_new_with_buttons("Textures",
-													GTK_WINDOW(editor_window),
-													GTK_DIALOG_MODAL,
-													GTK_STOCK_OK,
-													GTK_RESPONSE_ACCEPT,
-													GTK_STOCK_CANCEL,
-													GTK_RESPONSE_REJECT,
-													NULL);
+	browser_dialog = gtk_dialog_new_with_buttons("Textures",
+												GTK_WINDOW(editor_window),
+												GTK_DIALOG_MODAL,
+												GTK_STOCK_OK,
+												GTK_RESPONSE_ACCEPT,
+												GTK_STOCK_CANCEL,
+												GTK_RESPONSE_REJECT,
+												NULL);
 
-	gtk_container_add(GTK_CONTAINER(GTK_DIALOG(dialog)->vbox), setup_texture_browser());
-	gtk_window_set_position(GTK_WINDOW(dialog), GTK_WIN_POS_CENTER_ON_PARENT);
-	gtk_window_set_default_size(GTK_WINDOW(dialog), 640, 480);
-	gtk_widget_show_all(dialog);
+	gtk_container_add(GTK_CONTAINER(GTK_DIALOG(browser_dialog)->vbox), setup_texture_browser());
+	gtk_window_set_position(GTK_WINDOW(browser_dialog), GTK_WIN_POS_CENTER_ON_PARENT);
+	gtk_window_set_default_size(GTK_WINDOW(browser_dialog), 640, 480);
+	gtk_widget_show_all(browser_dialog);
 
 	string ret = init_tex;
-	int response = gtk_dialog_run(GTK_DIALOG(dialog));
+	int response = gtk_dialog_run(GTK_DIALOG(browser_dialog));
 
 	if (response == GTK_RESPONSE_ACCEPT)
 		ret = selected_tex;
 
-	gtk_widget_destroy(dialog);
+	gtk_widget_destroy(browser_dialog);
 	gtk_window_present(GTK_WINDOW(editor_window));
 
 	return ret;

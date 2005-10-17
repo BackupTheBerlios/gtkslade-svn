@@ -10,6 +10,11 @@ Goes in bottom-up order
 ': Note
 
 [18/10/05]
+* Fixed a possible crash on undo
++ Re-added quick thing angle selection (hold and drag the middle mouse button)
++ Added double right click in the editor window to edit an item
++ Double-clicking a texture in the browser now selects that texture
+~ Changed to GTK-2.8, now that there is finally a gladewin32 gtk2.8 package
 + Added cvar 'allow_np2_tex'. If set to false, non-power-of-two textures will be resized. Should be set to true only if the video card supports opengl 2.0.
 
 [17/10/05]
