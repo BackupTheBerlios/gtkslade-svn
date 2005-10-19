@@ -1,7 +1,6 @@
 
 #include "main.h"
 #include "colours.h"
-#include "misc.h"
 #include "editor_window.h"
 
 col_config_t	*current;

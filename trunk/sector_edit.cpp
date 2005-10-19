@@ -2,7 +2,8 @@
 #include "main.h"
 #include "map.h"
 #include "tex_box.h"
-#include "misc.h"
+#include "tex_browser.h"
+#include "checks.h"
 
 tex_box_t *sedit_tbox_floor = NULL;
 tex_box_t *sedit_tbox_ceil = NULL;
@@ -31,6 +32,134 @@ extern Map map;
 extern GtkWidget *editor_window;
 extern vector<int> selected_items;
 extern int hilight_item;
+
+void sedit_fheight_entry_changed(GtkEditable *editable, gpointer data)
+{
+	GtkEntry *entry = GTK_ENTRY(editable);
+	string text = gtk_entry_get_text(entry);
+
+	if (text != "")
+	{
+		sedit_data.f_height_consistent = true;
+		sedit_data.f_height = atoi(text.c_str());
+	}
+	else
+		sedit_data.f_height_consistent = false;
+}
+
+void sedit_cheight_entry_changed(GtkEditable *editable, gpointer data)
+{
+	GtkEntry *entry = GTK_ENTRY(editable);
+	string text = gtk_entry_get_text(entry);
+
+	if (text != "")
+	{
+		sedit_data.c_height_consistent = true;
+		sedit_data.c_height = atoi(text.c_str());
+	}
+	else
+		sedit_data.c_height_consistent = false;
+}
+
+void sedit_ftex_entry_changed(GtkEditable *editable, gpointer data)
+{
+	GtkEntry *entry = GTK_ENTRY(editable);
+	string text = gtk_entry_get_text(entry);
+
+	if (text != "")
+	{
+		sedit_data.f_tex_consistent = true;
+		sedit_data.f_tex = text.c_str();
+		sedit_tbox_floor->change_texture(text, 2, 2.0f);
+	}
+	else
+		sedit_data.f_tex_consistent = false;
+}
+
+void sedit_ctex_entry_changed(GtkEditable *editable, gpointer data)
+{
+	GtkEntry *entry = GTK_ENTRY(editable);
+	string text = gtk_entry_get_text(entry);
+
+	if (text != "")
+	{
+		sedit_data.c_tex_consistent = true;
+		sedit_data.c_tex = text.c_str();
+		sedit_tbox_ceil->change_texture(text, 2, 2.0f);
+	}
+	else
+		sedit_data.c_tex_consistent = false;
+}
+
+void sedit_special_entry_changed(GtkEditable *editable, gpointer data)
+{
+	GtkEntry *entry = GTK_ENTRY(editable);
+	string text = gtk_entry_get_text(entry);
+
+	if (text != "")
+	{
+		sedit_data.special_consistent = true;
+		sedit_data.special = atoi(text.c_str());
+	}
+	else
+		sedit_data.special_consistent = false;
+}
+
+void sedit_tag_entry_changed(GtkEditable *editable, gpointer data)
+{
+	GtkEntry *entry = GTK_ENTRY(editable);
+	string text = gtk_entry_get_text(entry);
+
+	if (text != "")
+	{
+		sedit_data.tag_consistent = true;
+		sedit_data.tag = atoi(text.c_str());
+	}
+	else
+		sedit_data.tag_consistent = false;
+}
+
+void sedit_light_entry_changed(GtkEditable *editable, gpointer data)
+{
+	GtkEntry *entry = GTK_ENTRY(editable);
+	string text = gtk_entry_get_text(entry);
+
+	if (text != "")
+	{
+		sedit_data.light_consistent = true;
+		sedit_data.light = atoi(text.c_str());
+	}
+	else
+		sedit_data.light_consistent = false;
+}
+
+gboolean sedit_ftex_clicked(GtkWidget *widget, GdkEventButton *event, gpointer data)
+{
+	if (event->button == 1)
+	{
+		string tex = open_texture_browser(false, true, false, sedit_data.f_tex);
+		gtk_entry_set_text(GTK_ENTRY(data), tex.c_str());
+	}
+
+	return false;
+}
+
+gboolean sedit_ctex_clicked(GtkWidget *widget, GdkEventButton *event, gpointer data)
+{
+	if (event->button == 1)
+	{
+		string tex = open_texture_browser(false, true, false, sedit_data.c_tex);
+		gtk_entry_set_text(GTK_ENTRY(data), tex.c_str());
+	}
+
+	return false;
+}
+
+void sedit_find_tag_clicked(GtkWidget *widget, gpointer data)
+{
+	int tag = get_free_tag();
+	gtk_entry_set_text(GTK_ENTRY(data), parse_string("%d", tag).c_str());
+}
 
 GtkWidget* setup_sector_edit()
 {
@@ -108,18 +237,22 @@ GtkWidget* setup_sector_edit()
 	gtk_container_set_border_width(GTK_CONTAINER(vbox), 4);
 	gtk_container_add(GTK_CONTAINER(frame), vbox);
 
+	GtkWidget *entry = gtk_entry_new();
+
 	// Texture box
 	sedit_tbox_floor = new tex_box_t(sedit_data.f_tex, 2, 2.0f, rgba_t(180, 180, 180, 255, 0));
 	sedit_tbox_floor->set_size(128, 128);
 	frame = gtk_aspect_frame_new(NULL, 0.5, 0.5, 1.0, true);
 	gtk_frame_set_shadow_type(GTK_FRAME(frame), GTK_SHADOW_IN);
 	gtk_container_add(GTK_CONTAINER(frame), sedit_tbox_floor->widget);
+	gtk_widget_set_events(sedit_tbox_floor->widget, GDK_BUTTON_PRESS_MASK);
+	g_signal_connect(G_OBJECT(sedit_tbox_floor->widget), "button_press_event", G_CALLBACK(sedit_ftex_clicked), entry);
 	gtk_box_pack_start(GTK_BOX(vbox), frame, true, true, 0);
 
 	// Entry
-	GtkWidget *entry = gtk_entry_new();
 	gtk_entry_set_alignment(GTK_ENTRY(entry), 0.5);
 	gtk_widget_set_size_request(entry, 32, -1);
+	g_signal_connect(G_OBJECT(entry), "changed", G_CALLBACK(sedit_ftex_entry_changed), NULL);
 	gtk_box_pack_start(GTK_BOX(vbox), entry, false, false , 4);
 	if (sedit_data.f_tex_consistent)
 		gtk_entry_set_text(GTK_ENTRY(entry), sedit_data.f_tex.c_str());
@@ -132,6 +265,7 @@ GtkWidget* setup_sector_edit()
 
 	entry = gtk_entry_new();
 	gtk_widget_set_size_request(entry, 32, -1);
+	g_signal_connect(G_OBJECT(entry), "changed", G_CALLBACK(sedit_fheight_entry_changed), NULL);
 	gtk_box_pack_start(GTK_BOX(hbox2), entry, true, true, 0);
 	if (sedit_data.f_height_consistent)
 		gtk_entry_set_text(GTK_ENTRY(entry), parse_string("%d", sedit_data.f_height).c_str());
@@ -145,18 +279,22 @@ GtkWidget* setup_sector_edit()
 	gtk_container_set_border_width(GTK_CONTAINER(vbox), 4);
 	gtk_container_add(GTK_CONTAINER(frame), vbox);
 
+	entry = gtk_entry_new();
+
 	// Texture box
 	sedit_tbox_ceil = new tex_box_t(sedit_data.c_tex, 2, 2.0f, rgba_t(180, 180, 180, 255, 0));
 	sedit_tbox_ceil->set_size(128, 128);
 	frame = gtk_aspect_frame_new(NULL, 0.5, 0.5, 1.0, true);
 	gtk_frame_set_shadow_type(GTK_FRAME(frame), GTK_SHADOW_IN);
+	gtk_widget_set_events(sedit_tbox_ceil->widget, GDK_BUTTON_PRESS_MASK);
+	g_signal_connect(G_OBJECT(sedit_tbox_ceil->widget), "button_press_event", G_CALLBACK(sedit_ctex_clicked), entry);
 	gtk_container_add(GTK_CONTAINER(frame), sedit_tbox_ceil->widget);
 	gtk_box_pack_start(GTK_BOX(vbox), frame, true, true, 0);
 
 	// Entry
-	entry = gtk_entry_new();
 	gtk_entry_set_alignment(GTK_ENTRY(entry), 0.5);
 	gtk_widget_set_size_request(entry, 32, -1);
+	g_signal_connect(G_OBJECT(entry), "changed", G_CALLBACK(sedit_ctex_entry_changed), NULL);
 	gtk_box_pack_start(GTK_BOX(vbox), entry, false, false , 4);
 	if (sedit_data.c_tex_consistent)
 		gtk_entry_set_text(GTK_ENTRY(entry), sedit_data.c_tex.c_str());
@@ -169,6 +307,7 @@ GtkWidget* setup_sector_edit()
 
 	entry = gtk_entry_new();
 	gtk_widget_set_size_request(entry, 32, -1);
+	g_signal_connect(G_OBJECT(entry), "changed", G_CALLBACK(sedit_cheight_entry_changed), NULL);
 	gtk_box_pack_start(GTK_BOX(hbox2), entry, true, true, 0);
 	if (sedit_data.c_height_consistent)
 		gtk_entry_set_text(GTK_ENTRY(entry), parse_string("%d", sedit_data.c_height).c_str());
@@ -191,6 +330,7 @@ GtkWidget* setup_sector_edit()
 
 	entry = gtk_entry_new();
 	gtk_widget_set_size_request(entry, 32, -1);
+	g_signal_connect(G_OBJECT(entry), "changed", G_CALLBACK(sedit_special_entry_changed), NULL);
 	gtk_box_pack_start(GTK_BOX(hbox), entry, false, false, 4);
 	if (sedit_data.special_consistent)
 		gtk_entry_set_text(GTK_ENTRY(entry), parse_string("%d", sedit_data.special).c_str());
@@ -208,6 +348,7 @@ GtkWidget* setup_sector_edit()
 
 	entry = gtk_entry_new();
 	gtk_widget_set_size_request(entry, 32, -1);
+	g_signal_connect(G_OBJECT(entry), "changed", G_CALLBACK(sedit_tag_entry_changed), NULL);
 	gtk_box_pack_start(GTK_BOX(hbox), entry, false, false, 4);
 	if (sedit_data.tag_consistent)
 		gtk_entry_set_text(GTK_ENTRY(entry), parse_string("%d", sedit_data.tag).c_str());
@@ -225,11 +366,49 @@ GtkWidget* setup_sector_edit()
 
 	entry = gtk_entry_new();
 	gtk_widget_set_size_request(entry, 48, -1);
+	g_signal_connect(G_OBJECT(entry), "changed", G_CALLBACK(sedit_light_entry_changed), NULL);
 	gtk_box_pack_start(GTK_BOX(hbox), entry, false, false, 0);
 	if (sedit_data.light_consistent)
 		gtk_entry_set_text(GTK_ENTRY(entry), parse_string("%d", sedit_data.light).c_str());
 
 	return main_vbox;
+}
+
+void apply_sector_edit()
+{
+	// Get sectors to modify
+	vector<sector_t*> edit_sectors;
+	if (selected_items.size() == 0)
+		edit_sectors.push_back(map.sectors[hilight_item]);
+	else
+	{
+		for (int a = 0; a < selected_items.size(); a++)
+			edit_sectors.push_back(map.sectors[selected_items[a]]);
+	}
+	
+	for (int a = 0; a < edit_sectors.size(); a++)
+	{
+		if (sedit_data.f_height_consistent)
+			edit_sectors[a]->f_height = sedit_data.f_height;
+
+		if (sedit_data.c_height_consistent)
+			edit_sectors[a]->c_height = sedit_data.c_height;
+
+		if (sedit_data.f_tex_consistent)
+			edit_sectors[a]->f_tex = sedit_data.f_tex;
+
+		if (sedit_data.c_tex_consistent)
+			edit_sectors[a]->c_tex = sedit_data.c_tex;
+
+		if (sedit_data.special_consistent)
+			edit_sectors[a]->special = sedit_data.special;
+
+		if (sedit_data.tag_consistent)
+			edit_sectors[a]->tag = sedit_data.tag;
+
+		if (sedit_data.light_consistent)
+			edit_sectors[a]->light = sedit_data.light;
+	}
 }
 
 void open_sector_edit()
@@ -249,13 +428,8 @@ void open_sector_edit()
 
 	int response = gtk_dialog_run(GTK_DIALOG(dialog));
 
-	/*
 	if (response == GTK_RESPONSE_ACCEPT)
-	{
-		apply_thing_edit();
-		force_map_redraw(true, false);
-	}
-	*/
+		apply_sector_edit();
 
 	gtk_widget_destroy(dialog);
 	gtk_window_present(GTK_WINDOW(editor_window));

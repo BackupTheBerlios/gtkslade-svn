@@ -1,7 +1,6 @@
 
 #include "main.h"
 #include "args.h"
-#include "misc.h"
 
 GtkWidget* arg_labels[5];
 GtkWidget* arg_entrys[5];

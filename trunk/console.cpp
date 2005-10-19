@@ -9,7 +9,6 @@
 #include "main.h"
 #include "console.h"
 #include "colours.h"
-#include "misc.h"
 #include "textures.h"
 #include "tex_browser.h"
 #include "editor_window.h"

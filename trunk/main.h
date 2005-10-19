@@ -70,3 +70,4 @@ void wait_gtk_events();
 string file_browser(string extension);
 bool yesno_box(string message);
 string entry_box(string prompt);
+string parse_string(char *str, ...);

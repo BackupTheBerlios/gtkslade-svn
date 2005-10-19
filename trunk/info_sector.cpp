@@ -2,8 +2,8 @@
 #include "main.h"
 #include "info_bar.h"
 #include "map.h"
-#include "misc.h"
 #include "tex_box.h"
+#include "misc.h"
 
 GtkWidget *s_frame_main = NULL;
 GtkWidget *s_frame_floor = NULL;

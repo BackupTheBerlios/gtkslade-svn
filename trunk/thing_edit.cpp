@@ -4,7 +4,6 @@
 #include "line_edit.h"
 #include "thing_edit.h"
 #include "tex_box.h"
-#include "misc.h"
 #include "editor_window.h"
 #include "tex_browser.h"
 #include "special_select.h"

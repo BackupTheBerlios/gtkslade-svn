@@ -1,6 +1,5 @@
 #include "main.h"
 #include "map.h"
-#include "misc.h"
 #include "checks.h"
 #include "editor_window.h"
 #include "tex_box.h"

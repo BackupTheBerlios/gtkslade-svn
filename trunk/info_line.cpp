@@ -2,9 +2,9 @@
 #include "main.h"
 #include "info_bar.h"
 #include "map.h"
-#include "misc.h"
 #include "tex_box.h"
 #include "action_special.h"
+#include "misc.h"
 
 GtkWidget *frame_main = NULL;
 GtkWidget *frame_side1 = NULL;

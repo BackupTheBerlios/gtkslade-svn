@@ -19,7 +19,6 @@
 #include "linedraw.h"
 #include "info_bar.h"
 #include "prefs_dialog.h"
-#include "misc.h"
 
 // Variables ------------------------------ >>
 GtkWidget	*editor_window = NULL;

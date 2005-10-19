@@ -1,7 +1,6 @@
 
 #include "main.h"
 #include "map.h"
-#include "misc.h"
 #include "checks.h"
 #include "editor_window.h"
 #include "line_edit.h"

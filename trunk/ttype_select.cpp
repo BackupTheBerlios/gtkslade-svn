@@ -1,7 +1,6 @@
 
 #include "main.h"
 #include "thing_type.h"
-#include "misc.h"
 
 int current_type;
 
