@@ -6,7 +6,7 @@ private:
 	BYTE		*data;
 	bool		has_alpha;
 	bool		gl_tex_generated;
-	//GdkPixbuf	*pbuf;
+	int			gl_filter;
 	GLuint		gl_id;
 	WORD		rwidth;
 	WORD		rheight;
@@ -42,7 +42,7 @@ public:
 		}
 	}
 
-	bool load_file(string name, string filename);
+	bool load_file(string name, string filename, int filter = 2);
 
 	void add_pixel(int x, int y, BYTE colour)
 	{

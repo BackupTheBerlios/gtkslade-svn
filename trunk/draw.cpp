@@ -28,7 +28,9 @@ rgba_t	col_linedraw(0, 200, 0, 255, 0);
 
 CVAR(Float, line_size, 1.5, CVAR_SAVE)
 CVAR(Bool, thing_sprites, false, CVAR_SAVE)
+CVAR(Bool, thing_force_angle, false, CVAR_SAVE)
 CVAR(Bool, grid_dashed, false, CVAR_SAVE)
+CVAR(Bool, grid_64grid, true, CVAR_SAVE)
 CVAR(Bool, line_aa, true, CVAR_SAVE)
 
 /*
@@ -545,7 +547,7 @@ void draw_things()
 
 		// Draw the angle (if needed)
 		point2_t p(s_x(map.things[t]->x), s_y(-map.things[t]->y));
-		if (map.things[t]->ttype->show_angle)
+		if (map.things[t]->ttype->show_angle || thing_force_angle)
 		{
 			int x2, y2;
 
@@ -832,18 +834,12 @@ void update_grid()
 	}
 
 	// Don't draw 64x64 grid if it'll be too small
-	if (64 < (grid_hidelevel / zoom))
-	{
-		glEndList();
-		glDisable(GL_LINE_STIPPLE);
-		return;
-	}
-
 	// Don't draw 64x64 grid if the actual grid size is >=
-	if (gridsize >= 64)
+	// Also don't draw 64x64 grid if the cvar isn't set :P
+	if (64 < (grid_hidelevel / zoom) || gridsize >= 64 || !grid_64grid)
 	{
-		glEndList();
 		glDisable(GL_LINE_STIPPLE);
+		glEndList();
 		return;
 	}
 

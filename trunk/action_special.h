@@ -8,6 +8,7 @@ struct action_special_t
 	char	arg_tag;	// The arg to act as a tag (0 for sector tag, -1 for none)
 
 	string	args[5];
+	string	arg_types[5];
 
 	action_special_t(string name = "Unknown");
 	void parse(Tokenizer *tz);

@@ -16,6 +16,7 @@ Texture				no_tex;
 
 CVAR(Bool, cache_textures, false, CVAR_SAVE)
 CVAR(Bool, allow_np2_tex, false, CVAR_SAVE)
+CVAR(Int, tex_filter, 2, CVAR_SAVE)
 
 static const WORD valid_dimensions[] = { 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096 };
 
@@ -31,6 +32,7 @@ Texture::Texture()
 	this->rheight = 0;
 	this->bpp = 8;
 	this->gl_tex_generated = false;
+	this->gl_filter = tex_filter;
 	//this->gl_id = 0;
 }
 
@@ -177,9 +179,7 @@ GLuint Texture::get_gl_id()
 		}
 
 		// Generate gl tex
-		int filter = 2;
-		
-		if (filter == 1)
+		if (gl_filter == 1)
 		{
 			glGenTextures(1, &gl_id);
 			glBindTexture(GL_TEXTURE_2D, gl_id);
@@ -188,7 +188,7 @@ GLuint Texture::get_gl_id()
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, rwidth, rheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, temp);
 		}
 
-		if (filter == 2)
+		if (gl_filter == 2)
 		{
 			glGenTextures(1, &gl_id);
 			glBindTexture(GL_TEXTURE_2D, gl_id);
@@ -197,7 +197,7 @@ GLuint Texture::get_gl_id()
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, rwidth, rheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, temp);
 		}
 
-		if (filter == 3)
+		if (gl_filter == 3)
 		{
 			glGenTextures(1, &gl_id);
 			glBindTexture(GL_TEXTURE_2D, gl_id);
@@ -215,7 +215,7 @@ GLuint Texture::get_gl_id()
 	return gl_id;
 }
 
-bool Texture::load_file(string name, string filename)
+bool Texture::load_file(string name, string filename, int filter)
 {
 	GdkPixbuf *pbuf = gdk_pixbuf_new_from_file(filename.c_str(), NULL);
 
@@ -226,6 +226,7 @@ bool Texture::load_file(string name, string filename)
 	}
 
 	this->name = name;
+	this->gl_filter = filter;
 	width = gdk_pixbuf_get_width(pbuf);
 	height = gdk_pixbuf_get_height(pbuf);
 	rwidth = width;

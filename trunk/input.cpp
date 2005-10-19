@@ -14,6 +14,7 @@
 #include "undoredo.h"
 #include "line_edit.h"
 #include "thing_edit.h"
+#include "sector_edit.h"
 
 // External Variables --------------------- >>
 extern BindList binds;
@@ -49,13 +50,8 @@ void edit_item()
 	if (edit_mode == 1)
 		open_line_edit();
 
-	/*
 	if (edit_mode == 2)
-	{
-		open_menu = MENU_SECTORMAIN;
-		max_item = sector_options.n_strings - 1;
-	}
-	*/
+		open_sector_edit();
 
 	if (edit_mode == 3)
 		open_thing_edit();

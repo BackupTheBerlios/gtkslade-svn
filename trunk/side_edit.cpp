@@ -188,6 +188,7 @@ GtkWidget* setup_side_edit(int side)
 	GtkWidget *entry = gtk_entry_new();
 	gtk_widget_set_size_request(entry, 96, -1);
 	sdat->widgets.push_back(entry);
+	gtk_entry_set_alignment(GTK_ENTRY(entry), 0.5);
 	gtk_entry_set_text(GTK_ENTRY(entry), sdat->tex_upper.c_str());
 	g_signal_connect(G_OBJECT(entry), "changed", G_CALLBACK(tex_upper_changed), sdat);
 	gtk_box_pack_start(GTK_BOX(vbox), entry, false, false, 4);
@@ -205,6 +206,7 @@ GtkWidget* setup_side_edit(int side)
 	entry = gtk_entry_new();
 	gtk_widget_set_size_request(entry, 96, -1);
 	sdat->widgets.push_back(entry);
+	gtk_entry_set_alignment(GTK_ENTRY(entry), 0.5);
 	gtk_entry_set_text(GTK_ENTRY(entry), sdat->tex_middle.c_str());
 	g_signal_connect(G_OBJECT(entry), "changed", G_CALLBACK(tex_middle_changed), sdat);
 	gtk_box_pack_start(GTK_BOX(vbox), entry, false, false, 4);
@@ -222,6 +224,7 @@ GtkWidget* setup_side_edit(int side)
 	entry = gtk_entry_new();
 	gtk_widget_set_size_request(entry, 96, -1);
 	sdat->widgets.push_back(entry);
+	gtk_entry_set_alignment(GTK_ENTRY(entry), 0.5);
 	gtk_entry_set_text(GTK_ENTRY(entry), sdat->tex_lower.c_str());
 	g_signal_connect(G_OBJECT(entry), "changed", G_CALLBACK(tex_lower_changed), sdat);
 	gtk_box_pack_start(GTK_BOX(vbox), entry, false, false, 4);

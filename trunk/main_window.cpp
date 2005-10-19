@@ -183,7 +183,7 @@ void new_standalone_click()
 
 	if (mapname != "")
 	{
-		if (valid_map_names.size() > 0 && vector_exists(valid_map_names, mapname))
+		if (valid_map_names.size() == 0 || vector_exists(valid_map_names, mapname))
 		{
 			open_map(NULL, mapname);
 			gtk_widget_hide(wad_manager_window);

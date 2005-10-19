@@ -65,10 +65,22 @@ void action_special_t::parse(Tokenizer *tz)
 				args[3] = tz->get_token();
 			if (token == "arg5")
 				args[4] = tz->get_token();
+
 			if (token == "arg_tag")
 				arg_tag = tz->get_integer();
 			if (token == "tagtype")
 				tagtype = tz->get_integer();
+
+			if (token == "arg1_type")
+				arg_types[0] = tz->get_token();
+			if (token == "arg2_type")
+				arg_types[1] = tz->get_token();
+			if (token == "arg3_type")
+				arg_types[2] = tz->get_token();
+			if (token == "arg4_type")
+				arg_types[3] = tz->get_token();
+			if (token == "arg5_type")
+				arg_types[4] = tz->get_token();
 
 			token = tz->get_token();
 		}

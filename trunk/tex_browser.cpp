@@ -181,7 +181,10 @@ static gboolean browser_click_event(GtkWidget *widget, GdkEventButton *event)
 			int row = (gtk_range_get_value(GTK_RANGE(browse_vscroll)) + event->y) / width;
 			int col = event->x / width;
 			int index = (row * browser_columns) + col;
-			selected_tex = tex_names[index];
+
+			if (index < tex_names.size())
+				selected_tex = tex_names[index];
+
 			gdk_window_invalidate_rect(widget->window, &widget->allocation, false);
 		}
 	}

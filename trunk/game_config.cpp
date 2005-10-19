@@ -10,6 +10,7 @@
 #include "misc.h"
 #include "map.h"
 #include "action_special.h"
+#include "args.h"
 
 // Variables ------------------------------ >>
 vector<string> game_config_paths;
@@ -99,7 +100,6 @@ void read_types(Tokenizer *mr, bool things, bool lines, bool sectors, bool args)
 		*/
 
 		// Arg types
-		/*
 		if (args && token == "arg_types")
 		{
 			mr->check_token("{");
@@ -108,11 +108,14 @@ void read_types(Tokenizer *mr, bool things, bool lines, bool sectors, bool args)
 			while (token != "}")
 			{
 				if (token == "type")
-					parse_argtype(mr);
-
-				if (token == "import_types")
 				{
-					MemReader mr2;
+					argtype_t *type = new argtype_t();
+					type->parse(mr);
+				}
+
+				if (token == "import")
+				{
+					Tokenizer mr2;
 					mr2.open_file("games/" + mr->get_token(), 0, 0);
 					read_types(&mr2, false, false, false, true);
 				}
@@ -120,7 +123,6 @@ void read_types(Tokenizer *mr, bool things, bool lines, bool sectors, bool args)
 				token = mr->get_token();
 			}
 		}
-		*/
 
 		token = mr->get_token();
 	}

@@ -9,6 +9,7 @@
 #include "tex_browser.h"
 #include "special_select.h"
 #include "checks.h"
+#include "args_edit.h"
 
 tex_box_t *thing_tbox = NULL;
 
@@ -22,6 +23,9 @@ struct tedit_data_t
 	int tid;
 	bool special_consistent;
 	int special;
+
+	BYTE args[5];
+	bool arg_consistent[5];
 
 	GtkWidget* entry_angle;
 	GtkWidget* entry_type;
@@ -166,6 +170,15 @@ GtkWidget* setup_angle_button(GtkRadioButton* group, int angle)
 	return button;
 }
 
+void tedit_edit_args_clicked(GtkWidget *widget, gpointer data)
+{
+	if (!tedit_data.type_consistent)
+		return;
+
+	thing_type_t *ttype = get_thing_type(tedit_data.type);
+	open_args_edit(tedit_data.args, ttype->args, ttype->arg_types, tedit_data.arg_consistent);
+}
+
 GtkWidget* setup_thing_edit()
 {
 	// Get thing properties
@@ -173,6 +186,7 @@ GtkWidget* setup_thing_edit()
 	tedit_data.type_consistent = true;
 	tedit_data.tid_consistent = true;
 	tedit_data.special_consistent = true;
+	memset(tedit_data.arg_consistent, 1, 5);
 
 	if (selected_items.size() == 0)
 	{
@@ -180,6 +194,7 @@ GtkWidget* setup_thing_edit()
 		tedit_data.type = map.things[hilight_item]->type;
 		tedit_data.tid = map.things[hilight_item]->tid;
 		tedit_data.special = map.things[hilight_item]->special;
+		memcpy(tedit_data.args, map.things[hilight_item]->args, 5);
 	}
 	else
 	{
@@ -187,6 +202,7 @@ GtkWidget* setup_thing_edit()
 		tedit_data.type = map.things[selected_items[0]]->type;
 		tedit_data.tid = map.things[selected_items[0]]->tid;
 		tedit_data.special = map.things[selected_items[0]]->special;
+		memcpy(tedit_data.args, map.things[selected_items[0]]->args, 5);
 
 		for (int a = 0; a < selected_items.size(); a++)
 		{
@@ -201,6 +217,12 @@ GtkWidget* setup_thing_edit()
 
 			if (map.things[selected_items[a]]->special != tedit_data.special)
 				tedit_data.special_consistent = false;
+
+			for (int b = 0; b < 5; b++)
+			{
+				if (map.things[selected_items[a]]->args[b] != tedit_data.args[b])
+					tedit_data.arg_consistent[b] = false;
+			}
 		}
 	}
 
@@ -344,7 +366,7 @@ GtkWidget* setup_thing_edit()
 
 	if (map.hexen)
 	{
-		GtkWidget* hbox2 = gtk_hbox_new(true, 0);
+		GtkWidget* hbox2 = gtk_hbox_new(false, 0);
 
 		// TID FRAME
 		frame = gtk_frame_new("TID");
@@ -390,6 +412,19 @@ GtkWidget* setup_thing_edit()
 
 		if (tedit_data.special_consistent)
 			gtk_entry_set_text(GTK_ENTRY(tedit_data.entry_special), parse_string("%d", tedit_data.special).c_str());
+
+
+		// ARGS FRAME
+		frame = gtk_frame_new("Args");
+		gtk_container_set_border_width(GTK_CONTAINER(frame), 4);
+		gtk_box_pack_start(GTK_BOX(hbox2), frame, false, false, 0);
+		hbox = gtk_hbox_new(false, 0);
+		gtk_container_set_border_width(GTK_CONTAINER(hbox), 4);
+		gtk_container_add(GTK_CONTAINER(frame), hbox);
+
+		button = gtk_button_new_with_label("Edit Args");
+		g_signal_connect(G_OBJECT(button), "clicked", G_CALLBACK(tedit_edit_args_clicked), NULL);
+		gtk_box_pack_start(GTK_BOX(hbox), button, true, true, 0);
 
 		gtk_box_pack_start(GTK_BOX(main_vbox), hbox2, false, false, 0);
 	}
@@ -457,6 +492,16 @@ void apply_thing_edit()
 			for (int a = 0; a < edit_things.size(); a++)
 				edit_things[a]->special = tedit_data.special;
 		}
+
+		// Args
+		for (int a = 0; a < 5; a++)
+		{
+			if (tedit_data.arg_consistent[a])
+			{
+				for (int b = 0; b < edit_things.size(); b++)
+					edit_things[b]->args[a] = tedit_data.args[a];
+			}
+		}
 	}
 }
 
@@ -477,7 +522,7 @@ void open_thing_edit()
 	gtk_container_add(GTK_CONTAINER(GTK_DIALOG(dialog)->vbox), setup_thing_edit());
 	gtk_window_set_position(GTK_WINDOW(dialog), GTK_WIN_POS_CENTER_ON_PARENT);
 	//gtk_window_set_resizable(GTK_WINDOW(dialog), false);
-	gtk_widget_set_size_request(dialog, 370, -1);
+	gtk_window_set_default_size(GTK_WINDOW(dialog), 370, -1);
 	gtk_widget_show_all(dialog);
 
 	int response = gtk_dialog_run(GTK_DIALOG(dialog));

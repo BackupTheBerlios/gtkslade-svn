@@ -6,6 +6,8 @@
 #include "editor_window.h"
 #include "line_edit.h"
 #include "special_select.h"
+#include "action_special.h"
+#include "args_edit.h"
 
 linedef_t line;
 
@@ -13,6 +15,9 @@ vector<int> set_flags;
 vector<int> unset_flags;
 int			special = -1;
 int			tag = -1;
+
+BYTE	args[5];
+bool	arg_consistent[5];
 
 extern Map map;
 extern GtkWidget *editor_window;
@@ -52,6 +57,15 @@ void change_special_click(GtkWidget *w, gpointer data)
 
 	int newspec = open_special_select_dialog(spec);
 	gtk_entry_set_text(entry, parse_string("%d", newspec).c_str());
+}
+
+void edit_line_args_click(GtkWidget *w, gpointer data)
+{
+	if (special == -1)
+		return;
+
+	action_special_t* aspec = get_special(special);
+	open_args_edit(args, aspec->args, aspec->arg_types, arg_consistent);
 }
 
 void flag_click(GtkWidget *w, gpointer data)
@@ -128,12 +142,34 @@ GtkWidget* setup_flag_checkbox(string name, int type, int flag)
 
 GtkWidget* setup_line_edit_props()
 {
+	memset(arg_consistent, 1, 5);
+
 	if (selected_items.size() == 0 && hilight_item != -1)
-		memcpy(&line, map.lines[hilight_item], sizeof(linedef_t));
+	{
+		special = map.lines[hilight_item]->type;
+		tag = map.lines[hilight_item]->sector_tag;
+		memcpy(args, map.lines[hilight_item]->args, 5);
+	}
 	else
 	{
-		// Stuff
-		memcpy(&line, map.lines[selected_items[0]], sizeof(linedef_t));
+		special = map.lines[selected_items[0]]->type;
+		tag = map.lines[selected_items[0]]->sector_tag;
+		memcpy(args, map.lines[selected_items[0]]->args, 5);
+
+		for (int a = 0; a < selected_items.size(); a++)
+		{
+			if (map.lines[selected_items[a]]->type != special)
+				special = -1;
+
+			if (map.lines[selected_items[a]]->sector_tag != tag)
+				tag = -1;
+
+			for (int b = 0; b < 5; b++)
+			{
+				if (map.lines[selected_items[a]]->args[b] != args[b])
+					arg_consistent[b] = false;
+			}
+		}
 	}
 
 	GtkWidget *props_page = gtk_vbox_new(false, 0);
@@ -195,16 +231,19 @@ GtkWidget* setup_line_edit_props()
 	gtk_widget_set_size_request(button, 96, -1);
 	gtk_box_pack_start(GTK_BOX(hbox), button, false, false, 0);
 
+	if (map.hexen)
+	{
+		button = gtk_button_new_with_label("Edit Args");
+		g_signal_connect(G_OBJECT(button), "clicked", G_CALLBACK(edit_line_args_click), NULL);
+		gtk_box_pack_start(GTK_BOX(hbox), button, false, false, 4);
+	}
+
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, false, false, 0);
 
 	if (selected_items.size() == 0 && hilight_item != -1)
 		gtk_entry_set_text(GTK_ENTRY(entry), parse_string("%d", map.lines[hilight_item]->type).c_str());
 
-	if (map.hexen)
-	{
-		// Args
-	}
-	else
+	if (!map.hexen)
 	{
 		// Sector Tag
 		hbox = gtk_hbox_new(false, 0);
@@ -299,6 +338,21 @@ void apply_line_edit()
 		{
 			for (int i = 0; i < selected_items.size(); i++)
 				map.lines[selected_items[i]]->sector_tag = tag;
+		}
+	}
+
+	// Args
+	for (int a = 0; a < 5; a++)
+	{
+		if (arg_consistent[a])
+		{
+			if (selected_items.size() == 0 && hilight_item != -1)
+				map.lines[hilight_item]->args[a] = args[a];
+			else if (selected_items.size() > 0)
+			{
+				for (int i = 0; i < selected_items.size(); i++)
+					map.lines[selected_items[i]]->args[a] = args[a];
+			}
 		}
 	}
 }
