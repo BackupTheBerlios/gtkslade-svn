@@ -1177,7 +1177,7 @@ void Map::add_to_wad(Wad *wadfile)
 		if (!behavior)
 			wadfile->add_lump("BEHAVIOR", mapindex + 1);
 	}
-	
+
 	wadfile->add_lump("SECTORS", mapindex + 1);
 	wadfile->add_lump("VERTEXES", mapindex + 1);
 	wadfile->add_lump("SIDEDEFS", mapindex + 1);

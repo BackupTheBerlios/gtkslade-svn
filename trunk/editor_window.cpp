@@ -391,6 +391,37 @@ static void destroy(GtkWidget *widget, gpointer data)
 }
 
 // MENU STUFF
+void file_save()
+{
+	map.add_to_wad(edit_wad);
+	edit_wad->save(true);
+}
+
+void file_saveas()
+{
+	GtkWidget *dialog = gtk_file_chooser_dialog_new("Save Wad",
+													NULL,
+													GTK_FILE_CHOOSER_ACTION_SAVE,
+													GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+													GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT,
+													NULL);
+
+	if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT)
+	{
+		string filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
+		
+		if (!g_str_has_suffix(filename.c_str(), ".wad"))
+			filename += ".wad";
+
+		edit_wad = new Wad();
+		edit_wad->path = filename;
+		map.add_to_wad(edit_wad);
+		edit_wad->save(true);
+		gtk_window_set_title(GTK_WINDOW(editor_window), parse_string("SLADE (%s, %s)", edit_wad->path.c_str(), map.name.c_str()).c_str());
+	}
+
+	gtk_widget_destroy(dialog);
+}
 
 // menu_action: Called when a menu/toolbar item is selected
 // ----------------------------------------------------- >>
@@ -433,6 +464,15 @@ static void menu_action(GtkAction *action)
 								"website", "http://slade.mancubus.net",
 								NULL);
 	}
+	else if (act == "Save")
+	{
+		if (edit_wad)
+			file_save();
+		else
+			file_saveas();
+	}
+	else if (act == "SaveAs")
+		file_saveas();
 	else
 		message_box("Menu action not implemented", GTK_MESSAGE_INFO);
 }

@@ -339,7 +339,6 @@ void Wad::save(bool nodes)
 	fclose(fp);
 
 	// Build nodes
-	/*
 	if (nodes)
 	{
 		char command[1024] = "";
@@ -353,7 +352,6 @@ void Wad::save(bool nodes)
 		system(command);
 		remove(tempname.c_str());
 	}
-	*/
 }
 
 void Wad::close()

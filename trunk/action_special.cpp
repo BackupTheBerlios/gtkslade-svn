@@ -139,8 +139,6 @@ void parse_action_group(Tokenizer *tz)
 
 			newspecial.parse(tz);
 			group->actions.push_back(newspecial);
-
-			//console_print(parse_string("Added \"%s\" to group \"%s\"", newspecial.name.c_str(), group->name.c_str()));
 		}
 
 		token = tz->get_token();
