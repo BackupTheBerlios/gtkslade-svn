@@ -22,6 +22,8 @@ struct tedit_data_t
 	int tid;
 	bool special_consistent;
 	int special;
+	bool zheight_consistent;
+	int zheight;
 
 	BYTE args[5];
 	bool arg_consistent[5];
@@ -31,6 +33,7 @@ struct tedit_data_t
 	GtkWidget* label_type;
 	GtkWidget* entry_tid;
 	GtkWidget* entry_special;
+	GtkWidget* entry_zheight;
 };
 
 tedit_data_t tedit_data;
@@ -142,6 +145,20 @@ void tedit_special_entry_changed(GtkEditable *editable, gpointer data)
 	}
 }
 
+void tedit_zheight_entry_changed(GtkEditable *editable, gpointer data)
+{
+	GtkEntry* entry = (GtkEntry*)editable;
+	string text = gtk_entry_get_text(entry);
+
+	if (text == "")
+		tedit_data.zheight_consistent = false;
+	else
+	{
+		tedit_data.zheight = atoi(text.c_str());
+		tedit_data.zheight_consistent = true;
+	}
+}
+
 void angle_button_toggled(GtkToggleButton *button, gpointer data)
 {
 	int angle = (int)data;
@@ -185,6 +202,7 @@ GtkWidget* setup_thing_edit()
 	tedit_data.type_consistent = true;
 	tedit_data.tid_consistent = true;
 	tedit_data.special_consistent = true;
+	tedit_data.zheight_consistent = true;
 	memset(tedit_data.arg_consistent, 1, 5);
 
 	if (selected_items.size() == 0)
@@ -216,6 +234,9 @@ GtkWidget* setup_thing_edit()
 
 			if (map.things[selected_items[a]]->special != tedit_data.special)
 				tedit_data.special_consistent = false;
+
+			if (map.things[selected_items[a]]->z != tedit_data.zheight)
+				tedit_data.zheight_consistent = false;
 
 			for (int b = 0; b < 5; b++)
 			{
@@ -368,7 +389,7 @@ GtkWidget* setup_thing_edit()
 		GtkWidget* hbox2 = gtk_hbox_new(false, 0);
 
 		// TID FRAME
-		frame = gtk_frame_new("TID");
+		frame = gtk_frame_new("Thing ID");
 		gtk_container_set_border_width(GTK_CONTAINER(frame), 4);
 		gtk_box_pack_start(GTK_BOX(hbox2), frame, true, true, 0);
 		hbox = gtk_hbox_new(false, 0);
@@ -388,6 +409,24 @@ GtkWidget* setup_thing_edit()
 
 		if (tedit_data.tid_consistent)
 			gtk_entry_set_text(GTK_ENTRY(tedit_data.entry_tid), parse_string("%d", tedit_data.tid).c_str());
+
+
+		// Z HEIGHT FRAME
+		frame = gtk_frame_new("Z Height");
+		gtk_container_set_border_width(GTK_CONTAINER(frame), 4);
+		gtk_box_pack_start(GTK_BOX(hbox2), frame, false, false, 0);
+		hbox = gtk_hbox_new(false, 0);
+		gtk_container_set_border_width(GTK_CONTAINER(hbox), 4);
+		gtk_container_add(GTK_CONTAINER(frame), hbox);
+
+		// Entry
+		tedit_data.entry_zheight = gtk_entry_new();
+		gtk_widget_set_size_request(tedit_data.entry_zheight, 32, -1);
+		g_signal_connect(G_OBJECT(tedit_data.entry_zheight), "changed", G_CALLBACK(tedit_zheight_entry_changed), NULL);
+		gtk_box_pack_start(GTK_BOX(hbox), tedit_data.entry_zheight, true, true, 0);
+
+		if (tedit_data.zheight_consistent)
+			gtk_entry_set_text(GTK_ENTRY(tedit_data.entry_zheight), parse_string("%d", tedit_data.zheight).c_str());
 
 
 		// SPECIAL FRAME
@@ -483,6 +522,13 @@ void apply_thing_edit()
 		{
 			for (int a = 0; a < edit_things.size(); a++)
 				edit_things[a]->tid = tedit_data.tid;
+		}
+
+		// Z Height
+		if (tedit_data.tid_consistent)
+		{
+			for (int a = 0; a < edit_things.size(); a++)
+				edit_things[a]->z = tedit_data.zheight;
 		}
 
 		// Action Special

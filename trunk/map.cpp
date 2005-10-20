@@ -1002,7 +1002,7 @@ void Map::add_to_wad(Wad *wadfile)
 			memcpy(p, &things[t]->angle, 2); p += 2;
 			memcpy(p, &things[t]->type, 2); p += 2;
 			memcpy(p, &things[t]->flags, 2); p += 2;
-			memcpy(p, &things[t]->special, 2); p += 2;
+			memcpy(p, &things[t]->special, 1); p += 1;
 			memcpy(p, things[t]->args, 5); p += 5;
 		}
 		else
@@ -1177,7 +1177,7 @@ void Map::add_to_wad(Wad *wadfile)
 		if (!behavior)
 			wadfile->add_lump("BEHAVIOR", mapindex + 1);
 	}
-
+	
 	wadfile->add_lump("SECTORS", mapindex + 1);
 	wadfile->add_lump("VERTEXES", mapindex + 1);
 	wadfile->add_lump("SIDEDEFS", mapindex + 1);
