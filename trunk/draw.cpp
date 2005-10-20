@@ -115,7 +115,7 @@ void draw_point(int x, int y, int size, rgba_t col)
 
 // draw_line: Draws a line from a rect's top left to it's bottom right
 // ---------------------------------------------------------------- >>
-void draw_line(rect_t rect, rgba_t col, bool aa)
+void draw_line(rect_t rect, rgba_t col, bool aa, bool side_indicator = false)
 {
 	glDisable(GL_TEXTURE_2D);
 
@@ -131,6 +131,20 @@ void draw_line(rect_t rect, rgba_t col, bool aa)
 		glVertex2d(rect.tl.x, rect.tl.y);
 		glVertex2d(rect.br.x, rect.br.y);
 	glEnd();
+
+	if (side_indicator)
+	{
+		point2_t mid = midpoint(rect.tl, rect.br);
+		point2_t vec(rect.x2() - rect.x1(), rect.y2() - rect.y1());
+		int x = -vec.y / 8;
+		int y = vec.x / 8;
+		rect_t rect2(mid.x, mid.y, mid.x + x, mid.y + y);
+
+		glBegin(GL_LINES);
+			glVertex2d(rect2.tl.x, rect2.tl.y);
+			glVertex2d(rect2.br.x, rect2.br.y);
+		glEnd();
+	}
 }
 
 // draw_rect: Draws a rectangle
@@ -768,9 +782,9 @@ void draw_drawlines()
 			p1.set(s_x(ldraw_points.points[p - 1].x), s_y(-ldraw_points.points[p - 1].y));
 			p2.set(s_x(ldraw_points.points[p].x), s_y(-ldraw_points.points[p].y));
 
-			draw_line(rect_t(p1, p2), col_linedraw, true);
+			draw_line(rect_t(p1, p2), col_linedraw, true, true);
 			draw_point(p1.x, p1.y, 6, col_linedraw);
-			draw_text(midpoint(p1, p2).x, midpoint(p1, p2).y - 4, col_linedraw, 1, "%d", (int)distance(m_x(p1.x), m_y(p1.y), m_x(p2.x), m_y(p2.y)));
+			//draw_text(midpoint(p1, p2).x, midpoint(p1, p2).y - 4, col_linedraw, 1, "%d", (int)distance(m_x(p1.x), m_y(p1.y), m_x(p2.x), m_y(p2.y)));
 		}
 
 		if (ldraw_points.n_points == 1)
@@ -779,10 +793,10 @@ void draw_drawlines()
 		if (sel_box.x1() == -1)
 		{
 			p1.set(snap_to_grid(m_x(mouse.x)), snap_to_grid(m_y(mouse.y)));
-			draw_line(rect_t(s_p(p1), p2), col_linedraw, true);
+			draw_line(rect_t(p2, s_p(p1)), col_linedraw, true, true);
 			draw_point(s_x(p1.x), s_y(p1.y), 8, col_linedraw);
 			draw_point(p2.x, p2.y, 6, col_linedraw);
-			draw_text(midpoint(s_p(p1), p2).x, midpoint(s_p(p1), p2).y, col_linedraw, 1, "%d", (int)distance(p1.x, p1.y, m_x(p2.x), m_y(p2.y)));
+			//draw_text(midpoint(s_p(p1), p2).x, midpoint(s_p(p1), p2).y, col_linedraw, 1, "%d", (int)distance(p1.x, p1.y, m_x(p2.x), m_y(p2.y)));
 		}
 
 		glDisable(GL_LINE_STIPPLE);

@@ -2,7 +2,7 @@
 #include "main.h"
 #include "thing_type.h"
 
-int current_type;
+int current_ttype;
 
 extern GtkWidget *editor_window;
 
@@ -29,7 +29,7 @@ void ttype_tree_view_changed(GtkTreeView *view, gpointer data)
 		gtk_tree_model_get(model, &iter, 1, &index, -1);
 
 		if (index >= 0)
-			current_type = index;
+			current_ttype = index;
 	}
 }
 
@@ -70,7 +70,7 @@ GtkWidget* setup_ttype_select(int type)
 
 int open_ttype_select_dialog(int type)
 {
-	current_type = type;
+	current_ttype = type;
 
 	GtkWidget *dialog = gtk_dialog_new_with_buttons("Select Thing Type",
 													GTK_WINDOW(editor_window),
@@ -90,7 +90,7 @@ int open_ttype_select_dialog(int type)
 	int response = gtk_dialog_run(GTK_DIALOG(dialog));
 
 	if (response == GTK_RESPONSE_ACCEPT)
-		ret = current_type;
+		ret = current_ttype;
 
 	gtk_widget_destroy(dialog);
 

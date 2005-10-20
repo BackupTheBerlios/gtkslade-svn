@@ -9,9 +9,15 @@ Goes in bottom-up order
 ~: Changed
 ': Note
 
+[20/10/05]
++ Finished the sector edit dialog (including boom generalized sector specials)
++ Implemented the 'change' buttons on the arg editor
++ Sector edit dialog is mostly finished (only need to add special selection and generalized flags)
++ Sector specials are loaded from game configurations and displayed on the sector info bar
+
 [19/10/05]
 + Started on the sector edit dialog
-+ Added arg editing to the line and thing edit dialogs (the 'changed' buttons aren't implemented yet though)
++ Added arg editing to the line and thing edit dialogs (the 'change' buttons aren't implemented yet though)
 + Arg types are now read from game configurations
 * Fixed crash when clicking in blank space in the texture browser
 + Added tex_filter cvar to control texture filtering

@@ -76,7 +76,6 @@ void read_types(Tokenizer *mr, bool things, bool lines, bool sectors, bool args)
 		}
 
 		// Sector types
-		/*
 		if (sectors && token == "sector_types")
 		{
 			mr->check_token("{");
@@ -85,11 +84,14 @@ void read_types(Tokenizer *mr, bool things, bool lines, bool sectors, bool args)
 			while (token != "}")
 			{
 				if (token == "type")
-					parse_sectortype(mr);
-
-				if (token == "import_types")
 				{
-					MemReader mr2;
+					sectortype_t *stype = new sectortype_t();
+					stype->parse(mr);
+				}
+
+				if (token == "import")
+				{
+					Tokenizer mr2;
 					mr2.open_file("games/" + mr->get_token(), 0, 0);
 					read_types(&mr2, false, false, true, false);
 				}
@@ -97,7 +99,6 @@ void read_types(Tokenizer *mr, bool things, bool lines, bool sectors, bool args)
 				token = mr->get_token();
 			}
 		}
-		*/
 
 		// Arg types
 		if (args && token == "arg_types")

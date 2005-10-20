@@ -4,6 +4,7 @@
 #include "tex_box.h"
 #include "tex_browser.h"
 #include "checks.h"
+#include "sector_edit.h"
 
 tex_box_t *sedit_tbox_floor = NULL;
 tex_box_t *sedit_tbox_ceil = NULL;
@@ -159,6 +160,15 @@ void sedit_find_tag_clicked(GtkWidget *widget, gpointer data)
 {
 	int tag = get_free_tag();
 	gtk_entry_set_text(GTK_ENTRY(data), parse_string("%d", tag).c_str());
+}
+
+void sedit_change_special_clicked(GtkWidget *widget, gpointer data)
+{
+	int val = atoi(gtk_entry_get_text(GTK_ENTRY(data)));
+	int newval = open_stype_select_dialog(val);
+	
+	if (val != newval)
+		gtk_entry_set_text(GTK_ENTRY(data), parse_string("%d", newval).c_str());
 }
 
 GtkWidget* setup_sector_edit()
@@ -336,6 +346,7 @@ GtkWidget* setup_sector_edit()
 		gtk_entry_set_text(GTK_ENTRY(entry), parse_string("%d", sedit_data.special).c_str());
 
 	GtkWidget *button = gtk_button_new_with_label("Change");
+	g_signal_connect(G_OBJECT(button), "clicked", G_CALLBACK(sedit_change_special_clicked), entry);
 	gtk_widget_set_size_request(button, 96, -1);
 	gtk_box_pack_start(GTK_BOX(hbox), button, false, false, 0);
 
@@ -354,6 +365,7 @@ GtkWidget* setup_sector_edit()
 		gtk_entry_set_text(GTK_ENTRY(entry), parse_string("%d", sedit_data.tag).c_str());
 
 	button = gtk_button_new_with_label("Find Unused");
+	g_signal_connect(G_OBJECT(button), "clicked", G_CALLBACK(sedit_find_tag_clicked), entry);
 	gtk_widget_set_size_request(button, 96, -1);
 	gtk_box_pack_start(GTK_BOX(hbox), button, false, false, 0);
 

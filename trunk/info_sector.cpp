@@ -128,7 +128,7 @@ void update_sector_info_bar(int sector)
 	gtk_label_set_text(GTK_LABEL(s_label_height), parse_string("Sector Height: %d", s->c_height - s->f_height).c_str());
 	gtk_label_set_text(GTK_LABEL(s_label_light), parse_string("Light Level: %d", s->light).c_str());
 	gtk_label_set_text(GTK_LABEL(s_label_tag), parse_string("Tag: %d", s->tag).c_str());
-	gtk_label_set_text(GTK_LABEL(s_label_special), parse_string("Special: %d", s->special).c_str());
+	gtk_label_set_text(GTK_LABEL(s_label_special), parse_string("Special: %d (%s)", s->special, get_sector_type(s->special)->name.c_str()).c_str());
 
 	// Floor frame
 	gtk_frame_set_label(GTK_FRAME(s_frame_floor), parse_string("Floor: %s", s->f_tex.c_str()).c_str());

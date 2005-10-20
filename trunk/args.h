@@ -35,8 +35,10 @@ struct argtype_t
 		{
 			if (has_flags)
 			{
-				if (values[v].value & value)
+				if (value != 0 && values[v].value & value)
 					return values[v].name;
+				else if (value == 0)
+					return values[0].name;
 			}
 			else
 			{
