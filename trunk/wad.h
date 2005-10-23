@@ -42,6 +42,12 @@ public:
 		fwrite(data, size, 1, fp);
 		fclose(fp);
 	}
+
+	void LoadData(BYTE *data, DWORD size)
+	{
+		Resize(size);
+		memcpy(this->data, data, size);
+	}
 };
 
 class Wad

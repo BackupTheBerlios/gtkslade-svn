@@ -52,6 +52,27 @@ gboolean console_destroy(GtkWidget *w, gpointer data)
 	return true;
 }
 
+gboolean console_entry_keypress(GtkWidget *widget, GdkEventKey *event, gpointer data)
+{
+	if (event->keyval == 0xFF52)
+	{
+		console_prevcommand();
+		gtk_entry_set_text(GTK_ENTRY(widget), cmd_line.c_str());
+		gtk_entry_set_position(GTK_ENTRY(widget), -1);
+		return true;
+	}
+
+	if (event->keyval == 0xFF54)
+	{
+		console_nextcommand();
+		gtk_entry_set_text(GTK_ENTRY(widget), cmd_line.c_str());
+		gtk_entry_set_position(GTK_ENTRY(widget), -1);
+		return true;
+	}
+
+	return false;
+}
+
 void setup_console_window()
 {
 	console_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -84,6 +105,7 @@ void setup_console_window()
 	//gtk_widget_modify_font(cmd_entry, pango_font_description_from_string("Courier 8"));
 	widget_set_font(cmd_entry, "Courier", 8);
 	g_signal_connect(G_OBJECT(cmd_entry), "activate", G_CALLBACK(entry_activate), NULL);
+	g_signal_connect(G_OBJECT(cmd_entry), "key_press_event", G_CALLBACK(console_entry_keypress), NULL);
 	gtk_box_pack_start(GTK_BOX(vbox), cmd_entry, false, false, 4);
 
 	gtk_container_add(GTK_CONTAINER(console_window), vbox);

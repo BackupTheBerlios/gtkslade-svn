@@ -9,7 +9,12 @@ Goes in bottom-up order
 ~: Changed
 ': Note
 
+[21/10/05]
++ Added a functional scripts editor (no hilighting or anything fancy yet, though)
++ SCRIPTS and BEHAVIOR lumps are no longer overwritten when saving a map that already had them
+
 [20/10/05]
++ Added the up and down keys to the console window entry to cycle through previously entered commands
 + Added a z height entry to the thing edit dialog (totally forgot about this before :P)
 * Fixed an error in the map saving that caused thing args to be saved wrong
 + Added save/save as, which officially makes it a (basic) fully-functional editor ;)

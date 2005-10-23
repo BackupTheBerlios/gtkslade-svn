@@ -22,6 +22,9 @@ public:
 	sector_t*	*sectors;
 	thing_t*	*things;
 
+	Lump		*scripts;
+	Lump		*behavior;
+
 	bool	opened;
 
 	bool	hexen;	// Hexen format?

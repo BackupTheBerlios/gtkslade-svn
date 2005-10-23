@@ -43,6 +43,15 @@ void Map::create(string mapname)
 	sectors = (sector_t **)NULL;
 	things = (thing_t **)NULL;
 
+	if (scripts)
+		delete scripts;
+
+	if (behavior)
+		delete behavior;
+
+	scripts = new Lump(0, 0, "SCRIPTS");
+	behavior = new Lump(0, 0, "BEHAVIOR");
+
 	n_lines = n_sides = n_verts = n_sectors = n_things = 0;
 	opened = true;
 
@@ -156,6 +165,18 @@ bool Map::open(Wad *wad, string mapname)
 			message_box("Map has no BEHAVIOR lump\n", GTK_MESSAGE_ERROR);
 			return false;
 		}
+	}
+
+	if (scripts)
+	{
+		delete scripts;
+		scripts = NULL;
+	}
+
+	if (behavior)
+	{
+		delete behavior;
+		behavior = NULL;
 	}
 
 	name = mapname;
@@ -383,6 +404,32 @@ bool Map::open(Wad *wad, string mapname)
 			fread(&things[i]->type, 2, 1, fp);
 			fread(&things[i]->flags, 2, 1, fp);
 		}
+	}
+
+	// << ---- Read Scripts/Behavior ---- >>
+	if (hexen)
+	{
+		lump = wad->get_lump("SCRIPTS", offset);
+
+		if (lump)
+		{
+			fseek(fp, lump->Offset(), SEEK_SET);
+			scripts = new Lump(0, lump->Size(), "SCRIPTS");
+			fread(scripts->Data(), lump->Size(), 1, fp);
+		}
+		else
+			scripts = new Lump(0, 0, "SCRIPTS");
+
+		lump = wad->get_lump("BEHAVIOR", offset);
+
+		if (lump)
+		{
+			fseek(fp, lump->Offset(), SEEK_SET);
+			behavior = new Lump(0, lump->Size(), "BEHAVIOR");
+			fread(behavior->Data(), lump->Size(), 1, fp);
+		}
+		else
+			behavior = new Lump(0, 0, "BEHAVIOR");
 	}
 
 	// Remove detached vertices (from nodes)
@@ -1190,6 +1237,12 @@ void Map::add_to_wad(Wad *wadfile)
 	wadfile->replace_lump("SIDEDEFS", 30 * n_sides, sides_data, mapindex);
 	wadfile->replace_lump("VERTEXES", 4 * n_verts, verts_data, mapindex);
 	wadfile->replace_lump("SECTORS", 26 * n_sectors, sectors_data, mapindex);
+
+	if (hexen)
+	{
+		wadfile->replace_lump("SCRIPTS", this->scripts->Size(), this->scripts->Data(), mapindex);
+		wadfile->replace_lump("BEHAVIOR", this->behavior->Size(), this->behavior->Data(), mapindex);
+	}
 }
 
 void Map::l_flip(int l)

@@ -48,3 +48,10 @@ string bool_yesno(bool val)
 	else
 		return "No";
 }
+
+void set_cursor(int x, int y)
+{
+#ifdef WIN32
+	SetCursorPos(x, y);
+#endif
+}

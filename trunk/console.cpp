@@ -17,10 +17,43 @@
 GtkTextBuffer	*console_log;
 string			cmd_line;
 vector<string>	cmd_history;
+int				console_hcmd = -1;
 
 // External Variables -------------------- >>
 extern vector<Texture*>	textures;
 extern vector<Texture*>	flats;
+
+void console_prevcommand()
+{
+	if (console_hcmd != -1)
+		console_hcmd--;
+
+	if (console_hcmd == -1)
+	{
+		if (cmd_history.size() > 0)
+			console_hcmd = cmd_history.size() - 1;
+	}
+
+	if (console_hcmd != -1)
+		cmd_line = cmd_history[console_hcmd];
+}
+
+void console_nextcommand()
+{
+	if (console_hcmd == -1)
+		return;
+
+	if (console_hcmd != -1)
+		console_hcmd++;
+
+	if (console_hcmd >= cmd_history.size())
+	{
+		cmd_line = "";
+		console_hcmd = -1;
+	}
+	else
+		cmd_line = cmd_history[console_hcmd];
+}
 
 // init_console: Initialises the console
 // ---------------------------------- >>
@@ -65,6 +98,7 @@ void console_parsecommand()
 	string token = tz.get_token();
 
 	console_print(cmd_line);
+	cmd_history.push_back(cmd_line);
 
 	// Check for cvar
 	CVar* cvar = get_cvar(token);

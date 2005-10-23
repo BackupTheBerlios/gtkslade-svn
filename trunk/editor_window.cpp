@@ -19,6 +19,9 @@
 #include "linedraw.h"
 #include "info_bar.h"
 #include "prefs_dialog.h"
+#include "script_editor.h"
+#include "3dmode.h"
+#include "edit_misc.h"
 
 // Variables ------------------------------ >>
 GtkWidget	*editor_window = NULL;
@@ -448,11 +451,12 @@ static void menu_action(GtkAction *action)
 	else if (act == "ModeThings")
 		change_edit_mode(3);
 	else if (act == "Mode3d")
-		message_box("Not implemented yet", GTK_MESSAGE_INFO);
+		start_3d_mode();
+		//message_box("Not implemented yet", GTK_MESSAGE_INFO);
 	else if (act == "ShowConsole")
 		popup_console();
-	//else if (act == "ColoursEdit")
-	//	open_colour_select_dialog();
+	else if (act == "ShowScriptEditor")
+		open_script_edit();
 	else if (act == "Preferences")
 		open_prefs_dialog();
 	else if (act == "About")
@@ -523,6 +527,7 @@ static GtkActionEntry entries[] = {
 
 	// View menu
 	{ "ShowConsole", NULL, "Show _Console", NULL, "Shows the SLADE console window", G_CALLBACK(menu_action) },
+	{ "ShowScriptEditor", NULL, "Open _Script Editor", NULL, "Shows the SLADE scripts editor", G_CALLBACK(menu_action) },
 
 	// Options menu
 	//{ "ColoursEdit", NULL, "_Colours...", NULL, "Edit the colour configuration", G_CALLBACK(menu_action) },
@@ -576,6 +581,7 @@ static const gchar *ui_info =
 "   </menu>"
 "   <menu action='ViewMenu'>"
 "    <menuitem action='ShowConsole'/>"
+"    <menuitem action='ShowScriptEditor'/>"
 "   </menu>"
 /*
 "   <menu action='OptionsMenu'>"

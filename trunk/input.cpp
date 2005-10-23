@@ -374,3 +374,10 @@ void keys_edit()
 	}
 }
 
+bool keys_3d()
+{
+	if (binds.pressed("3d_exit"))
+		return false;
+
+	return true;
+}

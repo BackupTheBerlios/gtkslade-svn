@@ -1,5 +1,6 @@
 
 #include "main.h"
+#include "struct_3d.h"
 
 // difference: Finds the difference between 2 numbers
 // ----------------------------------------------- >>
@@ -89,28 +90,33 @@ bool lines_intersect(rect_t line1, rect_t line2)
 		return false;
 }
 
-rect_t h_difference(rect_t r1, rect_t r2)
+// cross: Returns the cross product of 2 vectors
+// ------------------------------------------ >>
+point3_t cross(point3_t p1, point3_t p2)
 {
-	int width = difference(r1.width(), r2.width());
-	int left;
+	point3_t cross_product;	
 
-	if (r1.right() != r2.right())
-		left = max(r1.right(), r2.right()) - width;
-	else
-		left = min(r1.left(), r2.left());
+	cross_product.x = ((p1.y * p2.z) - (p1.z * p2.y));
+	cross_product.y = ((p1.z * p2.x) - (p1.x * p2.z));
+	cross_product.z = ((p1.x * p2.y) - (p1.y * p2.x));
 
-	return rect_t(left, min(r1.top(), r2.top()), width, max(r1.height(), r2.height()), 0);
+	return cross_product;
 }
 
-rect_t v_difference(rect_t r1, rect_t r2)
+// dot_product: Returns the dot product of 2 vectors
+// ---------------------------------------------- >>
+float dot_product(point3_t v1, point3_t v2)
 {
-	int height = difference(r1.height(), r2.height());
-	int top;
+	return (v1.x * v2.x) + (v1.y * v2.y) + (v1.z * v2.z);
+}
 
-	if (r1.bottom() != r2.bottom())
-		top = max(r1.bottom(), r2.bottom()) - height;
-	else
-		top = min(r1.top(), r2.top());
+// angle_between_vectors: Returns the angle between 2 vectors
+// ------------------------------------------------------- >>
+float angle_between_vectors(float x1, float y1, float x2, float y2)
+{
+	float dot = (x1 * x2) + (y1 * y2);
+	float len = sqrt(x1 * x1 + y1 * y1) * sqrt(x2 * x2 + y2 * y2);
+	float cosin = dot / len;
 
-	return rect_t(min(r1.left(), r2.left()), top, max(r1.width(), r2.width()), height, 0);
+	return acos(cosin) * 180.0f / 3.1415926535897932384f;
 }

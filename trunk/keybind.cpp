@@ -62,6 +62,7 @@ void BindList::set_defaults()
 	binds.add("sector_merge", "<Control>j");
 	binds.add("sector_join", "j");
 
+	binds.add("3d_exit", "q");
 	/*
 	binds.add("3d_forward", 'w', 0);
 	binds.add("3d_back", 's', 0);
