@@ -22,6 +22,7 @@
 #include "script_editor.h"
 #include "3dmode.h"
 #include "edit_misc.h"
+#include "tex_browser.h"
 
 // Variables ------------------------------ >>
 GtkWidget	*editor_window = NULL;
@@ -426,6 +427,52 @@ void file_saveas()
 	gtk_widget_destroy(dialog);
 }
 
+void edit_create_stairs()
+{
+	GtkWidget *dialog = gtk_dialog_new_with_buttons("Create Stairs",
+													GTK_WINDOW(editor_window),
+													GTK_DIALOG_MODAL,
+													GTK_STOCK_OK,
+													GTK_RESPONSE_ACCEPT,
+													GTK_STOCK_CANCEL,
+													GTK_RESPONSE_REJECT,
+													NULL);
+
+	// Floor step entry
+	GtkWidget *hbox = gtk_hbox_new(false, 0);
+	gtk_container_set_border_width(GTK_CONTAINER(hbox), 4);
+	gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dialog)->vbox), hbox, false, false, 0);
+	GtkWidget *entry_floor = gtk_entry_new();
+	gtk_widget_set_size_request(entry_floor, 32, -1);
+	gtk_entry_set_text(GTK_ENTRY(entry_floor), "8");
+	gtk_box_pack_start(GTK_BOX(hbox), gtk_label_new("Floor step height: "), false, false, 0);
+	gtk_box_pack_start(GTK_BOX(hbox), gtk_label_new(""), true, true, 0);
+	gtk_box_pack_start(GTK_BOX(hbox), entry_floor, false, false, 0);
+
+	// Ceiling step entry
+	hbox = gtk_hbox_new(false, 0);
+	gtk_container_set_border_width(GTK_CONTAINER(hbox), 4);
+	gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dialog)->vbox), hbox, false, false, 0);
+	GtkWidget *entry_ceil = gtk_entry_new();
+	gtk_widget_set_size_request(entry_ceil, 32, -1);
+	gtk_entry_set_text(GTK_ENTRY(entry_ceil), "0");
+	gtk_box_pack_start(GTK_BOX(hbox), gtk_label_new("Ceiling step height: "), false, false, 0);
+	gtk_box_pack_start(GTK_BOX(hbox), gtk_label_new(""), true, true, 0);
+	gtk_box_pack_start(GTK_BOX(hbox), entry_ceil, false, false, 0);
+
+	gtk_widget_show_all(dialog);
+	int result = gtk_dialog_run(GTK_DIALOG(dialog));
+
+	if (result == GTK_RESPONSE_ACCEPT)
+	{
+		int f_step = atoi(gtk_entry_get_text(GTK_ENTRY(entry_floor)));
+		int c_step = atoi(gtk_entry_get_text(GTK_ENTRY(entry_ceil)));
+		sector_create_stairs(f_step, c_step);
+	}
+
+	gtk_widget_destroy(dialog);
+}
+
 // menu_action: Called when a menu/toolbar item is selected
 // ----------------------------------------------------- >>
 static void menu_action(GtkAction *action)
@@ -452,7 +499,6 @@ static void menu_action(GtkAction *action)
 		change_edit_mode(3);
 	else if (act == "Mode3d")
 		start_3d_mode();
-		//message_box("Not implemented yet", GTK_MESSAGE_INFO);
 	else if (act == "ShowConsole")
 		popup_console();
 	else if (act == "ShowScriptEditor")
@@ -477,6 +523,14 @@ static void menu_action(GtkAction *action)
 	}
 	else if (act == "SaveAs")
 		file_saveas();
+	else if (act == "MergeSectors")
+		sector_merge(false);
+	else if (act == "JoinSectors")
+		sector_merge(true);
+	else if (act == "CreateDoor")
+		sector_create_door(open_texture_browser(true, false, false, "-"));
+	else if (act == "CreateStairs")
+		edit_create_stairs();
 	else
 		message_box("Menu action not implemented", GTK_MESSAGE_INFO);
 }

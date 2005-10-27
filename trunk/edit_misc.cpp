@@ -18,35 +18,33 @@
 // External Variables -------------------- >>
 extern Map map;
 extern vector<int> selected_items;
+extern int edit_mode;
 
 // SECTORS
 
 // sector_create_stairs: Creates stairs from a group of sectors
 // --------------------------------------------------------- >>
-void sector_create_stairs(int step, bool ceil)
+void sector_create_stairs(int floor_step, int ceil_step)
 {
-	if (selected_items.size() <= 1)
+	if (selected_items.size() <= 1 || edit_mode != 2)
 		return;
 
 	make_backup(false, false, false, true, false);
 
+	// Floor
 	int height = map.sectors[selected_items[0]]->f_height;
-
-	for (DWORD a = 1; a < selected_items.size(); a++)
+	for (DWORD a = 0; a < selected_items.size(); a++)
 	{
-		height += step;
+		height += floor_step;
 		map.sectors[selected_items[a]]->f_height = height;
 	}
 
-	if (ceil)
+	// Ceiling
+	height = map.sectors[selected_items[0]]->c_height;
+	for (DWORD a = 0; a < selected_items.size(); a++)
 	{
-		int height = map.sectors[selected_items[0]]->c_height;
-
-		for (DWORD a = 1; a < selected_items.size(); a++)
-		{
-			height += step;
-			map.sectors[selected_items[a]]->c_height = height;
-		}
+		height += ceil_step;
+		map.sectors[selected_items[a]]->c_height = height;
 	}
 
 	map_changelevel(2);
@@ -56,7 +54,7 @@ void sector_create_stairs(int step, bool ceil)
 // --------------------------------------------------------- >>
 void sector_create_door(string texture)
 {
-	if (selected_items.size() == 0)
+	if (selected_items.size() == 0 || edit_mode != 2)
 		return;
 
 	make_backup(true, true, false, true, false);
@@ -121,7 +119,7 @@ void sector_create_door(string texture)
 // --------------------------------------------------------------- >>
 void sector_merge(bool remove_lines)
 {
-	if (selected_items.size() == 0)
+	if (selected_items.size() == 0 || edit_mode != 2)
 		return;
 
 	make_backup(true, true, false, true, false);
@@ -146,6 +144,7 @@ void sector_merge(bool remove_lines)
 	}
 
 	selected_items.clear();
+	force_map_redraw(true, false);
 	map_changelevel(3);
 }
 
@@ -155,7 +154,7 @@ void sector_merge(bool remove_lines)
 // ---------------------------------------------------------- >>
 void line_extrude(int amount)
 {
-	if (selected_items.size() == 0)
+	if (selected_items.size() == 0 || edit_mode != 1)
 		return;
 
 	make_backup(true, true, true, false, false);

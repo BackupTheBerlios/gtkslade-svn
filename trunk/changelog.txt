@@ -9,6 +9,9 @@ Goes in bottom-up order
 ~: Changed
 ': Note
 
+[27/10/05]
++ Added sector editing functions (stuff in the edit->sector menu: join, merge, create door, create stairs)
+
 [21/10/05]
 + Added a functional scripts editor (no hilighting or anything fancy yet, though)
 + SCRIPTS and BEHAVIOR lumps are no longer overwritten when saving a map that already had them

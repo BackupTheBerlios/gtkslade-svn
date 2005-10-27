@@ -23,6 +23,8 @@ extern Map map;
 extern GtkWidget *editor_window;
 extern GLuint font_list;
 
+EXTERN_CVAR(Bool, allow_np2_tex)
+
 // str_upper: Returns a string in uppercase
 // ------------------------------------- >>
 string str_upper(string str)

@@ -2,6 +2,7 @@
 #include "main.h"
 #include "input.h"
 #include "keybind.h"
+#include "render.h"
 
 extern GtkWidget *editor_window;
 extern GdkGLConfig *glconfig;
@@ -18,6 +19,8 @@ gboolean window3d_expose_event(GtkWidget *w, GdkEventExpose *event, gpointer dat
 		return false;
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	render_3d_view();
 
 	if (gdk_gl_drawable_is_double_buffered(gldrawable))
 		gdk_gl_drawable_swap_buffers(gldrawable);
@@ -112,7 +115,7 @@ gboolean key_3d_press_event(GtkWidget *widget, GdkEventKey *event, gpointer data
 	binds.set(key);
 
 	if (!keys_3d())
-		gtk_widget_destroy(widget);
+		gtk_widget_destroy(GTK_WIDGET(data));
 
 	return false;
 }
@@ -141,24 +144,29 @@ void start_3d_mode()
 	GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_modal(GTK_WINDOW(window), true);
 	gtk_window_set_transient_for(GTK_WINDOW(window), GTK_WINDOW(editor_window));
-	//gtk_window_fullscreen(GTK_WINDOW(window));
+	gtk_window_fullscreen(GTK_WINDOW(window));
 
 	GtkWidget *draw_area = gtk_drawing_area_new();
 	gtk_container_add(GTK_CONTAINER(window), draw_area);
 	gtk_widget_set_gl_capability(draw_area, glconfig, glcontext, true, GDK_GL_RGBA_TYPE);
 
-	gtk_widget_set_events(draw_area, GDK_EXPOSURE_MASK
+	gtk_widget_add_events(draw_area, GDK_EXPOSURE_MASK
 									| GDK_LEAVE_NOTIFY_MASK
 									| GDK_BUTTON_PRESS_MASK
 									| GDK_BUTTON_RELEASE_MASK
+									| GDK_KEY_PRESS_MASK
+									| GDK_KEY_RELEASE_MASK
 									| GDK_POINTER_MOTION_MASK
 									| GDK_POINTER_MOTION_HINT_MASK);
+
+	GTK_WIDGET_SET_FLAGS(draw_area, GTK_CAN_FOCUS);
 
 	g_signal_connect(G_OBJECT(draw_area), "expose-event", G_CALLBACK(window3d_expose_event), NULL);
 	g_signal_connect(G_OBJECT(draw_area), "configure-event", G_CALLBACK(window3d_configure_event), NULL);
 	g_signal_connect_after(G_OBJECT(draw_area), "realize", G_CALLBACK(window3d_realize_event), NULL);
-	g_signal_connect(G_OBJECT(draw_area), "key-press-event", G_CALLBACK(key_3d_press_event), NULL);
-	g_signal_connect(G_OBJECT(draw_area), "key-release-event", G_CALLBACK(key_3d_release_event), NULL);
+	g_signal_connect(G_OBJECT(draw_area), "key_press_event", G_CALLBACK(key_3d_press_event), window);
+	g_signal_connect(G_OBJECT(draw_area), "key_release_event", G_CALLBACK(key_3d_release_event), NULL);
 
 	gtk_widget_show_all(window);
+	gtk_widget_grab_focus(draw_area);
 }

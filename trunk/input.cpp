@@ -10,6 +10,7 @@
 #include "keybind.h"
 #include "editor_window.h"
 #include "edit.h"
+#include "edit_misc.h"
 #include "map.h"
 #include "undoredo.h"
 #include "line_edit.h"
@@ -371,6 +372,20 @@ void keys_edit()
 	{
 		edit_item();
 		binds.clear("edit_edititem");
+	}
+
+	// Merge sectors
+	if (binds.pressed("sector_merge"))
+	{
+		sector_merge(false);
+		binds.clear("sector_merge");
+	}
+
+	// Join sectors
+	if (binds.pressed("sector_join"))
+	{
+		sector_merge(true);
+		binds.clear("sector_join");
 	}
 }
 

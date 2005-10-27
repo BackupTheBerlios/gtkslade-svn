@@ -12,7 +12,9 @@ vector<Texture*>	edit_textures;
 vector<string>		pnames;
 rgba_t				palette[256];
 
-Texture				no_tex;
+Texture*			no_tex;
+
+bool				allow_tex_load = false;
 
 CVAR(Bool, cache_textures, false, CVAR_SAVE)
 CVAR(Bool, allow_np2_tex, false, CVAR_SAVE)
@@ -113,7 +115,7 @@ void destroy_pb(guchar *pixels, gpointer data)
 GLuint Texture::get_gl_id()
 {
 	// If the opengl texture doesn't exist, create it
-	if (!gl_tex_generated)
+	if (!gl_tex_generated && allow_tex_load)
 	{
 		BYTE* temp = NULL;
 		gl_tex_generated = true;
@@ -392,7 +394,7 @@ Texture* get_texture(string name, int type)
 			return edit_textures[a];
 	}
 
-	return &no_tex;
+	return no_tex;
 }
 
 void load_editor_texture(string name, string filename, int width = -1, int height = -1)
@@ -408,7 +410,8 @@ void load_editor_texture(string name, string filename, int width = -1, int heigh
 
 void init_textures()
 {
-	no_tex.setup("_notex", 32, 128, 128);
+	no_tex = new Texture();
+	no_tex->setup("_notex", 32, 128, 128);
 
 	for (int x = 0; x < 128; x++)
 	{
@@ -421,16 +424,16 @@ void init_textures()
 			if ((x / 8) % 2 == 0)
 			{
 				if ((y / 8) % 2 == 0)
-					no_tex.add_pixel(x, y, col1);
+					no_tex->add_pixel(x, y, col1);
 				else
-					no_tex.add_pixel(x, y, col2);
+					no_tex->add_pixel(x, y, col2);
 			}
 			else
 			{
 				if ((y / 8) % 2 == 0)
-					no_tex.add_pixel(x, y, col2);
+					no_tex->add_pixel(x, y, col2);
 				else
-					no_tex.add_pixel(x, y, col1);
+					no_tex->add_pixel(x, y, col1);
 			}
 		}
 	}

@@ -23,6 +23,7 @@ extern vector<string> game_config_names;
 extern vector<string> valid_map_names;
 extern Map map;
 extern Wad *edit_wad;
+extern bool allow_tex_load;
 
 void populate_wad_list()
 {
@@ -195,6 +196,7 @@ void new_standalone_click()
 				load_sprites();
 				game_changed = false;
 				hide_console();
+				allow_tex_load = true;
 			}
 		}
 		else
@@ -277,6 +279,7 @@ void maps_list_activated(GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewCo
 		load_sprites();
 		game_changed = false;
 		hide_console();
+		allow_tex_load = true;
 	}
 
 	g_free(mapname);
