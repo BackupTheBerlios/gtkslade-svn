@@ -2,24 +2,29 @@
 struct point3_t
 {
 	float x, y, z;
+	float u, v;
 
 	point3_t()
 	{
 		x = y = z = 0.0f;
 	}
 
-	point3_t(float X, float Y, float Z)
+	point3_t(float X, float Y, float Z, float U = 0.0f, float V = 0.0f)
 	{
 		x = X;
 		y = Y;
 		z = Z;
+		u = U;
+		v = V;
 	}
 
-	void set(float X, float Y, float Z)
+	void set(float X, float Y, float Z, float U = 0.0f, float V = 0.0f)
 	{
 		x = X;
 		y = Y;
 		z = Z;
+		u = U;
+		v = V;
 	}
 
 	void set(point3_t p)
@@ -27,6 +32,8 @@ struct point3_t
 		x = p.x;
 		y = p.y;
 		z = p.z;
+		u = p.u;
+		v = p.v;
 	}
 
 	float magnitude()
@@ -68,6 +75,12 @@ struct point3_t
 	point3_t operator/(float num)
 	{
 		return point3_t(x / num, y / num, z / num);
+	}
+
+	void gl_draw(bool tex)
+	{
+		glTexCoord2f(u, v);
+		glVertex3f(x, y, z);
 	}
 };
 
@@ -119,5 +132,33 @@ struct plane_t
 		a = -a;
 		b = -b;
 		c = -c;
+	}
+};
+
+struct wallrect_t
+{
+	// Parent info
+	int					line;
+	BYTE				side;
+	BYTE				part;
+
+	// Draw info
+	GLuint				tex;
+	vector<point3_t>	verts;
+	rgba_t				col;
+
+	wallrect_t();
+	~wallrect_t();
+
+	void draw()
+	{
+		glColor4f(col.fr(), col.fg(), col.fb(), col.fa());
+		glBindTexture(GL_TEXTURE_2D, tex);
+		glBegin(GL_TRIANGLE_FAN);
+
+		for (int a = 0; a < verts.size(); a++)
+			verts[a].gl_draw(true);
+
+		glEnd();
 	}
 };

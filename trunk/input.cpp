@@ -17,6 +17,11 @@
 #include "thing_edit.h"
 #include "sector_edit.h"
 
+#include "struct_3d.h"
+#include "camera.h"
+
+CVAR(Float, move_speed_3d, 0.07f, CVAR_SAVE)
+
 // External Variables --------------------- >>
 extern BindList binds;
 extern Map map;
@@ -26,6 +31,8 @@ extern float zoom;
 extern bool line_draw;
 extern point2_t mouse;
 extern rect_t sel_box;
+
+extern Camera camera;
 
 // cycle_edit_mode: Cycles the edit mode
 // ----------------------------------- >>
@@ -391,8 +398,40 @@ void keys_edit()
 
 bool keys_3d()
 {
+	float speed = 0.2 * move_speed_3d;
+
 	if (binds.pressed("3d_exit"))
 		return false;
+
+	if (binds.pressed("3d_forward"))
+		camera.move_camera(speed);
+
+	if (binds.pressed("3d_back"))
+		camera.move_camera(-speed);
+
+	if (binds.pressed("3d_left"))
+		camera.rotate_view(speed, 0.0f, 0.0f, 1.0f);
+
+	if (binds.pressed("3d_right"))
+		camera.rotate_view(-speed, 0.0f, 0.0f, 1.0f);
+
+	if (binds.pressed("3d_strafeleft"))
+		camera.strafe_camera(-speed);
+
+	if (binds.pressed("3d_straferight"))
+		camera.strafe_camera(speed);
+
+	if (binds.pressed("3d_moveup"))
+	{
+		camera.position.z += 0.1f;
+		camera.view.z += 0.1f;
+	}
+
+	if (binds.pressed("3d_movedown"))
+	{
+		camera.position.z -= 0.1f;
+		camera.view.z -= 0.1f;
+	}
 
 	return true;
 }

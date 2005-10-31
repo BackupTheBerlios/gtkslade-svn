@@ -13,6 +13,8 @@ public:
 	point3_t	view_point;
 	float		view_radius;
 
+	bool		gravity;
+
 	Camera();	
 
 	void position_camera(float pos_x,	float pos_y,	float pos_z,

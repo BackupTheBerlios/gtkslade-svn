@@ -11,6 +11,7 @@ Camera::Camera()
 	position.set(40.0f, 40.0f, 20.0f);
 	view.set(40.0f, 41.0f, 20.8f);
 	up_vector.set(0.0f, 0.0f, 1.0f);
+	gravity = true;
 }
 
 bool Camera::in_frustum(point3_t point, float size)
@@ -84,14 +85,14 @@ void Camera::move_camera(float speed)
 	position.x += vector.x * speed;		// Add our acceleration to our position's X
 	position.y += vector.y * speed;		// Add our acceleration to our position's Y
 
-	//if (!gravity)
-	//	position.z += vector.z * speed;		// Add our acceleration to our position's Z
+	if (!gravity)
+		position.z += vector.z * speed;		// Add our acceleration to our position's Z
 
 	view.x += vector.x * speed;			// Add our acceleration to our view's X
 	view.y += vector.y * speed;			// Add our acceleration to our view's Y
 
-	//if (!gravity)
-	//	view.z += vector.z * speed;			// Add our acceleration to our view's Z
+	if (!gravity)
+		view.z += vector.z * speed;			// Add our acceleration to our view's Z
 }
 
 void Camera::update() 

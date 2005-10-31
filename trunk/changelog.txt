@@ -9,7 +9,12 @@ Goes in bottom-up order
 ~: Changed
 ': Note
 
+[31/10/05]
++ 3d mode movement controls added
++ Basic untextured walls are now drawn in 3d mode ;)
+
 [27/10/05]
+* Fixed the 'notex' texture showing up all white
 + Added sector editing functions (stuff in the edit->sector menu: join, merge, create door, create stairs)
 
 [21/10/05]

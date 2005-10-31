@@ -63,17 +63,18 @@ void BindList::set_defaults()
 	binds.add("sector_join", "j");
 
 	binds.add("3d_exit", "q");
-	/*
-	binds.add("3d_forward", 'w', 0);
-	binds.add("3d_back", 's', 0);
-	binds.add("3d_strafeleft", 'a', 0);
-	binds.add("3d_straferight", 'd', 0);
-	binds.add("3d_left", key_id("KEY_LEFT"), 0);
-	binds.add("3d_right", key_id("KEY_RIGHT"), 0);
-	binds.add("3d_moveup", key_id("KEY_UP"), 0);
-	binds.add("3d_movedown", key_id("KEY_DOWN"), 0);
-	binds.add("3d_togglegravity", 'g', 0);
 
+	binds.add("3d_forward", "w");
+	binds.add("3d_back", "s");
+	binds.add("3d_strafeleft", "a");
+	binds.add("3d_straferight", "d");
+	binds.add("3d_left", "Left");
+	binds.add("3d_right", "Right");
+	binds.add("3d_moveup", "Up");
+	binds.add("3d_movedown", "Down");
+	binds.add("3d_togglegravity", "g");
+
+	/*
 	binds.add("3d_2dmode", 'q', 0);
 	binds.add("3d_toggle_things", 't', 0);
 	binds.add("3d_toggle_fullbright", 'b', 0);
@@ -156,7 +157,7 @@ void BindList::set(string key)
 		{
 			keys[a].pressed = true;
 			//printf("Key \"%s\" pressed\n", keys[a].name.c_str());
-			return;
+			//return;
 		}
 	}
 }
