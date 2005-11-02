@@ -1,6 +1,5 @@
 
 #include "main.h"
-#include "struct_3d.h"
 #include "camera.h"
 
 // Most of this stuff was taken from various tutorials on the net,

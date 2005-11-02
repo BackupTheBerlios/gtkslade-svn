@@ -1,6 +1,5 @@
 
 #include "main.h"
-#include "struct_3d.h"
 
 // difference: Finds the difference between 2 numbers
 // ----------------------------------------------- >>
@@ -119,4 +118,30 @@ float angle_between_vectors(float x1, float y1, float x2, float y2)
 	float cosin = dot / len;
 
 	return acos(cosin) * 180.0f / 3.1415926535897932384f;
+}
+
+float angle_between_vectors_2(point3_t v1, point3_t v2)
+{
+	float dot = (v1.x * v2.x) + (v1.y * v2.y) + (v1.z * v2.z);
+	float len = sqrt(v1.x * v1.x + v1.y * v1.y + v1.z * v1.z)
+				* sqrt(v2.x * v2.x + v2.y * v2.y + v2.z * v2.z);
+	float cosin = dot / len;
+
+	return acos(cosin) * 180.0f / 3.1415926535897932384f;
+}
+
+// get_2d_angle: Returns the angle between 2 2d vectors (0.0f-360.0f)
+// --------------------------------------------------------------- >>
+float get_2d_angle(point3_t axis, point3_t vector)
+{
+	point3_t p1(axis.x, axis.y, 0.0f);
+	point3_t p2(vector.x, vector.y, 0.0f);
+
+	float a = angle_between_vectors_2(p1.normalize(), p2.normalize());
+	float side = p2.y * p1.x - p2.x * p1.y;
+
+	if (side > 0.0f)
+		return 360.0f - a;
+	else
+		return a;
 }

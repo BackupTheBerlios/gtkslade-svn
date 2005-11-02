@@ -4,7 +4,6 @@
 #include "keybind.h"
 #include "render.h"
 #include "misc.h"
-#include "struct_3d.h"
 #include "camera.h"
 #include "edit.h"
 #include "map.h"

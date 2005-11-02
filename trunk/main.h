@@ -56,6 +56,7 @@ using std::string;
 
 // Program includes
 #include "structs.h"
+#include "struct_3d.h"
 #include "tokenizer.h"
 #include "cvar.h"
 #include "wad.h"

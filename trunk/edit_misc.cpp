@@ -10,7 +10,6 @@
 #include "main.h"
 #include "map.h"
 #include "undoredo.h"
-#include "struct_3d.h"
 #include "editor_window.h"
 
 // Variables ----------------------------- >>

@@ -16,11 +16,9 @@
 #include "line_edit.h"
 #include "thing_edit.h"
 #include "sector_edit.h"
-
-#include "struct_3d.h"
 #include "camera.h"
 
-CVAR(Float, move_speed_3d, 0.07f, CVAR_SAVE)
+CVAR(Float, move_speed_3d, 0.5f, CVAR_SAVE)
 
 // External Variables --------------------- >>
 extern BindList binds;
