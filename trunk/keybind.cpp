@@ -25,7 +25,7 @@ void BindList::set_defaults()
 	binds.add("view_origin", "o");
 	binds.add("view_increasegrid", "bracketleft");
 	binds.add("view_decreasegrid", "bracketright");
-	//binds.add("view_3dmode", 'q', 0);
+	binds.add("view_3dmode", "q");
 
 	binds.add("mode_vertices", "v");
 	binds.add("mode_linedefs", "l");

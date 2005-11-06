@@ -400,7 +400,7 @@ Texture* get_texture(string name, int type)
 void load_editor_texture(string name, string filename, int width = -1, int height = -1)
 {
 	Texture* tex = new Texture();
-	tex->load_file(name, filename);
+	tex->load_file(name, filename, tex_filter);
 	edit_textures.push_back(tex);
 	if (width >= 0)
 		tex->width = width;
@@ -446,6 +446,7 @@ void init_textures()
 	load_editor_texture("_thing_light", "res/thing_light.png", 64, 64);
 	load_editor_texture("_thing_fountain", "res/thing_fountain.png", 64, 64);
 	load_editor_texture("_thing_slope", "res/thing_slope.png", 64, 64);
+	load_editor_texture("_xhair", "res/xhair.png", 32, 32);
 }
 
 // read_palette: Reads the palette from a wad

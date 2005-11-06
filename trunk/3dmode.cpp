@@ -1,5 +1,6 @@
 
 #include "main.h"
+#include "struct_3d.h"
 #include "input.h"
 #include "keybind.h"
 #include "render.h"

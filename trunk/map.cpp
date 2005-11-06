@@ -264,6 +264,7 @@ bool Map::open(Wad *wad, string mapname)
 			fread(&lines[i]->sector_tag, 2, 1, fp);
 			fread(&lines[i]->side1, 2, 1, fp);
 			fread(&lines[i]->side2, 2, 1, fp);
+			printf("%d %d\n", lines[i]->vertex1, lines[i]->vertex2);
 		}
 	}
 

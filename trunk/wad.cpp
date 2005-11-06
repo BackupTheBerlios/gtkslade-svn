@@ -20,6 +20,7 @@ extern Map map;
 // ------------------------ >>
 bool Wad::open(string filename)
 {
+	close();
 	path = filename;
 
 	// Open the file
@@ -356,12 +357,16 @@ void Wad::save(bool nodes)
 
 void Wad::close()
 {
+	if (path == "")
+		return;
+
 	available_maps.clear();
 
 	for (int a = 0; a < num_lumps; a++)
 		delete directory[a];
 
 	free(directory);
+	//directory.clear();
 
 	num_lumps = 0;
 	path = "";

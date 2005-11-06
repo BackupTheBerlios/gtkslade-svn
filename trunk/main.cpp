@@ -234,11 +234,11 @@ int main(int argc, char *argv[])
 	FILE* f = fopen("slade.log", "wt");
 	fclose(f);
 
+	load_main_config();
+
 	init_console();
 	setup_icons();
 	init_textures();
-
-	load_main_config();
 
 	load_colour_configs();
 	string ccfg = col_config;

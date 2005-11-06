@@ -51,7 +51,10 @@ string bool_yesno(bool val)
 
 void set_cursor(int x, int y)
 {
+	/*
 #ifdef WIN32
 	SetCursorPos(x, y);
 #endif
+	*/
+	gdk_display_warp_pointer(gdk_display_get_default(), gdk_screen_get_default(), x, y);
 }

@@ -6,6 +6,8 @@
 #include "undoredo.h"
 #include "editor_window.h"
 #include "info_bar.h"
+#include "struct_3d.h"
+#include "mathstuff.h"
 
 // VARIABLES ----------------------------- >>
 float	zoom = 16;			// Zoom level (pixels per 32 map units)

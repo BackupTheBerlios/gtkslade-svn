@@ -1,9 +1,11 @@
 
 #include "main.h"
+#include "struct_3d.h"
 #include "camera.h"
 #include "map.h"
 #include "render.h"
 #include "bsp.h"
+#include "mathstuff.h"
 
 gl_vertex_t	*gl_verts = NULL;
 gl_seg_t	*gl_segs = NULL;
@@ -15,8 +17,13 @@ DWORD		n_gl_ssects = 0;
 
 int n_gl_nodes = 0;
 
-bool *vis_lines = 0;
-bool *vis_ssects = 0;
+//bool *vis_lines = 0;
+//bool *vis_ssects = 0;
+
+// I have to do this because for some reason dynamically allocating this
+// was causing some very bad problems. I'll work it out later :P
+bool vis_lines[65535];
+bool vis_ssects[65535];
 
 BYTE vis_buffer[3600];
 
@@ -167,8 +174,13 @@ void build_gl_nodes()
 
 void clear_visibility()
 {
-	memset(vis_lines, 0, map.n_lines);
-	memset(vis_ssects, 0, n_gl_ssects - 1);
+	//memset(vis_lines, 0, map.n_lines);
+	//memset(vis_ssects, 0, n_gl_ssects);
+	for (int a = 0; a < map.n_lines; a++)
+		vis_lines[a] = false;
+
+	for (int a = 0; a < n_gl_ssects; a++)
+		vis_ssects[a] = false;
 }
 
 void set_visbuffer(int blocked)

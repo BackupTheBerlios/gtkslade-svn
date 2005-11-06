@@ -5,6 +5,8 @@
 #include "tex_box.h"
 #include "action_special.h"
 #include "misc.h"
+#include "struct_3d.h"
+#include "mathstuff.h"
 
 GtkWidget *frame_main = NULL;
 GtkWidget *frame_side1 = NULL;

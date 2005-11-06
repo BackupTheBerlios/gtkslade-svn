@@ -16,7 +16,10 @@
 #include "line_edit.h"
 #include "thing_edit.h"
 #include "sector_edit.h"
+#include "struct_3d.h"
+#include "mathstuff.h"
 #include "camera.h"
+#include "3dmode.h"
 
 CVAR(Float, move_speed_3d, 0.5f, CVAR_SAVE)
 
@@ -391,6 +394,12 @@ void keys_edit()
 	{
 		sector_merge(true);
 		binds.clear("sector_join");
+	}
+
+	if (binds.pressed("view_3dmode"))
+	{
+		binds.clear("view_3dmode");
+		start_3d_mode();
 	}
 }
 

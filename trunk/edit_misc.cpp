@@ -11,6 +11,8 @@
 #include "map.h"
 #include "undoredo.h"
 #include "editor_window.h"
+#include "struct_3d.h"
+#include "mathstuff.h"
 
 // Variables ----------------------------- >>
 

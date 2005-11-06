@@ -1,5 +1,7 @@
 
 #include "main.h"
+#include "struct_3d.h"
+#include "mathstuff.h"
 
 // difference: Finds the difference between 2 numbers
 // ----------------------------------------------- >>
@@ -140,8 +142,17 @@ float get_2d_angle(point3_t axis, point3_t vector)
 	float a = angle_between_vectors_2(p1.normalize(), p2.normalize());
 	float side = p2.y * p1.x - p2.x * p1.y;
 
+	float ret;
+
 	if (side > 0.0f)
-		return 360.0f - a;
+		ret = 360.0f - a;
 	else
-		return a;
+		ret = a;
+
+	if (ret > 360.0f)
+		ret = 360.0f;
+	if (ret < 0.0f)
+		ret = 0.0f;
+
+	return ret;
 }

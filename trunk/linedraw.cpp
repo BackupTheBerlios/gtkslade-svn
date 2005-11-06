@@ -11,6 +11,8 @@
 #include "undoredo.h"
 #include "checks.h"
 #include "editor_window.h"
+#include "struct_3d.h"
+#include "mathstuff.h"
 
 // Variables ----------------------------- >>
 bool line_draw = false;		// Line drawing currently active?

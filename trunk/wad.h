@@ -63,6 +63,7 @@ public:
 
 	// Dierctory
 	Lump*	*directory;
+	//vector<Lump*> directory;
 
 	// Stuff
 	int		patches[2];
