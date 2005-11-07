@@ -9,8 +9,10 @@ struct side_data
 {
 	bool xoff_consistent;
 	bool yoff_consistent;
+	bool sector_consistent;
 	int x_offset;
 	int y_offset;
+	int sector;
 	string tex_middle;
 	string tex_upper;
 	string tex_lower;
@@ -45,9 +47,10 @@ static gboolean tex_box_clicked(GtkWidget *widget, GdkEventButton *event, gpoint
 	string tex;
 
 	if (event->button == 1)
+	{
 		tex = open_texture_browser(true, false, false, gtk_entry_get_text(entry));
-
-	gtk_entry_set_text(entry, tex.c_str());
+		gtk_entry_set_text(entry, tex.c_str());
+	}
 
 	return true;
 }
@@ -94,6 +97,51 @@ void tex_lower_changed(GtkEditable *editable, gpointer data)
 	sdat->tbox_lower->change_texture(tex, sdat->tbox_lower->textype, sdat->tbox_lower->scale);
 }
 
+void xoff_changed(GtkEditable *editable, gpointer data)
+{
+	side_data *sdat = (side_data*)data;
+	GtkEntry *entry = (GtkEntry*)editable;
+	string val = gtk_entry_get_text(entry);
+
+	if (val == "")
+		sdat->xoff_consistent = false;
+	else
+	{
+		sdat->xoff_consistent = true;
+		sdat->x_offset = atoi(val.c_str());
+	}
+}
+
+void yoff_changed(GtkEditable *editable, gpointer data)
+{
+	side_data *sdat = (side_data*)data;
+	GtkEntry *entry = (GtkEntry*)editable;
+	string val = gtk_entry_get_text(entry);
+
+	if (val == "")
+		sdat->yoff_consistent = false;
+	else
+	{
+		sdat->yoff_consistent = true;
+		sdat->y_offset = atoi(val.c_str());
+	}
+}
+
+void sector_ref_changed(GtkEditable *editable, gpointer data)
+{
+	side_data *sdat = (side_data*)data;
+	GtkEntry *entry = (GtkEntry*)editable;
+	string val = gtk_entry_get_text(entry);
+
+	if (val == "")
+		sdat->sector_consistent = false;
+	else
+	{
+		sdat->sector_consistent = true;
+		sdat->sector = atoi(val.c_str());
+	}
+}
+
 GtkWidget* setup_side_edit(int side)
 {
 	GtkWidget *widget = NULL;
@@ -111,6 +159,7 @@ GtkWidget* setup_side_edit(int side)
 	sdat->widgets.clear();
 	sdat->xoff_consistent = true;
 	sdat->yoff_consistent = true;
+	sdat->sector_consistent = true;
 
 	if (selected_items.size() == 0)
 	{
@@ -118,6 +167,7 @@ GtkWidget* setup_side_edit(int side)
 		{
 			sdat->x_offset = map.l_getside(hilight_item, side)->x_offset;
 			sdat->y_offset = map.l_getside(hilight_item, side)->y_offset;
+			sdat->sector = map.l_getside(hilight_item, side)->sector;
 			sdat->tex_lower = map.l_getside(hilight_item, side)->tex_lower;
 			sdat->tex_middle = map.l_getside(hilight_item, side)->tex_middle;
 			sdat->tex_upper = map.l_getside(hilight_item, side)->tex_upper;
@@ -134,6 +184,7 @@ GtkWidget* setup_side_edit(int side)
 			{
 				sdat->x_offset = map.l_getside(selected_items[a], side)->x_offset;
 				sdat->y_offset = map.l_getside(selected_items[a], side)->y_offset;
+				sdat->sector = map.l_getside(selected_items[a], side)->sector;
 				sdat->tex_lower = map.l_getside(selected_items[a], side)->tex_lower;
 				sdat->tex_middle = map.l_getside(selected_items[a], side)->tex_middle;
 				sdat->tex_upper = map.l_getside(selected_items[a], side)->tex_upper;
@@ -153,6 +204,9 @@ GtkWidget* setup_side_edit(int side)
 
 				if (sdat->yoff_consistent && sdat->y_offset != map.l_getside(selected_items[a], side)->y_offset)
 					sdat->yoff_consistent = false;
+
+				if (sdat->sector_consistent && sdat->sector != map.l_getside(selected_items[a], side)->sector)
+					sdat->sector_consistent = false;
 
 				if (sdat->tex_middle != "" && sdat->tex_middle != map.l_getside(selected_items[a], side)->tex_middle)
 					sdat->tex_middle = "";
@@ -260,7 +314,8 @@ GtkWidget* setup_side_edit(int side)
 	entry = gtk_entry_new();
 	sdat->widgets.push_back(entry);
 	gtk_widget_set_size_request(entry, 32, -1);
-	if (sdat->x_offset != -1)
+	g_signal_connect(G_OBJECT(entry), "changed", G_CALLBACK(xoff_changed), sdat);
+	if (sdat->xoff_consistent)
 		gtk_entry_set_text(GTK_ENTRY(entry), parse_string("%d", sdat->x_offset).c_str());
 	gtk_box_pack_start(GTK_BOX(hbox), entry, true, true, 4);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, false, false, 0);
@@ -271,7 +326,8 @@ GtkWidget* setup_side_edit(int side)
 	entry = gtk_entry_new();
 	sdat->widgets.push_back(entry);
 	gtk_widget_set_size_request(entry, 32, -1);
-	if (sdat->y_offset != -1)
+	g_signal_connect(G_OBJECT(entry), "changed", G_CALLBACK(yoff_changed), sdat);
+	if (sdat->xoff_consistent)
 		gtk_entry_set_text(GTK_ENTRY(entry), parse_string("%d", sdat->y_offset).c_str());
 	gtk_box_pack_start(GTK_BOX(hbox), entry, true, true, 4);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, false, false, 4);
@@ -295,8 +351,24 @@ GtkWidget* setup_side_edit(int side)
 	gtk_container_add(GTK_CONTAINER(frame), vbox);
 	gtk_box_pack_start(GTK_BOX(hbox2), frame, true, true, 0);
 
-
 	gtk_box_pack_start(GTK_BOX(widget), hbox2, false, false, 0);
+
+	// Sector reference
+	frame = gtk_frame_new("Sector Reference");
+	gtk_container_set_border_width(GTK_CONTAINER(frame), 4);
+	hbox = gtk_hbox_new(false, 0);
+	gtk_container_set_border_width(GTK_CONTAINER(hbox), 4);
+
+	entry = gtk_entry_new();
+	gtk_widget_set_size_request(entry, 32, -1);
+	g_signal_connect(G_OBJECT(entry), "changed", G_CALLBACK(sector_ref_changed), sdat);
+	sdat->widgets.push_back(entry);
+	if (sdat->sector_consistent)
+		gtk_entry_set_text(GTK_ENTRY(entry), parse_string("%d", sdat->sector).c_str());
+	gtk_box_pack_start(GTK_BOX(hbox), entry, true, true, 0);
+	gtk_container_add(GTK_CONTAINER(frame), hbox);
+
+	gtk_box_pack_start(GTK_BOX(widget), frame, false, false, 0);
 
 
 	if (!side_exists)
@@ -400,5 +472,18 @@ void apply_side_edit()
 	{
 		for (int a = 0; a < side2s.size(); a++)
 			side2s[a]->y_offset = side2.y_offset;
+	}
+
+	// Sector
+	if (side1.sector_consistent)
+	{
+		for (int a = 0; a < side1s.size(); a++)
+			side1s[a]->sector = side1.sector;
+	}
+
+	if (side2.sector_consistent)
+	{
+		for (int a = 0; a < side2s.size(); a++)
+			side2s[a]->sector = side2.sector;
 	}
 }

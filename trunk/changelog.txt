@@ -9,7 +9,13 @@ Goes in bottom-up order
 ~: Changed
 ': Note
 
+[07/11/05]
+* Right clicking a texture box on the side edit dialog no longer clears the texture
++ Added 'sector reference' entry to the side edit dialog
+* X and Y offset entry boxes weren't setup properly on the side edit dialog
+
 [06/11/05]
+~ Moved game iwads out of the game configurations and into their own section in slade.cfg. (If a game's IWAD isn't specified, the user is asked to browse for it)
 + 3d Mode is now fully textured ;)
 
 [02/11/05]

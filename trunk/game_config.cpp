@@ -12,10 +12,17 @@
 #include "action_special.h"
 #include "args.h"
 
+struct iwadinfo_t
+{
+	string game;
+	string iwad_path;
+};
+
 // Variables ------------------------------ >>
 vector<string> game_config_paths;
 vector<string> game_config_names;
 vector<string> valid_map_names;
+vector<iwadinfo_t> game_iwads;
 
 // External Variables --------------------- >>
 extern WadList wads;
@@ -23,6 +30,35 @@ extern Map map;
 
 extern string def_midtex, def_uptex, def_lotex, def_ftex, def_ctex;
 extern short def_fheight, def_cheight, def_light;
+
+void load_game_iwads(Tokenizer *tz)
+{
+	tz->check_token("{");
+
+	string token = tz->get_token();
+	while (token != "}")
+	{
+		if (token == "game")
+		{
+			iwadinfo_t ii;
+			ii.game = tz->get_token();
+			ii.iwad_path = tz->get_token();
+			game_iwads.push_back(ii);
+		}
+
+		token = tz->get_token();
+	}
+}
+
+void save_game_iwads(FILE* fp)
+{
+	fprintf(fp, "iwads\n{\n");
+
+	for (int a = 0; a < game_iwads.size(); a++)
+		fprintf(fp, "\tgame \"%s\" \"%s\"\n", game_iwads[a].game.c_str(), game_iwads[a].iwad_path.c_str());
+
+	fprintf(fp, "}\n\n");
+}
 
 // read_types: Reads either line, sector, thing or arg types from a file
 // ------------------------------------------------------------------ >>
@@ -133,12 +169,6 @@ void read_types(Tokenizer *mr, bool things, bool lines, bool sectors, bool args)
 // ----------------------------------------- >>
 bool load_game_config(int index)
 {
-	wads.get_iwad()->close();
-	clear_action_specials();
-	clear_thing_types();
-	valid_map_names.clear();
-	bool map_names = false;
-
 	if (index > game_config_paths.size())
 	{
 		message_box("Invalid Index", GTK_MESSAGE_ERROR);
@@ -159,13 +189,55 @@ bool load_game_config(int index)
 	// Read game name
 	token = tz.get_token();
 
+	int i = -1;
+	for (int a = 0; a < game_iwads.size(); a++)
+	{
+		if (game_iwads[a].game == token)
+			i = a;
+	}
+
+	string iwad_path = "";
+	if (i == -1)
+	{
+		message_box(parse_string("Please browse for the \"%s\" game IWAD...", token.c_str()), GTK_MESSAGE_INFO);
+		
+		string filename = file_browser("*.wad");
+		if (filename != "")
+			iwad_path = filename;
+		else
+			return false;
+	}
+	else
+		iwad_path = game_iwads[i].iwad_path;
+
+	wads.get_iwad()->close();
+	clear_action_specials();
+	clear_thing_types();
+	valid_map_names.clear();
+	bool map_names = false;
+
 	// Check opening brace
 	tz.check_token("{");
+
+	if (!wads.open_iwad(iwad_path))
+	{
+		message_box(parse_string("Couldn't open IWAD \"%s\"!", iwad_path.c_str()), GTK_MESSAGE_ERROR);
+		game_iwads.erase(game_iwads.begin() + i);
+		return false;
+	}
+	else if (i == -1)
+	{
+		iwadinfo_t ii;
+		ii.game = token;
+		ii.iwad_path = iwad_path;
+		game_iwads.push_back(ii);
+	}
 
 	// Read game section
 	token = tz.get_token();
 	while (token != "}")
 	{
+		/*
 		if (token == "iwad")
 		{
 			bool done = false;
@@ -187,6 +259,7 @@ bool load_game_config(int index)
 					done = true;
 			}
 		}
+		*/
 
 		if (token == "boom")
 			map.boom = tz.get_bool();

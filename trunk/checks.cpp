@@ -9,11 +9,16 @@
 // Includes ------------------------------------- >>
 #include "main.h"
 #include "map.h"
+#include "textures.h"
+#include "line_edit.h"
+#include "sector_edit.h"
 
 // Variables ------------------------------------ >>
 
 // External Variables --------------------------- >>
 extern Map map;
+extern int hilight_item;
+extern vector<int> selected_items;
 
 // clean_tags: Finds any unpaired tags and frees them
 // ----------------------------------------------- >>
@@ -201,4 +206,123 @@ WORD get_free_tid()
 	}
 	
 	return tid;
+}
+
+void check_textures()
+{
+	selected_items.clear();
+	hilight_item = -1;
+	int line = -1;
+
+	// Check line textures
+	for (int l = 0; l < map.n_lines; l++)
+	{
+		sidedef_t *side = map.l_getside(l, 1);
+
+		if (side)
+		{
+			if (get_texture(side->tex_upper, 1)->name == "_notex"
+				&& side->tex_upper != "-")
+			{
+				string line = parse_string("Line %d has invalid front upper texture \"%s\"\n'Yes' to edit, 'No' to stop checking",
+											l, side->tex_upper.c_str());
+				if (!yesno_box(line))
+					return;
+
+				hilight_item = l;
+				open_line_edit();
+			}
+
+			if (get_texture(side->tex_middle, 1)->name == "_notex"
+				&& side->tex_middle != "-")
+			{
+				string line = parse_string("Line %d has invalid front middle texture \"%s\"\n'Yes' to edit, 'No' to stop checking",
+											l, side->tex_middle.c_str());
+				if (!yesno_box(line))
+					return;
+
+				hilight_item = l;
+				open_line_edit();
+			}
+
+			if (get_texture(side->tex_lower, 1)->name == "_notex"
+				&& side->tex_lower != "-")
+			{
+				string line = parse_string("Line %d has invalid front lower texture \"%s\"\n'Yes' to edit, 'No' to stop checking",
+											l, side->tex_lower.c_str());
+				if (!yesno_box(line))
+					return;
+
+				hilight_item = l;
+				open_line_edit();
+			}
+		}
+
+		side = map.l_getside(l, 2);
+
+		if (side)
+		{
+			if (get_texture(side->tex_upper, 1)->name == "_notex"
+				&& side->tex_upper != "-")
+			{
+				string line = parse_string("Line %d has invalid back upper texture \"%s\"\n'Yes' to edit, 'No' to stop checking",
+											l, side->tex_upper.c_str());
+				if (!yesno_box(line))
+					return;
+
+				hilight_item = l;
+				open_line_edit();
+			}
+
+			if (get_texture(side->tex_middle, 1)->name == "_notex"
+				&& side->tex_middle != "-")
+			{
+				string line = parse_string("Line %d has invalid back middle texture \"%s\"\n'Yes' to edit, 'No' to stop checking",
+											l, side->tex_middle.c_str());
+				if (!yesno_box(line))
+					return;
+
+				hilight_item = l;
+				open_line_edit();
+			}
+
+			if (get_texture(side->tex_lower, 1)->name == "_notex"
+				&& side->tex_lower != "-")
+			{
+				string line = parse_string("Line %d has invalid back lower texture \"%s\"\n'Yes' to edit, 'No' to stop checking",
+											l, side->tex_lower.c_str());
+				if (!yesno_box(line))
+					return;
+
+				hilight_item = l;
+				open_line_edit();
+			}
+		}
+	}
+
+	// Check flat textures
+	for (int s = 0; s < map.n_sectors; s++)
+	{
+		if (get_texture(map.sectors[s]->f_tex, 2)->name == "_notex")
+		{
+			string line = parse_string("Sector %d has invalid floor texture \"%s\"\n'Yes' to edit, 'No' to stop checking",
+										s, map.sectors[s]->f_tex.c_str());
+			if (!yesno_box(line))
+				return;
+
+			hilight_item = s;
+			open_sector_edit();
+		}
+
+		if (get_texture(map.sectors[s]->c_tex, 2)->name == "_notex")
+		{
+			string line = parse_string("Sector %d has invalid ceiling texture \"%s\"\n'Yes' to edit, 'No' to stop checking",
+										s, map.sectors[s]->c_tex.c_str());
+			if (!yesno_box(line))
+				return;
+
+			hilight_item = s;
+			open_sector_edit();
+		}
+	}
 }

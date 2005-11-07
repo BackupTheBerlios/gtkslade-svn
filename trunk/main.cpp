@@ -13,6 +13,7 @@
 #include "console.h"
 #include "colours.h"
 #include "textures.h"
+#include "game_config.h"
 
 // Variables ----------------------------- >>
 CVAR(String, col_config, "Default", CVAR_SAVE)
@@ -185,6 +186,9 @@ void load_main_config()
 		if (token == "cvars")
 			load_cvars(&mr);
 
+		if (token == "iwads")
+			load_game_iwads(&mr);
+
 		token = mr.get_token();
 	}
 }
@@ -195,6 +199,7 @@ void save_main_config()
 {
 	FILE *fp = fopen("slade.cfg", "wt");
 	save_cvars(fp);
+	save_game_iwads(fp);
 	fclose(fp);
 }
 

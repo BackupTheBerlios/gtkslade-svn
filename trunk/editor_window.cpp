@@ -23,6 +23,7 @@
 #include "3dmode.h"
 #include "edit_misc.h"
 #include "tex_browser.h"
+#include "checks.h"
 
 // Variables ------------------------------ >>
 GtkWidget	*editor_window = NULL;
@@ -473,6 +474,14 @@ void edit_create_stairs()
 	gtk_widget_destroy(dialog);
 }
 
+void check_map_stats()
+{
+	string msg = parse_string("Vertices: %d\nLines: %d\nSides: %d\nSectors: %d\nThings: %d",
+								map.n_verts, map.n_lines, map.n_sides, map.n_sectors, map.n_things);
+
+	message_box(msg, GTK_MESSAGE_INFO);
+}
+
 // menu_action: Called when a menu/toolbar item is selected
 // ----------------------------------------------------- >>
 static void menu_action(GtkAction *action)
@@ -531,6 +540,18 @@ static void menu_action(GtkAction *action)
 		sector_create_door(open_texture_browser(true, false, false, "-"));
 	else if (act == "CreateStairs")
 		edit_create_stairs();
+	else if (act == "CheckMapStats")
+		check_map_stats();
+	else if (act == "CheckTags")
+		message_box(parse_string("%d Tags Cleaned", clean_tags()), GTK_MESSAGE_INFO);
+	else if (act == "CheckVerts")
+		message_box(parse_string("%d Vertices Removed", remove_free_verts()), GTK_MESSAGE_INFO);
+	else if (act == "CheckLines")
+		message_box(parse_string("%d 0-Length Lines Removed", remove_zerolength_lines()), GTK_MESSAGE_INFO);
+	else if (act == "CheckSectors")
+		message_box(parse_string("%d Sectors Removed", remove_unused_sectors()), GTK_MESSAGE_INFO);
+	else if (act == "CheckTextures")
+		check_textures();
 	else
 		message_box("Menu action not implemented", GTK_MESSAGE_INFO);
 }
@@ -549,7 +570,7 @@ static GtkActionEntry entries[] = {
 	{ "EditSectorMenu", NULL, "_Sectors" },
 	{ "ModeMenu", NULL, "_Mode"  },
 	{ "ViewMenu", NULL, "_View"  },
-	{ "OptionsMenu", NULL, "_Options" },
+	{ "CheckMenu", NULL, "_Check" },
 	{ "HelpMenu", NULL, "_Help" },
 
 	// File menu
@@ -583,9 +604,14 @@ static GtkActionEntry entries[] = {
 	{ "ShowConsole", NULL, "Show _Console", NULL, "Shows the SLADE console window", G_CALLBACK(menu_action) },
 	{ "ShowScriptEditor", NULL, "Open _Script Editor", NULL, "Shows the SLADE scripts editor", G_CALLBACK(menu_action) },
 
-	// Options menu
-	//{ "ColoursEdit", NULL, "_Colours...", NULL, "Edit the colour configuration", G_CALLBACK(menu_action) },
-
+	// Checks menu
+	{ "CheckMapStats", NULL, "_Map Statistics", NULL, "View map statistics", G_CALLBACK(menu_action) },
+	{ "CheckTags", NULL, "Clean _Tags", NULL, "Cleans unused/unmatched tags", G_CALLBACK(menu_action) },
+	{ "CheckVerts", NULL, "Remove Unused _Vertices", NULL, "Deletes any unattached vertices", G_CALLBACK(menu_action) },
+	{ "CheckLines", NULL, "Remove 0-Length _Lines", NULL, "Deletes any lines that are of length 0", G_CALLBACK(menu_action) },
+	{ "CheckSectors", NULL, "Remove Unused _Sectors", NULL, "Deletes any unused sectors", G_CALLBACK(menu_action) },
+	{ "CheckTextures", NULL, "Check Valid _Textures", NULL, "Checks for any invalid textures", G_CALLBACK(menu_action) },
+	
 	// Help menu
 	{ "About", GTK_STOCK_ABOUT, "_About SLADE", NULL, "", G_CALLBACK(menu_action) },
 	{ "Help", GTK_STOCK_HELP, "_Help", NULL, "", G_CALLBACK(menu_action) },
@@ -637,12 +663,14 @@ static const gchar *ui_info =
 "    <menuitem action='ShowConsole'/>"
 "    <menuitem action='ShowScriptEditor'/>"
 "   </menu>"
-/*
-"   <menu action='OptionsMenu'>"
-"    <menuitem action='Preferences'/>"
-"    <menuitem action='ColoursEdit'/>"
+"   <menu action='CheckMenu'>"
+"    <menuitem action='CheckMapStats'/>"
+"    <menuitem action='CheckTags'/>"
+"    <menuitem action='CheckVerts'/>"
+"    <menuitem action='CheckLines'/>"
+"    <menuitem action='CheckSectors'/>"
+"    <menuitem action='CheckTextures'/>"
 "   </menu>"
-*/
 "   <menu action='HelpMenu' position='bot'>"
 "    <menuitem action='About'/>"
 "    <menuitem action='Help'/>"

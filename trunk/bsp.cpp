@@ -29,6 +29,7 @@ BYTE vis_buffer[3600];
 
 extern Map map;
 extern Camera camera;
+extern sectinfo_t *sector_info;
 
 // build_gl_nodes: Builds and loads in GL node data for the current map
 // ----------------------------------------------------------------- >>
@@ -181,6 +182,9 @@ void clear_visibility()
 
 	for (int a = 0; a < n_gl_ssects; a++)
 		vis_ssects[a] = false;
+
+	for (int a = 0; a < map.n_sectors; a++)
+		sector_info[a].visible = false;
 }
 
 void set_visbuffer(int blocked)
@@ -298,6 +302,7 @@ bool view_buffer_full()
 void process_subsector(short subsect)
 {
 	bool visible = false;
+	int sector = -1;
 
 	// Cycle through segs
 	int start = gl_ssects[subsect].startseg;
@@ -359,8 +364,6 @@ void process_subsector(short subsect)
 					else
 					{
 						// Block the seg if it's floor and ceiling are equal or overlapping
-						int sector;
-
 						if (side)
 							sector = map.l_getsector2(gl_segs[s].line);
 						else
@@ -392,7 +395,12 @@ void process_subsector(short subsect)
 	}
 
 	if (visible)
+	{
+		if (sector != -1)
+			sector_info[sector].visible = true;
+		
 		vis_ssects[subsect] = true;
+	}
 
 	/*
 	if (visible)

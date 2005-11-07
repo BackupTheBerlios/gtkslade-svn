@@ -12,6 +12,8 @@
 // VARIABLES ----------------------------- >>
 WadList	wads;
 
+CVAR(Int, node_builder, 0, CVAR_SAVE)
+
 // EXTERNAL VARIABLES -------------------- >>
 extern string map_lumps[12];
 extern Map map;
@@ -345,11 +347,12 @@ void Wad::save(bool nodes)
 		char command[1024] = "";
 		string tempname = path + ".temp";
 		copy_file(path, tempname);
-#ifdef WIN32
-		sprintf(command, "zdbsp %s -m %s -o %s", tempname.c_str(), map.name.c_str(), path.c_str());
-#else
-		sprintf(command, "./zdbsp %s -m %s -o %s", tempname.c_str(), map.name.c_str(), path.c_str());
-#endif
+
+		if (node_builder == 0)
+			sprintf(command, "zdbsp %s -m %s -o %s", tempname.c_str(), map.name.c_str(), path.c_str());
+		else if (node_builder == 1)
+			sprintf(command, "zennode %s %s -o %s", tempname.c_str(), map.name.c_str(), path.c_str());
+
 		system(command);
 		remove(tempname.c_str());
 	}

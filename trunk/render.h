@@ -1,6 +1,7 @@
 
 void render_3d_view();
 void setup_3d_data();
+float plane_height(plane_t plane, float x, float y);
 
 #include "textures.h"
 
@@ -31,17 +32,7 @@ struct wallrect_t
 	wallrect_t();
 	~wallrect_t();
 
-	void draw()
-	{
-		glColor4f(col.fr(), col.fg(), col.fb(), col.fa());
-		if (tex) glBindTexture(GL_TEXTURE_2D, tex->get_gl_id());
-		glBegin(GL_TRIANGLE_FAN);
-
-		for (int a = 0; a < verts.size(); a++)
-			verts[a].gl_draw(true);
-
-		glEnd();
-	}
+	void draw();
 };
 
 struct flatpoly_t
@@ -51,23 +42,26 @@ struct flatpoly_t
 	int		ssector;
 
 	// Draw info
-	Texture*			tex;
+	//Texture*			tex;
+	GLuint				tex;
 	vector<point3_t>	verts;
 	rgba_t				col;
 	BYTE				light;
 
 	flatpoly_t();
 
-	void draw()
-	{
-		glColor4f(col.fr(), col.fg(), col.fb(), col.fa());
-		if (tex) glBindTexture(GL_TEXTURE_2D, tex->get_gl_id());
-		
-		glBegin(GL_TRIANGLE_FAN);
+	void draw();
+};
 
-		for (int a = 0; a < verts.size(); a++)
-			verts[a].gl_draw(true);
+struct sectinfo_t
+{
+	plane_t	f_plane;
+	plane_t	c_plane;
+	bool visible;
 
-		glEnd();
-	}
+	/*
+	BYTE light;
+	Texture *f_tex;
+	Texture *c_tex;
+	*/
 };

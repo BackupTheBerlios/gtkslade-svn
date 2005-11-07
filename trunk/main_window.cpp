@@ -13,6 +13,7 @@ GtkListStore	*maps_store;
 Wad*			selected_wad;
 GtkWidget		*wad_manager_window;
 bool			game_changed = true;
+int				cur_game = 0;
 
 CVAR(String, game_config, "Doom 2", CVAR_SAVE)
 
@@ -51,11 +52,18 @@ void game_combo_changed(GtkWidget *w, gpointer data)
 {
 	int index = gtk_combo_box_get_active(GTK_COMBO_BOX(w));
 
+	gtk_combo_box_popdown(GTK_COMBO_BOX(w));
+	wait_gtk_events();
+
 	if (!load_game_config(index))
+	{
 		message_box(parse_string("Error loading game configuration \"%s\"", game_config_paths[index].c_str()),
 					GTK_MESSAGE_ERROR);
+		gtk_combo_box_set_active(GTK_COMBO_BOX(w), cur_game);
+	}
 	else
 	{
+		cur_game = index;
 		game_config = game_config_names[index];
 		populate_wad_list();
 	}
@@ -75,7 +83,7 @@ bool setup_game_combo(GtkWidget *combo)
 
 	if (dir)
 	{
-		int index = 0;
+		//int index = 0;
 		string def = game_config;
 		const gchar* dir_name = g_dir_read_name(dir);
 
@@ -101,7 +109,7 @@ bool setup_game_combo(GtkWidget *combo)
 					game_config_names.push_back(name);
 	
 					if (name == def)
-						index = game_config_names.size() - 1;
+						cur_game = game_config_names.size() - 1;
 				}
 			}
 
@@ -109,7 +117,7 @@ bool setup_game_combo(GtkWidget *combo)
 		}
 
 		g_signal_connect(G_OBJECT(combo), "changed", G_CALLBACK(game_combo_changed), NULL);
-		gtk_combo_box_set_active(GTK_COMBO_BOX(combo), index);
+		gtk_combo_box_set_active(GTK_COMBO_BOX(combo), cur_game);
 
 		return true;
 	}
@@ -177,8 +185,25 @@ void close_all_click()
 	populate_wad_list();
 }
 
+void begin_mapedit()
+{
+	popup_console();
+	load_flats();
+	load_textures();
+	load_sprites();
+	game_changed = false;
+	hide_console();
+	allow_tex_load = true;
+}
+
 void new_standalone_click()
 {
+	if (wads.get_iwad()->path == "")
+	{
+		message_box("No IWAD Loaded!", GTK_MESSAGE_ERROR);
+		return;
+	}
+
 	string mapname = str_upper(entry_box("Enter map name"));
 
 	if (mapname != "")
@@ -189,15 +214,7 @@ void new_standalone_click()
 			gtk_widget_hide(wad_manager_window);
 
 			if (game_changed)
-			{
-				popup_console();
-				load_flats();
-				load_textures();
-				load_sprites();
-				game_changed = false;
-				hide_console();
-				allow_tex_load = true;
-			}
+				begin_mapedit();
 		}
 		else
 			message_box("Invalid map name!", GTK_MESSAGE_ERROR);
@@ -262,6 +279,12 @@ void setup_wad_list(GtkWidget *box)
 
 void maps_list_activated(GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewColumn *col, gpointer data)
 {
+	if (wads.get_iwad()->path == "")
+	{
+		message_box("No IWAD Loaded!", GTK_MESSAGE_ERROR);
+		return;
+	}
+
 	GtkTreeIter iter;
 	gtk_tree_model_get_iter(GTK_TREE_MODEL(maps_store), &iter, path);
 
@@ -272,15 +295,7 @@ void maps_list_activated(GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewCo
 	gtk_widget_hide(wad_manager_window);
 	
 	if (game_changed)
-	{
-		popup_console();
-		load_flats();
-		load_textures();
-		load_sprites();
-		game_changed = false;
-		hide_console();
-		allow_tex_load = true;
-	}
+		begin_mapedit();
 
 	g_free(mapname);
 }
