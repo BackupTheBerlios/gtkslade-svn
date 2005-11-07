@@ -189,8 +189,7 @@ static gboolean motion_3d_event(GtkWidget *widget, GdkEventMotion *event)
 	return false;
 }
 
-GTimer* timer;
-
+/*
 gboolean loop_3d(gpointer data)
 {
 	bool ret = true;
@@ -212,6 +211,7 @@ gboolean loop_3d(gpointer data)
 
 	return ret;
 }
+*/
 
 void start_3d_mode()
 {
@@ -262,7 +262,7 @@ void start_3d_mode()
 	setup_3d_data();
 	window3d_render();
 
-	timer = g_timer_new();
+	GTimer* timer = g_timer_new();
 	g_timer_start(timer);
 	run_3d = true;
 	//g_idle_add(loop_3d, NULL);
