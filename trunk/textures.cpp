@@ -397,10 +397,10 @@ Texture* get_texture(string name, int type)
 	return no_tex;
 }
 
-void load_editor_texture(string name, string filename, int width = -1, int height = -1)
+void load_editor_texture(string name, string filename, int width = -1, int height = -1, int filter = tex_filter)
 {
 	Texture* tex = new Texture();
-	tex->load_file(name, filename, tex_filter);
+	tex->load_file(name, filename, filter);
 	edit_textures.push_back(tex);
 	if (width >= 0)
 		tex->width = width;
@@ -439,14 +439,14 @@ void init_textures()
 	}
 
 	load_editor_texture("_font", "res/font.png");
-	load_editor_texture("_thing", "res/thing.png");
-	load_editor_texture("_unknownsprite", "res/no_thing.png", 64, 64);
-	load_editor_texture("_thing_sound", "res/thing_sound.png", 64, 64);
-	load_editor_texture("_thing_spot", "res/thing_spot.png", 64, 64);
-	load_editor_texture("_thing_light", "res/thing_light.png", 64, 64);
-	load_editor_texture("_thing_fountain", "res/thing_fountain.png", 64, 64);
-	load_editor_texture("_thing_slope", "res/thing_slope.png", 64, 64);
-	load_editor_texture("_xhair", "res/xhair.png", 32, 32);
+	load_editor_texture("_thing", "res/thing.png", -1, -1, 2);
+	load_editor_texture("_unknownsprite", "res/no_thing.png", 64, 64, 2);
+	load_editor_texture("_thing_sound", "res/thing_sound.png", 64, 64, 2);
+	load_editor_texture("_thing_spot", "res/thing_spot.png", 64, 64, 2);
+	load_editor_texture("_thing_light", "res/thing_light.png", 64, 64, 2);
+	load_editor_texture("_thing_fountain", "res/thing_fountain.png", 64, 64, 2);
+	load_editor_texture("_thing_slope", "res/thing_slope.png", 64, 64, 2);
+	load_editor_texture("_xhair", "res/xhair.png", 32, 32, 2);
 }
 
 // read_palette: Reads the palette from a wad

@@ -11,6 +11,8 @@
 GtkWidget *draw_3d_area;
 bool run_3d = false;
 
+CVAR(Float, mouse_speed_3d, 1.0f, CVAR_SAVE)
+
 extern GtkWidget *editor_window;
 extern GdkGLConfig *glconfig;
 extern GdkGLContext *glcontext;
@@ -169,12 +171,19 @@ gboolean key_3d_release_event(GtkWidget *widget, GdkEventKey *event, gpointer da
 	return false;
 }
 
+bool reset = true;
 static gboolean motion_3d_event(GtkWidget *widget, GdkEventMotion *event)
 {
+	if (reset)
+	{
+		reset = false;
+		return false;
+	}
+
 	int center_x = (widget->allocation.width * 0.5);
 	int center_y = (widget->allocation.height * 0.5);
-	float angle_x = -(event->x - center_x) * 0.001f;
-	float angle_y = -(event->y - center_y) * 0.001f;
+	float angle_x = -(event->x - center_x) * (0.001f * mouse_speed_3d);
+	float angle_y = -(event->y - center_y) * (0.001f * mouse_speed_3d);
 
 	point3_t axis = cross(camera.view - camera.position, camera.up_vector);
 	axis = axis.normalize();
@@ -182,36 +191,13 @@ static gboolean motion_3d_event(GtkWidget *widget, GdkEventMotion *event)
 	camera.rotate_view(angle_x, 0, 0, 1);
 	camera.rotate_view(angle_y, axis.x, axis.y, axis.z);
 
+	reset = true;
 	set_cursor(center_x, center_y);
 
 	//run_3d = keys_3d();
 
 	return false;
 }
-
-/*
-gboolean loop_3d(gpointer data)
-{
-	bool ret = true;
-
-	gulong ms = 0;
-	g_timer_elapsed(timer, &ms);
-
-	if (ms >= 10000)
-	{
-		g_timer_start(timer);
-		//wait_gtk_events();
-		ret = keys_3d();
-
-		if (camera.gravity)
-			apply_gravity();
-
-		window3d_render();
-	}
-
-	return ret;
-}
-*/
 
 void start_3d_mode()
 {
@@ -256,7 +242,8 @@ void start_3d_mode()
 	gdk_window_set_cursor(draw_3d_area->window, cursor);
 
 	// Center cursor to middle of the window
-	set_cursor((draw_3d_area->allocation.width * 0.5), (draw_3d_area->allocation.height * 0.5));
+	set_cursor(draw_3d_area->allocation.x + (draw_3d_area->allocation.width * 0.5),
+				draw_3d_area->allocation.y + (draw_3d_area->allocation.height * 0.5));
 
 	// Setup
 	setup_3d_data();
@@ -265,16 +252,14 @@ void start_3d_mode()
 	GTimer* timer = g_timer_new();
 	g_timer_start(timer);
 	run_3d = true;
-	//g_idle_add(loop_3d, NULL);
 
 	// Loop
-	///*
 	while (run_3d)
 	{
 		gulong ms = 0;
 		g_timer_elapsed(timer, &ms);
 
-		if (ms >= 10000)
+		if (ms >= 150)
 		{
 			g_timer_start(timer);
 			wait_gtk_events();
@@ -286,7 +271,6 @@ void start_3d_mode()
 			window3d_render();
 		}
 	}
-	//*/
 
 	gtk_widget_destroy(window);
 }

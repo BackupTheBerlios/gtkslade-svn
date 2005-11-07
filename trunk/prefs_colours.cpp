@@ -81,7 +81,11 @@ void colour_changed(GtkWidget *w, gpointer data)
 	if (blue > 255)
 		blue = 255;
 
-	col->set((BYTE)red, (BYTE)green, (BYTE)blue, (BYTE)alpha);
+	//col->set((BYTE)red, (BYTE)green, (BYTE)blue, (BYTE)alpha);
+	col->r = (BYTE)red;
+	col->g = (BYTE)green;
+	col->b = (BYTE)blue;
+	col->a = (BYTE)alpha;
 
 	force_map_redraw(true, true);
 }
