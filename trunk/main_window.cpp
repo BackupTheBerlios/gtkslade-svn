@@ -293,7 +293,7 @@ void maps_list_activated(GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewCo
 
 	open_map(selected_wad, mapname);
 	gtk_widget_hide(wad_manager_window);
-	
+
 	if (game_changed)
 		begin_mapedit();
 

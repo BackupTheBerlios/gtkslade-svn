@@ -189,6 +189,30 @@ static gboolean motion_3d_event(GtkWidget *widget, GdkEventMotion *event)
 	return false;
 }
 
+GTimer* timer;
+
+gboolean loop_3d(gpointer data)
+{
+	bool ret = true;
+
+	gulong ms = 0;
+	g_timer_elapsed(timer, &ms);
+
+	if (ms >= 10000)
+	{
+		g_timer_start(timer);
+		//wait_gtk_events();
+		ret = keys_3d();
+
+		if (camera.gravity)
+			apply_gravity();
+
+		window3d_render();
+	}
+
+	return ret;
+}
+
 void start_3d_mode()
 {
 	GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -206,8 +230,8 @@ void start_3d_mode()
 									| GDK_BUTTON_RELEASE_MASK
 									| GDK_KEY_PRESS_MASK
 									| GDK_KEY_RELEASE_MASK
-									| GDK_POINTER_MOTION_MASK
-									| GDK_POINTER_MOTION_HINT_MASK);
+									| GDK_POINTER_MOTION_MASK);
+									//| GDK_POINTER_MOTION_HINT_MASK);
 
 	GTK_WIDGET_SET_FLAGS(draw_3d_area, GTK_CAN_FOCUS);
 
@@ -238,11 +262,13 @@ void start_3d_mode()
 	setup_3d_data();
 	window3d_render();
 
-	GTimer* timer = g_timer_new();
+	timer = g_timer_new();
 	g_timer_start(timer);
 	run_3d = true;
+	//g_idle_add(loop_3d, NULL);
 
 	// Loop
+	///*
 	while (run_3d)
 	{
 		gulong ms = 0;
@@ -260,6 +286,7 @@ void start_3d_mode()
 			window3d_render();
 		}
 	}
+	//*/
 
 	gtk_widget_destroy(window);
 }
