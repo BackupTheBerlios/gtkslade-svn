@@ -2,8 +2,9 @@
 #include "main.h"
 #include "textures.h"
 #include "console.h"
-#include "console_window.h"
+//#include "console_window.h"
 #include "misc.h"
+#include "splash.h"
 
 vector<Texture*>	textures;
 vector<Texture*>	flats;
@@ -15,6 +16,7 @@ rgba_t				palette[256];
 Texture*			no_tex;
 
 bool				allow_tex_load = false;
+bool				mix_tex = false;
 
 CVAR(Bool, cache_textures, false, CVAR_SAVE)
 CVAR(Bool, allow_np2_tex, false, CVAR_SAVE)
@@ -46,6 +48,37 @@ Texture::~Texture()
 	if (gl_tex_generated)
 		glDeleteTextures(1, &gl_id);
 }
+
+void Texture::setup(string name, BYTE bpp, int width, int height, bool has_alpha)
+{
+		this->width = width;
+		this->height = height;
+		this->rwidth = width;
+		this->rheight = height;
+		this->bpp = bpp;
+		this->name = name;
+		this->has_alpha = has_alpha;
+
+		/*
+		if (data)
+		{
+			free(data);
+			data = NULL;
+		}
+		*/
+
+		if (bpp == 8)
+		{
+			data = (BYTE*)realloc(data, width * height);
+			memset(data, 247, width * height);
+		}
+
+		if (bpp == 32)
+		{
+			data = (BYTE*)realloc(data, width * height * 4);
+			memset(data, 0, width * height * 4);
+		}
+	}
 
 // is_valid_dimension: Checks if a value is a power of 2
 // -------------------------------------------------- >>
@@ -237,7 +270,7 @@ bool Texture::load_file(string name, string filename, int filter)
 
 	log_message("%s: %dx%d\n", name.c_str(), width, height);
 
-	data = (BYTE *)malloc(width * height * 4);
+	data = (BYTE *)realloc(data, width * height * 4);
 	memcpy(data, gdk_pixbuf_get_pixels(pbuf), width * height * 4);
 	//memset(data, 180, width * height * 4);
 
@@ -358,7 +391,7 @@ GdkPixbuf* Texture::get_pbuf_scale_fit(int w, int h, float scaling, GdkInterpTyp
 Texture* get_texture(string name, int type)
 {
 	// Search textures
-	if (type == 0 || type == TEXTURES_WALLS)
+	if (type == 0 || type == TEXTURES_WALLS || (type == TEXTURES_FLATS && mix_tex))
 	{
 		for (int a = 0; a < textures.size(); a++)
 		{
@@ -368,7 +401,7 @@ Texture* get_texture(string name, int type)
 	}
 
 	// Search flats
-	if (type == 0 || type == TEXTURES_FLATS)
+	if (type == 0 || type == TEXTURES_FLATS || (type == TEXTURES_WALLS && mix_tex))
 	{
 		for (int a = 0; a < flats.size(); a++)
 		{
@@ -572,14 +605,15 @@ void load_textures_lump(Wad* wad, Lump *lump)
 	offsets = (long *)calloc(n_tex, 4);
 	fread(offsets, 4, n_tex, fp);
 
-	show_progress();
+	//show_progress();
 
 	for (int t = 0; t < n_tex; t++)
 	{
 		double prog = (double)t / (double)n_tex;
 
 		if (t % 10 == 0)
-			update_progress(prog);
+			splash_progress(prog);
+			//update_progress(prog);
 
 		// Go to start of tex definition
 		fseek(fp, lump->Offset(), SEEK_SET);
@@ -650,7 +684,7 @@ void load_textures_lump(Wad* wad, Lump *lump)
 		}
 	}
 
-	hide_progress();
+	//hide_progress();
 }
 
 // load_textures: Loads all textures from the last wad opened containing a TEXTUREx lump
@@ -668,7 +702,9 @@ void load_textures()
 
 	// Console stuff
 	console_print("Loading textures...");
-	wait_gtk_events();
+	//wait_gtk_events();
+
+	splash("Loading Textures");
 
 	// Load PNAMES
 	load_pnames(tex_wad);
@@ -737,7 +773,8 @@ void load_flats()
 {
 	clear_textures(2);
 	console_print("Loading flats...");
-	wait_gtk_events();
+	//wait_gtk_events();
+	splash("Loading Flats");
 
 	// Load IWAD flats first
 	load_flats_wad(wads.get_iwad());
@@ -833,12 +870,14 @@ void load_sprites()
 {
 	clear_textures(3);
 	console_print("Loading sprites...");
-	show_progress();
+	splash("Loading Sprites");
+	//show_progress();
 
 	for (int s = 0; s < spritenames.size(); s++)
 	{
 		if (s % 5 == 0)
-			update_progress((float)s / (float)spritenames.size());
+			splash_progress((float)s / (float)spritenames.size());
+			//update_progress((float)s / (float)spritenames.size());
 
 		Wad* wad = wads.get_wad_with_lump(spritenames[s]);
 
@@ -846,6 +885,81 @@ void load_sprites()
 			load_sprite(wad, spritenames[s]);
 	}
 
-	hide_progress();
+	//hide_progress();
 	console_print("Done");
+}
+
+void load_tx_texture(Wad* wad, long index)
+{
+	// Get lump
+	Lump* lump = wad->directory[index];
+	BYTE* data = lump->Data();
+
+	// Check for PNG header
+	if (data[0] == 137 && data[1] == 80 &&
+		data[2] == 78 && data[3] == 71 &&
+		data[4] == 13 && data[5] == 10 &&
+		data[6] == 26 && data[7] == 10)
+	{
+		// Write lump content to file
+		FILE *fp = fopen("sladetemp", "wb");
+		fwrite(lump->Data(), lump->Size(), 1, fp);
+		fclose(fp);
+
+		// If texture doesn't exist, create it
+		Texture* tex = get_texture(lump->Name(), 1);
+		if (tex->name == "_notex")
+		{
+			tex = new Texture();
+			textures.push_back(tex);
+		}
+
+		// Read file to texture
+		tex->load_file(lump->Name(), "sladetemp", tex_filter);
+		
+		remove("sladetemp");
+	}
+	else // Normal doom format patch
+	{
+		short *p = (short *)lump->Data();
+		short width = *p++;
+		short height = *p;
+
+		if (width < 0 || height < 0)
+			return;
+
+		Texture* tex = get_texture(lump->Name(), 1);
+		if (tex->name == "_notex")
+		{
+			tex = new Texture();
+			textures.push_back(tex);
+		}
+
+		tex->setup(lump->Name(), 8, width, height, true);
+		add_patch_to_tex(0, 0, wad, lump, tex);
+	}
+}
+
+void load_tx_textures()
+{
+	splash("Loading TX_ Textures");
+
+	for (DWORD w = 0; w < wads.n_wads; w++)
+	{
+		if (wads.get_wad(w)->tx[START] != -1)
+		{
+			Wad* wad = wads.get_wad(w);
+			bool done = false;
+			long lump = wad->tx[START] + 1;
+
+			while (!done)
+			{
+				load_tx_texture(wad, lump);
+				lump++;
+
+				if (lump == wad->tx[END] || lump == wad->num_lumps)
+					done = true;
+			}
+		}
+	}
 }

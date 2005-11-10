@@ -169,6 +169,7 @@ GtkWidget* setup_prefs_dialog()
 
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), setup_visual_prefs(), gtk_label_new("Visual"));
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), setup_colours_prefs(), gtk_label_new("Colours"));
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), setup_input_prefs(), gtk_label_new("Input"));
 	//gtk_notebook_append_page(GTK_NOTEBOOK(notebook), gtk_label_new("Node Builder prefs here"), gtk_label_new("Node Builder"));
 	//gtk_notebook_append_page(GTK_NOTEBOOK(notebook), gtk_label_new("Misc prefs here"), gtk_label_new("Misc"));
 

@@ -21,7 +21,8 @@
 #include "camera.h"
 #include "3dmode.h"
 
-CVAR(Float, move_speed_3d, 0.5f, CVAR_SAVE)
+CVAR(Float, move_speed_3d, 0.3f, CVAR_SAVE)
+CVAR(Float, mouse_speed_3d, 1.0f, CVAR_SAVE)
 
 // External Variables --------------------- >>
 extern BindList binds;
@@ -34,6 +35,9 @@ extern point2_t mouse;
 extern rect_t sel_box;
 
 extern Camera camera;
+
+EXTERN_CVAR(Bool, render_fog)
+EXTERN_CVAR(Bool, render_fullbright)
 
 // cycle_edit_mode: Cycles the edit mode
 // ----------------------------------- >>
@@ -399,6 +403,7 @@ void keys_edit()
 	if (binds.pressed("view_3dmode"))
 	{
 		binds.clear("view_3dmode");
+		binds.clear("3d_exit");
 		start_3d_mode();
 	}
 }
@@ -408,7 +413,11 @@ bool keys_3d()
 	float speed = 0.2 * move_speed_3d;
 
 	if (binds.pressed("3d_exit"))
+	{
+		binds.clear("view_3dmode");
+		binds.clear("3d_exit");
 		return false;
+	}
 
 	if (binds.pressed("3d_forward"))
 		camera.move_camera(speed);
@@ -438,6 +447,18 @@ bool keys_3d()
 	{
 		camera.position.z -= 0.1f;
 		camera.view.z -= 0.1f;
+	}
+
+	if (binds.pressed("3d_toggle_fullbright"))
+	{
+		binds.clear("3d_toggle_fullbright");
+		render_fullbright = !render_fullbright;
+	}
+
+	if (binds.pressed("3d_toggle_fog"))
+	{
+		binds.clear("3d_toggle_fog");
+		render_fog = !render_fog;
 	}
 
 	return true;

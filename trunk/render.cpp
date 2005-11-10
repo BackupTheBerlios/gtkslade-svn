@@ -11,7 +11,9 @@ Camera camera;
 vector<wallrect_t*> wallrects;
 vector<flatpoly_t*> flatpolys;
 
-CVAR(Bool, render_wireframe, false, CVAR_SAVE)
+CVAR(Bool, render_fog, true, CVAR_SAVE)
+CVAR(Bool, render_fullbright, false, CVAR_SAVE)
+CVAR(Bool, render_wireframe, false, 0)
 
 extern Map map;
 extern bool vis_lines[65535];
@@ -34,7 +36,6 @@ wallrect_t::~wallrect_t()
 
 void wallrect_t::draw()
 {
-	glColor4f(col.fr(), col.fg(), col.fb(), col.fa());
 	if (tex) glBindTexture(GL_TEXTURE_2D, tex->get_gl_id());
 	glBegin(GL_TRIANGLE_FAN);
 
@@ -53,9 +54,7 @@ flatpoly_t::flatpoly_t()
 
 void flatpoly_t::draw()
 {
-	glColor4f(col.fr(), col.fg(), col.fb(), col.fa());
 	if (tex) glBindTexture(GL_TEXTURE_2D, tex);//->get_gl_id());
-
 	glBegin(GL_TRIANGLE_FAN);
 
 	for (int a = 0; a < verts.size(); a++)
@@ -71,10 +70,27 @@ float plane_height(plane_t plane, float x, float y)
 
 void set_light(rgba_t col, int light)
 {
-	//int light = map.sectors[sector]->light;
-	glColor4f(col.fr(), col.fg(), col.fb(), col.fa());
-	glFogf(GL_FOG_DENSITY, 1.0f - light/500.0f);
-	glFogf(GL_FOG_END, ((light/255.0f) * (light/255.0f) * 40.0f));
+	if (render_fullbright && col.r == col.g && col.r == col.b)
+	{
+		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		return;
+	}
+
+	if (render_fog)
+	{
+		glColor4f(col.fr(), col.fg(), col.fb(), col.fa());
+		glFogf(GL_FOG_DENSITY, 1.0f - light/500.0f);
+		glFogf(GL_FOG_END, ((light/255.0f) * (light/255.0f) * 40.0f));
+	}
+	else
+	{
+		// If we have a non-coloured light, darken it a bit to closer resemble
+		// the depth-fogged light level (still not very accurate, but oh well)
+		if (col.r == col.g && col.r == col.b)
+			glColor4f(col.fr()*col.fr(), col.fg()*col.fg(), col.fb()*col.fb(), col.fa());
+		else
+			glColor4f(col.fr(), col.fg(), col.fb(), col.fa());
+	}
 }
 
 void render_3d_view()
@@ -104,7 +120,17 @@ void render_3d_view()
 	walk_bsp_tree(n_gl_nodes - 1);
 
 	if (render_wireframe)
+	{
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		glDisable(GL_TEXTURE_2D);
+	}
+	else
+		glEnable(GL_TEXTURE_2D);
+
+	if (render_fog && !render_fullbright)
+		glEnable(GL_FOG);
+	else
+		glDisable(GL_FOG);
 
 	glAlphaFunc(GL_GREATER, 0.8);
 	glCullFace(GL_FRONT);
@@ -121,6 +147,8 @@ void render_3d_view()
 			wallrects[a]->draw();
 		}
 	}
+
+	glDisable(GL_ALPHA_TEST);
 
 	for (int a = 0; a < flatpolys.size(); a++)
 	{
@@ -140,6 +168,7 @@ void render_3d_view()
 
 	// 2d Stuff
 	glDisable(GL_CULL_FACE);
+	glCullFace(GL_NONE);
 	glDisable(GL_DEPTH_TEST);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();

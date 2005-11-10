@@ -213,7 +213,31 @@ void save_config_clicked(GtkWidget *w, gpointer data)
 		return;
 	}
 
-	current->save();
+	col_config_t ccfg;
+	ccfg.name = current->name;
+
+	ccfg.add("background", col_background);
+	ccfg.add("hilight", col_hilight);
+	ccfg.add("selection", col_selection);
+	ccfg.add("moving", col_moving);
+	ccfg.add("tagged", col_tagged);
+	ccfg.add("vertex", col_vertex);
+	ccfg.add("line_solid", col_line_solid);
+	ccfg.add("line_2s", col_line_2s);
+	ccfg.add("line_monster", col_line_monster);
+	ccfg.add("line_special", col_line_special);
+	ccfg.add("linedraw", col_linedraw);
+	ccfg.add("selbox", col_selbox);
+	ccfg.add("selbox_line", col_selbox_line);
+	ccfg.add("grid", col_grid);
+	ccfg.add("64grid", col_64grid);
+	ccfg.add("3d_crosshair", col_3d_crosshair);
+	ccfg.add("3d_hilight", col_3d_hilight);
+	ccfg.add("3d_hilight_line", col_3d_hilight_line);
+
+	ccfg.path = parse_string("config/colours/%s.cfg", ccfg.name.c_str());
+	ccfg.save();
+	//current->save();
 }
 
 GtkWidget *setup_colours_prefs()

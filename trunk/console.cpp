@@ -12,12 +12,35 @@
 #include "textures.h"
 #include "tex_browser.h"
 #include "editor_window.h"
+#include "splash.h"
 
 // Variables ----------------------------- >>
 GtkTextBuffer	*console_log;
 string			cmd_line;
 vector<string>	cmd_history;
 int				console_hcmd = -1;
+
+string qdb[] = {
+	"SLADE: SlayeR's LeetAss Doom Editor",
+	"Having fun playing with useless console commands?",
+	"Initializing Nickbakery...",
+	"Truth is beautiful, without doubt; but so are lies.",
+	"Initializing Doom Builder...",
+	"...And the lord said, 'lo, there shall only be case or default labels inside a switch statement'",
+	"Call me paranoid but finding '/*' inside this comment makes me suspicious.",
+	"My word, whats wrong with that mans bottom?",
+	"Subliminal (kill) messaging (your) is (parents) awesome!",
+	"Yeah it's a map editor, what of it?",
+	"Installing Gator...",
+	"Formatting C:\...",
+	"Remember that when you reach for the stars, they are too far away, so it's hopeless.",
+	"http://slade.mancubus.net -- FREE PORN!!",
+	"You're trying to say you like DOS better than me right? (Press Y to quit)",
+	"I've hidden some pr0n somewhere in the SLADE resources, find it and win a prize!",
+	"\"splash hide\" in the console to hide this, by the way.",
+};
+int p_q = 0;
+int n_quotes = sizeof(qdb) / sizeof(string);
 
 // External Variables -------------------- >>
 extern vector<Texture*>	textures;
@@ -201,10 +224,54 @@ void console_parsecommand()
 		parsed = true;
 	}
 
+	// "tex_browse" command
 	if (token == "tex_browse")
 	{
 		string stex = open_texture_browser(true, true, true);
 		console_print(parse_string("Selected \"%s\"", stex.c_str()));
+		parsed = true;
+	}
+
+	// "splash" command
+	// If msg isn't specified, a random quote is shown instead
+	if (token == "splash")
+	{
+		// Get a random number that isn't what was previously shown :P
+		int q = p_q;
+		while (q == p_q) q = g_random_int_range(0, n_quotes);
+		p_q = q;
+
+		string msg = qdb[q];
+		float prog = 0.0f;
+
+		if (tz.peek_token() != "!END")
+		{
+			msg = tz.get_token();
+
+			if (tz.peek_token() != "!END")
+				prog = tz.get_float();
+		}
+
+		if (msg != "hide")
+		{
+			splash(msg);
+			splash_progress(prog);
+		}
+		else
+			splash_hide();
+
+		parsed = true;
+	}
+
+	// "cmdlist" command
+	if (token == "cmdlist")
+	{
+		console_print("Available Commands:");
+		console_print("cmdlist");
+		console_print("cvarlist");
+		console_print("dump_flats");
+		console_print("dump_textures");
+		console_print("splash");
 		parsed = true;
 	}
 
@@ -218,4 +285,5 @@ void console_parsecommand()
 
 	// Finish up
 	cmd_line = "";
+	console_hcmd = -1;
 }

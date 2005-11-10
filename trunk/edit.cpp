@@ -26,7 +26,7 @@ int map_changed = 3;	// 0 = no change
 						// 3 = changed, node rebuild needed
 
 bool browser = false;	// Is the texture browser active?
-bool mix_tex = false;	// Mix textures & flats (zdoom)?
+//bool mix_tex = false;	// Mix textures & flats (zdoom)?
 
 thing_t	last_thing;
 

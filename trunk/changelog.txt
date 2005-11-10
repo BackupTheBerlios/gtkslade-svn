@@ -9,6 +9,16 @@ Goes in bottom-up order
 ~: Changed
 ': Note
 
+[10/11/05]
++ Binds are now saved to slade.cfg
++ Added input configuration to the preferences dialog
+
+[09/11/05]
++ Added 'splash' command to the console, initially for testing, but added some fun stuff :P
+* Hopefully fixed 3d mode flickering, again :P
++ Added a proper splash screen (instead of just popping up the console like before)
+' Moved over to VC++ 2005 Express, now intellisense works with GTK. No more constantly checking the API docs ;)
+
 [07/11/05]
 * Right clicking a texture box on the side edit dialog no longer clears the texture
 + Added 'sector reference' entry to the side edit dialog

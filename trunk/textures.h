@@ -19,28 +19,7 @@ public:
 	Texture();
 	~Texture();
 
-	void setup(string name, BYTE bpp, int width, int height, bool has_alpha = true)
-	{
-		this->width = width;
-		this->height = height;
-		this->rwidth = width;
-		this->rheight = height;
-		this->bpp = bpp;
-		this->name = name;
-		this->has_alpha = has_alpha;
-
-		if (bpp == 8)
-		{
-			data = (BYTE*)malloc(width * height);
-			memset(data, 247, width * height);
-		}
-
-		if (bpp == 32)
-		{
-			data = (BYTE*)malloc(width * height * 4);
-			memset(data, 0, width * height * 4);
-		}
-	}
+	void setup(string name, BYTE bpp, int width, int height, bool has_alpha = true);
 
 	bool load_file(string name, string filename, int filter = 2);
 
@@ -84,6 +63,7 @@ Texture* get_texture(string name, int type = 0);
 void init_textures();
 void load_flats();
 void load_sprites();
+void load_tx_textures();
 
 #define TEXTURES_WALLS		1
 #define	TEXTURES_FLATS		2

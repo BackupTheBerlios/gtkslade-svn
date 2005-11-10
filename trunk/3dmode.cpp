@@ -10,6 +10,9 @@
 
 float grav = 0.01f;
 
+int hl_3d_type;
+int hl_3d_item;
+
 extern Camera camera;
 extern Map map;
 

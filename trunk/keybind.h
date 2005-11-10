@@ -3,6 +3,7 @@ struct keybind_t
 {
 	string	name;
 	string	key;
+	string	defaultkey;
 	bool	pressed;
 };
 
@@ -23,4 +24,13 @@ public:
 	bool pressed(string name);
 	void clear(string name);
 	void clear_all();
+	void change(string name, string key);
+	void change_default(string name);
+
+	string get_name(int index);
+	string get_bind(int index);
+	size_t n_keys() { return keys.size(); }
+
+	void save(FILE* fp);
+	void load(Tokenizer *tz);
 };

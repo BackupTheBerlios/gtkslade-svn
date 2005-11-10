@@ -5,6 +5,7 @@
 #include "map.h"
 #include "bsp.h"
 #include "render.h"
+#include "splash.h"
 
 sectinfo_t	*sector_info;
 
@@ -513,22 +514,38 @@ void setup_3d_data()
 		}
 	}
 
-	// Setup sectors
-	sector_info = (sectinfo_t *)realloc(sector_info, map.n_sectors * sizeof(sectinfo_t));
-	for (int a = 0; a < map.n_sectors; a++)
-		setup_sector(a);
-
 	// Test
 	//sector_info[0].f_plane.set(0.0f, 0.2f, 0.8f, -2.0f);
 
 	// Build gl nodes
+	splash("Building GL Nodes");
 	build_gl_nodes();
 
+	// Setup sectors
+	splash("Setup Sectors");
+	sector_info = (sectinfo_t *)realloc(sector_info, map.n_sectors * sizeof(sectinfo_t));
+	for (int a = 0; a < map.n_sectors; a++)
+		setup_sector(a);
+
 	// Setup walls
+	splash("Setup Walls");
 	for (int a = 0; a < map.n_lines; a++)
+	{
+		if (a % 10 == 0)
+			splash_progress((double)a / (double)map.n_lines);
+
 		setup_3d_line(a);
+	}
 
 	// Setup subsectors
+	splash("Setup Flats");
 	for (int a = 0; a < n_gl_ssects; a++)
+	{
+		if (a % 10 == 0)
+			splash_progress((double)a / (double)n_gl_ssects);
+
 		setup_ssector(a);
+	}
+
+	splash_hide();
 }

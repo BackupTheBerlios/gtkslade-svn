@@ -14,6 +14,8 @@
 #include "colours.h"
 #include "textures.h"
 #include "game_config.h"
+#include "splash.h"
+#include "keybind.h"
 
 // Variables ----------------------------- >>
 CVAR(String, col_config, "Default", CVAR_SAVE)
@@ -23,6 +25,7 @@ extern WadList wads;
 extern Map map;
 extern GtkWidget *editor_window;
 extern GLuint font_list;
+extern BindList binds;
 
 EXTERN_CVAR(Bool, allow_np2_tex)
 
@@ -111,7 +114,7 @@ bool yesno_box(string message)
 
 // file_browser: Opens up a file browser dialog and returns the path chosen
 // --------------------------------------------------------------------- >>
-string file_browser(string extension)
+string file_browser(string extension, string folder)
 {
 	string ret = "";
 	GtkFileFilter *filter = gtk_file_filter_new();
@@ -126,8 +129,18 @@ string file_browser(string extension)
 													NULL);
 	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
 
+	if (folder != "")
+	{
+		gchar* p = g_get_current_dir();
+		string path = p;
+		//free(p);
+		path += folder;
+		gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(dialog), path.c_str());
+	}
+
 	if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT)
 		ret = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
+
 
 	gtk_widget_destroy(dialog);
 
@@ -189,6 +202,9 @@ void load_main_config()
 		if (token == "iwads")
 			load_game_iwads(&mr);
 
+		if (token == "binds")
+			binds.load(&mr);
+
 		token = mr.get_token();
 	}
 }
@@ -200,6 +216,7 @@ void save_main_config()
 	FILE *fp = fopen("slade.cfg", "wt");
 	save_cvars(fp);
 	save_game_iwads(fp);
+	binds.save(fp);
 	fclose(fp);
 }
 
@@ -233,6 +250,8 @@ void setup_icons()
 int main(int argc, char *argv[])
 {
 	gtk_init(&argc, &argv);
+	setup_splash();
+	splash("Starting up...");
 	//gtk_gl_init(&argc, &argv);
 
 	// Init logfile
@@ -257,6 +276,8 @@ int main(int argc, char *argv[])
 	font_list = glGenLists(256);
 	PangoFontDescription *font_desc = pango_font_description_from_string("Monospace 10");
 	gdk_gl_font_use_pango_font(font_desc, 0, 255, font_list);
+
+	splash_hide();
 
 	gtk_main();
 	

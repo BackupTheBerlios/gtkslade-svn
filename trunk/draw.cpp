@@ -495,8 +495,8 @@ void draw_sectors()
 
 	for(DWORD l = 0; l < map.n_lines; l++)
 	{
-		short sector1 = map.l_getsector1(l);
-		short sector2 = map.l_getsector2(l);
+		long sector1 = map.l_getsector1(l);
+		long sector2 = map.l_getsector2(l);
 
 		rect_t rect = map.l_getsrect(l);
 

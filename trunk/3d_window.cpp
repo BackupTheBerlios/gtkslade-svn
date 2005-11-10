@@ -11,13 +11,15 @@
 GtkWidget *draw_3d_area;
 bool run_3d = false;
 
-CVAR(Float, mouse_speed_3d, 1.0f, CVAR_SAVE)
+
 
 extern GtkWidget *editor_window;
 extern GdkGLConfig *glconfig;
 extern GdkGLContext *glcontext;
 extern BindList binds;
 extern Camera camera;
+
+EXTERN_CVAR(Float, mouse_speed_3d)
 
 void window3d_render()
 {
@@ -201,6 +203,9 @@ static gboolean motion_3d_event(GtkWidget *widget, GdkEventMotion *event)
 
 void start_3d_mode()
 {
+	// Setup
+	setup_3d_data();
+
 	GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_modal(GTK_WINDOW(window), true);
 	gtk_window_set_transient_for(GTK_WINDOW(window), GTK_WINDOW(editor_window));
@@ -245,9 +250,7 @@ void start_3d_mode()
 	set_cursor(draw_3d_area->allocation.x + (draw_3d_area->allocation.width * 0.5),
 				draw_3d_area->allocation.y + (draw_3d_area->allocation.height * 0.5));
 
-	// Setup
-	setup_3d_data();
-	window3d_render();
+	//window3d_render();
 
 	GTimer* timer = g_timer_new();
 	g_timer_start(timer);

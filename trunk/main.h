@@ -66,7 +66,7 @@ void print(bool debug, char *message, ...);
 void log_message(char *message, ...);
 void message_box(string message, GtkMessageType type);
 void wait_gtk_events();
-string file_browser(string extension);
+string file_browser(string extension, string folder = "");
 bool yesno_box(string message);
 string entry_box(string prompt);
 string parse_string(char *str, ...);

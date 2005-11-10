@@ -701,8 +701,11 @@ bool Map::v_isattached_sector(int v)
 
 bool Map::l_needsuptex(int l, int side)
 {
+	int sector1 = l_getsector1(l);
+	int sector2 = l_getsector2(l);
+
 	// False if not two-sided
-	if (l_getsector1(l) == -1 || l_getsector2(l) == -1)
+	if (sector1 == -1 || sector2 == -1)
 		return false;
 
 	if (side == 1)

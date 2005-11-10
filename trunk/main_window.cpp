@@ -6,6 +6,7 @@
 #include "editor_window.h"
 #include "textures.h"
 #include "console_window.h"
+#include "splash.h"
 
 // Variables ----------------------------- >>
 GtkListStore	*wads_store;
@@ -187,13 +188,19 @@ void close_all_click()
 
 void begin_mapedit()
 {
-	popup_console();
+	splash("");
+
 	load_flats();
 	load_textures();
 	load_sprites();
+
+	if (map.zdoom)
+		load_tx_textures();
+
 	game_changed = false;
-	hide_console();
 	allow_tex_load = true;
+
+	splash_hide();
 }
 
 void new_standalone_click()

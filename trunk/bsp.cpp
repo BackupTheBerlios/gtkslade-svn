@@ -195,7 +195,8 @@ void set_visbuffer(int blocked)
 
 void open_view()
 {
-	int mlook_mod = (int)(((camera.view.z - camera.position.z) * 6000.0f));
+	int mlook_mod = (int)(((camera.view.z - camera.position.z) * 3000.0f));
+	//int mlook_mod = 0;
 
 	if (mlook_mod < 0)
 		mlook_mod = -mlook_mod;
@@ -214,6 +215,12 @@ void open_view()
 
 bool seg_is_visible(float x1, float y1, float x2, float y2)
 {
+	// Check with camera
+	point3_t strafe = camera.position + camera.strafe;
+	if (determine_line_side(camera.position.x, camera.position.y, strafe.x, strafe.y, x1, y1)
+		&& determine_line_side(camera.position.x, camera.position.y, strafe.x, strafe.y, x2, y2))
+		return false;
+
 	point3_t vec1(x1 - camera.position.x, y1 - camera.position.y, 0.0f);
 	point3_t vec2(x2 - camera.position.x, y2 - camera.position.y, 0.0f);
 	vec1 = vec1.normalize();
@@ -266,8 +273,6 @@ void block_seg(float x1, float y1, float x2, float y2)
 	unsigned short a1 = (short)(get_2d_angle(camera.view - camera.position, vec1) * 10.0f);
 	unsigned short a2 = (short)(get_2d_angle(camera.view - camera.position, vec2) * 10.0f);
 
-	//log_message("block %d to %d\n", a1, a2);
-
 	// A cheap hack for now until I can figure out why sometimes I get 'backwards' segs
 	if (a1 > a2 && a1 - a2 < 450)
 	{
@@ -275,6 +280,9 @@ void block_seg(float x1, float y1, float x2, float y2)
 		a1 = a2;
 		a2 = temp;
 	}
+
+	//log_message("seg from (%1.2f, %1.2f) to (%1.2f, %1.2f)\n", x1, y1, x2, y2);
+	//log_message("block %d to %d\n", a1, a2);
 
 	if (a1 > a2)
 	{

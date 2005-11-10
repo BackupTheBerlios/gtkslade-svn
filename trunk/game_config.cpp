@@ -30,6 +30,7 @@ extern Map map;
 
 extern string def_midtex, def_uptex, def_lotex, def_ftex, def_ctex;
 extern short def_fheight, def_cheight, def_light;
+extern bool mix_tex;
 
 void load_game_iwads(Tokenizer *tz)
 {
@@ -327,6 +328,8 @@ bool load_game_config(int index)
 
 	// Read action specials & thing/sector types
 	read_types(&tz, true, true, true, true);
+
+	mix_tex = map.zdoom;
 
 	return true;
 }
