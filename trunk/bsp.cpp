@@ -230,6 +230,7 @@ bool seg_is_visible(float x1, float y1, float x2, float y2)
 	unsigned short a1 = (short)(get_2d_angle(camera.view - camera.position, vec1) * 10.0f);
 	unsigned short a2 = (short)(get_2d_angle(camera.view - camera.position, vec2) * 10.0f);
 
+	/*
 	// A cheap hack for now until I can figure out why sometimes I get 'backwards' segs
 	if (a1 > a2 && a1 - a2 < 450)
 	{
@@ -237,6 +238,7 @@ bool seg_is_visible(float x1, float y1, float x2, float y2)
 		a1 = a2;
 		a2 = temp;
 	}
+	*/
 
 	if (a1 > a2)
 	{
@@ -274,6 +276,7 @@ void block_seg(float x1, float y1, float x2, float y2)
 	unsigned short a1 = (short)(get_2d_angle(camera.view - camera.position, vec1) * 10.0f);
 	unsigned short a2 = (short)(get_2d_angle(camera.view - camera.position, vec2) * 10.0f);
 
+	/*
 	// A cheap hack for now until I can figure out why sometimes I get 'backwards' segs
 	if (a1 > a2 && a1 - a2 < 450)
 	{
@@ -281,6 +284,7 @@ void block_seg(float x1, float y1, float x2, float y2)
 		a1 = a2;
 		a2 = temp;
 	}
+	*/
 
 	//log_message("seg from (%1.2f, %1.2f) to (%1.2f, %1.2f)\n", x1, y1, x2, y2);
 	//log_message("block %d to %d\n", a1, a2);
@@ -350,13 +354,8 @@ void process_subsector(short subsect)
 			y2 = map.verts[v]->y * SCALE_3D;
 		}
 
-		/*
-		rect_t seg;
-		seg.set(x1, y1, x2, y2);
-		*/
-
 		// If seg runs along a line
-		if (gl_segs[s].line != -1)
+		if (gl_segs[s].line != SEG_MINISEG)
 		{
 			bool side = true;
 
@@ -380,7 +379,7 @@ void process_subsector(short subsect)
 						else
 							sector = map.l_getsector1(gl_segs[s].line);
 
-						if (sector != -1)// && render_bsp)
+						if (sector != -1)
 						{
 							if (map.sectors[sector]->f_height >= map.sectors[sector]->c_height)
 								block_seg(x1, y1, x2, y2);
@@ -388,7 +387,6 @@ void process_subsector(short subsect)
 					}
 
 					// The line and subsector are visible
-					//vis_lines[gl_segs[s].line] = true;
 					lines_3d[gl_segs[s].line].visible = true;
 					visible = true;
 				}
@@ -397,7 +395,6 @@ void process_subsector(short subsect)
 		else // Seg doesn't run along a line
 		{
 			// If we're on the right side of the seg
-			//if (determine_line_side(seg, camera.position.x, camera.position.y))
 			if (determine_line_side(x1, y1, x2, y2, camera.position.x, camera.position.y))
 			{
 				// If the seg isn't blocked, the ssector is visible
@@ -412,21 +409,8 @@ void process_subsector(short subsect)
 		if (sector != -1)
 			sector_info[sector].visible = true;
 		
-		//vis_ssects[subsect] = true;
 		ssects_3d[subsect].visible = true;
 	}
-
-	/*
-	if (visible)
-	{
-		visible_subsectors.add(subsect, false);
-
-		if (sects[subsect]->parent_sector->sector != -1)
-			visible_sectors.add(sects[subsect]->parent_sector->sector, false);
-
-		//sects[subsect]->visible = true;
-	}
-	*/
 }
 
 // walk_bsp_tree: Walks through the gl nodes (bsp tree) to determine visibility
