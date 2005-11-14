@@ -30,9 +30,9 @@ extern rgba_t col_selbox;
 extern rgba_t col_selbox_line;
 extern rgba_t col_grid;
 extern rgba_t col_64grid;
-rgba_t col_3d_crosshair;
-rgba_t col_3d_hilight;
-rgba_t col_3d_hilight_line;
+extern rgba_t col_3d_crosshair;
+extern rgba_t col_3d_hilight;
+extern rgba_t col_3d_hilight_line;
 
 extern float hilight_size, moving_size, selection_size;
 

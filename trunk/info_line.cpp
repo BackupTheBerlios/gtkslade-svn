@@ -191,6 +191,9 @@ void update_line_info_bar(int line)
 	{
 		gtk_frame_set_label(GTK_FRAME(frame_side1), "No Front Side");
 		widget_set_font(gtk_frame_get_label_widget(GTK_FRAME(frame_side1)), "Sans Bold", 10);
+		tbox_uptex1->change_texture("");
+		tbox_midtex1->change_texture("");
+		tbox_lotex1->change_texture("");
 	}
 
 	// Back Side Frame
@@ -222,5 +225,8 @@ void update_line_info_bar(int line)
 	{
 		gtk_frame_set_label(GTK_FRAME(frame_side2), "No Back Side");
 		widget_set_font(gtk_frame_get_label_widget(GTK_FRAME(frame_side2)), "Sans Bold", 10);
+		tbox_uptex2->change_texture("");
+		tbox_midtex2->change_texture("");
+		tbox_lotex2->change_texture("");
 	}
 }

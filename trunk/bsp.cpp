@@ -22,14 +22,17 @@ int n_gl_nodes = 0;
 
 // I have to do this because for some reason dynamically allocating this
 // was causing some very bad problems. I'll work it out later :P
-bool vis_lines[65535];
-bool vis_ssects[65535];
+//bool vis_lines[65535];
+//bool vis_ssects[65535];
 
 BYTE vis_buffer[3600];
 
 extern Map map;
 extern Camera camera;
 extern sectinfo_t *sector_info;
+
+extern vector<line3d_t> lines_3d;
+extern vector<ssect3d_t> ssects_3d;
 
 // build_gl_nodes: Builds and loads in GL node data for the current map
 // ----------------------------------------------------------------- >>
@@ -175,13 +178,11 @@ void build_gl_nodes()
 
 void clear_visibility()
 {
-	//memset(vis_lines, 0, map.n_lines);
-	//memset(vis_ssects, 0, n_gl_ssects);
 	for (int a = 0; a < map.n_lines; a++)
-		vis_lines[a] = false;
+		lines_3d[a].visible = false;
 
 	for (int a = 0; a < n_gl_ssects; a++)
-		vis_ssects[a] = false;
+		ssects_3d[a].visible = false;
 
 	for (int a = 0; a < map.n_sectors; a++)
 		sector_info[a].visible = false;
@@ -349,8 +350,10 @@ void process_subsector(short subsect)
 			y2 = map.verts[v]->y * SCALE_3D;
 		}
 
+		/*
 		rect_t seg;
 		seg.set(x1, y1, x2, y2);
+		*/
 
 		// If seg runs along a line
 		if (gl_segs[s].line != -1)
@@ -385,7 +388,8 @@ void process_subsector(short subsect)
 					}
 
 					// The line and subsector are visible
-					vis_lines[gl_segs[s].line] = true;
+					//vis_lines[gl_segs[s].line] = true;
+					lines_3d[gl_segs[s].line].visible = true;
 					visible = true;
 				}
 			}
@@ -393,7 +397,8 @@ void process_subsector(short subsect)
 		else // Seg doesn't run along a line
 		{
 			// If we're on the right side of the seg
-			if (determine_line_side(seg, camera.position.x, camera.position.y))
+			//if (determine_line_side(seg, camera.position.x, camera.position.y))
+			if (determine_line_side(x1, y1, x2, y2, camera.position.x, camera.position.y))
 			{
 				// If the seg isn't blocked, the ssector is visible
 				if (seg_is_visible(x1, y1, x2, y2))
@@ -407,7 +412,8 @@ void process_subsector(short subsect)
 		if (sector != -1)
 			sector_info[sector].visible = true;
 		
-		vis_ssects[subsect] = true;
+		//vis_ssects[subsect] = true;
+		ssects_3d[subsect].visible = true;
 	}
 
 	/*
@@ -469,4 +475,45 @@ void walk_bsp_tree(unsigned short node)
 			walk_bsp_tree(gl_nodes[node].right_child);
 		}
 	}
+}
+
+// determine_seg_side: Determines the side of a seg a point is on
+// ----------------------------------------------------------- >>
+bool determine_seg_side(DWORD s, float x, float y)
+{
+	// Get x1,y1,x2,y2 of seg
+	float x1 = 0.0f;
+	float y1 = 0.0f;
+	float x2 = 0.0f;
+	float y2 = 0.0f;
+	long v = gl_segs[s].vertex1;
+
+	if (v & SEG_GLVERTEX)
+	{
+		x1 = gl_verts[v & ~SEG_GLVERTEX].x * SCALE_3D;
+		y1 = gl_verts[v & ~SEG_GLVERTEX].y * SCALE_3D;
+	}
+	else
+	{
+		x1 = map.verts[v]->x * SCALE_3D;
+		y1 = map.verts[v]->y * SCALE_3D;
+	}
+
+	v = gl_segs[s].vertex2;
+
+	if (v & SEG_GLVERTEX)
+	{
+		x2 = gl_verts[v & ~SEG_GLVERTEX].x * SCALE_3D;
+		y2 = gl_verts[v & ~SEG_GLVERTEX].y * SCALE_3D;
+	}
+	else
+	{
+		x2 = map.verts[v]->x * SCALE_3D;
+		y2 = map.verts[v]->y * SCALE_3D;
+	}
+
+	if (determine_line_side(x1, y1, x2, y2, x, y))
+		return true;
+	else
+		return false;
 }

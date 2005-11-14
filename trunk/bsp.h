@@ -37,6 +37,7 @@ void open_view();
 void set_visbuffer(int blocked);
 void clear_visibility();
 void build_gl_nodes();
+bool determine_seg_side(DWORD s, float x, float y);
 
 #define CHILD_IS_SUBSEC (1 << 15)
 #define SEG_MINISEG		0xFFFF

@@ -20,6 +20,8 @@
 #include "mathstuff.h"
 #include "camera.h"
 #include "3dmode.h"
+#include "console.h"
+#include "console_window.h"
 
 CVAR(Float, move_speed_3d, 0.3f, CVAR_SAVE)
 CVAR(Float, mouse_speed_3d, 1.0f, CVAR_SAVE)
@@ -38,6 +40,7 @@ extern Camera camera;
 
 EXTERN_CVAR(Bool, render_fog)
 EXTERN_CVAR(Bool, render_fullbright)
+EXTERN_CVAR(Bool, render_hilight)
 
 // cycle_edit_mode: Cycles the edit mode
 // ----------------------------------- >>
@@ -406,7 +409,16 @@ void keys_edit()
 		binds.clear("3d_exit");
 		start_3d_mode();
 	}
+
+	if (binds.pressed("open_console"))
+	{
+		binds.clear("open_console");
+		popup_console();
+	}
 }
+
+#define KEY_3D_DELAY 7
+int key_3d_rep = 0;
 
 bool keys_3d()
 {
@@ -460,6 +472,131 @@ bool keys_3d()
 		binds.clear("3d_toggle_fog");
 		render_fog = !render_fog;
 	}
+
+	// Sector height quick changes (8 units)
+	if (binds.pressed("3d_upfloor8") && key_3d_rep == 0)
+	{
+		change_sector_height_3d(8);
+		key_3d_rep = KEY_3D_DELAY;
+	}
+
+	if (binds.pressed("3d_downfloor8") && key_3d_rep == 0)
+	{
+		change_sector_height_3d(-8);
+		key_3d_rep = KEY_3D_DELAY;
+	}
+
+	if (binds.pressed("3d_upceil8") && key_3d_rep == 0)
+	{
+		change_sector_height_3d(8, false);
+		key_3d_rep = KEY_3D_DELAY;
+	}
+
+	if (binds.pressed("3d_downceil8") && key_3d_rep == 0)
+	{
+		change_sector_height_3d(-8, false);
+		key_3d_rep = KEY_3D_DELAY;
+	}
+
+	if (binds.pressed("3d_upboth8") && key_3d_rep == 0)
+	{
+		change_sector_height_3d(8);
+		change_sector_height_3d(8, false);
+		key_3d_rep = KEY_3D_DELAY;
+	}
+
+	if (binds.pressed("3d_downboth8") && key_3d_rep == 0)
+	{
+		change_sector_height_3d(-8);
+		change_sector_height_3d(-8, false);
+		key_3d_rep = KEY_3D_DELAY;
+	}
+
+	// Texture offset
+	if (binds.pressed("3d_upyoffset") && key_3d_rep == 0)
+	{
+		change_offsets_3d(0, 1);
+		key_3d_rep = KEY_3D_DELAY;
+	}
+
+	if (binds.pressed("3d_downyoffset") && key_3d_rep == 0)
+	{
+		change_offsets_3d(0, -1);
+		key_3d_rep = KEY_3D_DELAY;
+	}
+
+	if (binds.pressed("3d_upxoffset") && key_3d_rep == 0)
+	{
+		change_offsets_3d(1, 0);
+		key_3d_rep = KEY_3D_DELAY;
+	}
+
+	if (binds.pressed("3d_downxoffset") && key_3d_rep == 0)
+	{
+		change_offsets_3d(-1, 0);
+		key_3d_rep = KEY_3D_DELAY;
+	}
+
+	// Texture offset x8
+	if (binds.pressed("3d_upyoffset8") && key_3d_rep == 0)
+	{
+		change_offsets_3d(0, 8);
+		key_3d_rep = KEY_3D_DELAY;
+	}
+
+	if (binds.pressed("3d_downyoffset8") && key_3d_rep == 0)
+	{
+		change_offsets_3d(0, -8);
+		key_3d_rep = KEY_3D_DELAY;
+	}
+
+	if (binds.pressed("3d_upxoffset8") && key_3d_rep == 0)
+	{
+		change_offsets_3d(8, 0);
+		key_3d_rep = KEY_3D_DELAY;
+	}
+
+	if (binds.pressed("3d_downxoffset8") && key_3d_rep == 0)
+	{
+		change_offsets_3d(-8, 0);
+		key_3d_rep = KEY_3D_DELAY;
+	}
+
+	if (binds.pressed("3d_toggle_hilight"))
+	{
+		binds.clear("3d_toggle_hilight");
+		render_hilight = !render_hilight;
+	}
+
+	// Upper/Lower unpegged toggle
+	if (binds.pressed("3d_upperunpegged"))
+	{
+		binds.clear("3d_upperunpegged");
+		toggle_texture_peg_3d(true);
+	}
+
+	if (binds.pressed("3d_lowerunpegged"))
+	{
+		binds.clear("3d_lowerunpegged");
+		toggle_texture_peg_3d(false);
+	}
+
+	// Change light level
+	if (binds.pressed("3d_uplightlevel"))
+	{
+		binds.clear("3d_uplightlevel");
+		change_light_3d(16);
+	}
+
+	if (binds.pressed("3d_downlightlevel"))
+	{
+		binds.clear("3d_downlightlevel");
+		change_light_3d(-16);
+	}
+
+	key_3d_rep--;
+	if (key_3d_rep < 0)
+		key_3d_rep = 0;
 
 	return true;
 }

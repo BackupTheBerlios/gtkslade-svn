@@ -9,7 +9,16 @@ Goes in bottom-up order
 ~: Changed
 ': Note
 
+[14/11/05]
+* Texture boxes on the line info bar weren't cleared if their side didn't exist
++ Added most of the old 3d editing features (except for the automatic texture alignment and 'paint texture' features, they need a rewrite)
+
+[13/11/05]
++ Added wall & flat hilighting, ready for 3d editing
+~ Changed the way line data is setup in 3d mode to make line hilighting (for 3d editing) easier
+
 [10/11/05]
++ Added slopes stuff to 3d mode
 + Binds are now saved to slade.cfg
 + Added input configuration to the preferences dialog
 

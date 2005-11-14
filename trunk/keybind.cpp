@@ -70,35 +70,47 @@ void BindList::set_defaults()
 	add("3d_back", "s");
 	add("3d_strafeleft", "a");
 	add("3d_straferight", "d");
-	add("3d_left", "Left");
-	add("3d_right", "Right");
-	add("3d_moveup", "Up");
-	add("3d_movedown", "Down");
+	add("3d_left", ",");
+	add("3d_right", ".");
+	add("3d_moveup", "Home");
+	add("3d_movedown", "End");
 
 	add("3d_toggle_gravity", "g");
 	add("3d_toggle_fullbright", "b");
 	add("3d_toggle_fog", "f");
+	add("3d_toggle_hilight", "h");
+
+	add("3d_upceil8", "KP_Add");
+	add("3d_downceil8", "KP_Subtract");
+	add("3d_upceil", "<Control>KP_Add");
+	add("3d_downceil", "<Control>KP_Subtract");
+	add("3d_upfloor8", "<Shift>KP_Add");
+	add("3d_downfloor8", "<Shift>KP_Subtract");
+	add("3d_upfloor", "<Shift><Control>KP_Add");
+	add("3d_downfloor", "<Shift><Control>KP_Subtract");
+	add("3d_upboth8", "<Alt>KP_Add");
+	add("3d_downboth8", "<Alt>KP_Subtract");
+	add("3d_upboth", "<Control><Alt>KP_Add");
+	add("3d_downboth", "<Control><Alt>KP_Subtract");
+
+	add("3d_upyoffset", "<Control>Up");
+	add("3d_downyoffset", "<Control>Down");
+	add("3d_upxoffset", "<Control>Left");
+	add("3d_downxoffset", "<Control>Right");
+	add("3d_upyoffset8", "Up");
+	add("3d_downyoffset8", "Down");
+	add("3d_upxoffset8", "Left");
+	add("3d_downxoffset8", "Right");
+
+	add("3d_lowerunpegged", "l");
+	add("3d_upperunpegged", "u");
+
+	add("3d_uplightlevel", "equal");
+	add("3d_downlightlevel", "minus");
 
 	/*
 	add("3d_2dmode", 'q', 0);
 	add("3d_toggle_things", 't', 0);
-	add("3d_toggle_fullbright", 'b', 0);
-
-	add("3d_upceil8", key_id("KEYPAD_PLUS"), 0);
-	add("3d_downceil8", key_id("KEYPAD_MINUS"), 0);
-	add("3d_upceil", key_id("KEYPAD_PLUS"), KEYMOD_CTRL);
-	add("3d_downceil", key_id("KEYPAD_MINUS"), KEYMOD_CTRL);
-	add("3d_upfloor8", key_id("KEYPAD_PLUS"), KEYMOD_SHIFT);
-	add("3d_downfloor8", key_id("KEYPAD_MINUS"), KEYMOD_SHIFT);
-	add("3d_upfloor", key_id("KEYPAD_PLUS"), KEYMOD_SHIFT|KEYMOD_CTRL);
-	add("3d_downfloor", key_id("KEYPAD_MINUS"), KEYMOD_SHIFT|KEYMOD_CTRL);
-	add("3d_upboth8", key_id("KEYPAD_PLUS"), KEYMOD_ALT);
-	add("3d_downboth8", key_id("KEYPAD_MINUS"), KEYMOD_ALT);
-	add("3d_upboth", key_id("KEYPAD_PLUS"), KEYMOD_ALT|KEYMOD_CTRL);
-	add("3d_downboth", key_id("KEYPAD_MINUS"), KEYMOD_ALT|KEYMOD_CTRL);
-
-	add("3d_upbrightness", '=', 0);
-	add("3d_downbrightness", '-', 0);
 
 	add("3d_upyoffset", key_id("KEYPAD_UP"), KEYMOD_CTRL);
 	add("3d_downyoffset", key_id("KEYPAD_DOWN"), KEYMOD_CTRL);
@@ -117,8 +129,7 @@ void BindList::set_defaults()
 	add("3d_upthingz", key_id("KEYPAD_UP"), KEYMOD_CTRL);
 	add("3d_downthingz", key_id("KEYPAD_DOWN"), KEYMOD_CTRL);
 
-	add("3d_lowerunpegged", 'l', 0);
-	add("3d_upperunpegged", 'u', 0);
+	
 	add("3d_clear_texture", key_id("KEY_DELETE"), 0);
 	add("3d_reset_offsets", 'r', 0);
 	add("3d_align_tex_x", 'a', KEYMOD_CTRL);

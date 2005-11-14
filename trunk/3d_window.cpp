@@ -7,6 +7,7 @@
 #include "input.h"
 #include "misc.h"
 #include "3dmode.h"
+#include "tex_browser.h"
 
 GtkWidget *draw_3d_area;
 bool run_3d = false;
@@ -99,7 +100,7 @@ void window3d_realize_event(GtkWidget *widget, gpointer data)
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
-	gluPerspective(60.0f, (GLfloat)320/(GLfloat)200, 0.1f, 100.0f);
+	gluPerspective(60.0f, (GLfloat)320/(GLfloat)200, 0.1f, 1000.0f);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -201,6 +202,28 @@ static gboolean motion_3d_event(GtkWidget *widget, GdkEventMotion *event)
 	return false;
 }
 
+gboolean button_press_3d_event(GtkWidget *widget, GdkEventButton *event)
+{
+	if (event->type == GDK_BUTTON_PRESS)
+	{
+		if (event->button == 1)
+			change_texture_3d(false);
+
+		if (event->button == 2)
+			copy_texture_3d();
+
+		if (event->button == 3)
+			paste_texture_3d(false);
+	}
+
+	reset = true;
+	int center_x = (draw_3d_area->allocation.width * 0.5);
+	int center_y = (draw_3d_area->allocation.height * 0.5);
+	set_cursor(center_x, center_y);
+
+	return false;
+}
+
 void start_3d_mode()
 {
 	// Setup
@@ -232,6 +255,7 @@ void start_3d_mode()
 	g_signal_connect(G_OBJECT(draw_3d_area), "key_press_event", G_CALLBACK(key_3d_press_event), window);
 	g_signal_connect(G_OBJECT(draw_3d_area), "key_release_event", G_CALLBACK(key_3d_release_event), NULL);
 	g_signal_connect(G_OBJECT(draw_3d_area), "motion_notify_event", G_CALLBACK(motion_3d_event), NULL);
+	g_signal_connect(G_OBJECT(draw_3d_area), "button_press_event", G_CALLBACK(button_press_3d_event), NULL);
 
 	gtk_widget_show_all(window);
 	gtk_widget_grab_focus(draw_3d_area);
@@ -262,7 +286,7 @@ void start_3d_mode()
 		gulong ms = 0;
 		g_timer_elapsed(timer, &ms);
 
-		if (ms >= 150)
+		if (ms >= 10000)
 		{
 			g_timer_start(timer);
 			wait_gtk_events();
@@ -271,6 +295,7 @@ void start_3d_mode()
 			if (camera.gravity)
 				apply_gravity();
 
+			determine_hilight();
 			window3d_render();
 		}
 	}

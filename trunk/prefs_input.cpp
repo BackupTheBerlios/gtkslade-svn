@@ -126,7 +126,7 @@ gboolean keybind_entry_keypress(GtkWidget *widget, GdkEventKey *event, gpointer 
 		gtk_entry_set_text(GTK_ENTRY(key_bind_entry), key.c_str());
 	}
 
-	return false;
+	return true;
 }
 
 GtkWidget *setup_input_prefs()

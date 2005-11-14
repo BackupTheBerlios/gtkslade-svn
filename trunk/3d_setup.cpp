@@ -9,6 +9,9 @@
 
 sectinfo_t	*sector_info;
 
+vector<line3d_t>	lines_3d;
+vector<ssect3d_t>	ssects_3d;
+
 extern Camera camera;
 extern vector<wallrect_t*> wallrects;
 extern vector<flatpoly_t*> flatpolys;
@@ -24,6 +27,8 @@ extern DWORD		n_gl_ssects;
 
 void setup_wallrect(wallrect_t *wall)
 {
+	wall->verts.clear();
+
 	rect_t rect = map.l_getrect(wall->line);
 	sidedef_t* side1;
 	sidedef_t* side2;
@@ -42,14 +47,22 @@ void setup_wallrect(wallrect_t *wall)
 		rect.br.set(point.x, point.y);
 	}
 
+	float x1 = rect.x1() * SCALE_3D;
+	float y1 = rect.y1() * SCALE_3D;
+	float x2 = rect.x2() * SCALE_3D;
+	float y2 = rect.y2() * SCALE_3D;
+
 	if (wall->sector == -1)
 		wall->sector = side1->sector;
+
+	wall->light = map.sectors[wall->sector]->light;
 
 	if (wall->part == PART_MIDDLE)
 	{
 		int f = map.sectors[side1->sector]->f_height;
 		int c = map.sectors[side1->sector]->c_height;
-		int l = map.sectors[side1->sector]->light;
+		plane_t f_plane = sector_info[side1->sector].f_plane;
+		plane_t c_plane = sector_info[side1->sector].c_plane;
 
 		Texture* tex = get_texture(side1->tex_middle, 1);
 		rect_t t_c;
@@ -65,15 +78,26 @@ void setup_wallrect(wallrect_t *wall)
 			t_c.br.set(side1->x_offset + rect.length(), side1->y_offset + (c-f));
 		}
 
-		wall->verts.push_back(point3_t(rect.x1() * SCALE_3D, rect.y1() * SCALE_3D, c * SCALE_3D,
-			(float)t_c.x1() / (float)tex->width, (float)t_c.y1() / (float)tex->height));
-		wall->verts.push_back(point3_t(rect.x2() * SCALE_3D, rect.y2() * SCALE_3D, c * SCALE_3D,
-			(float)t_c.x2() / (float)tex->width, (float)t_c.y1() / (float)tex->height));
-		wall->verts.push_back(point3_t(rect.x2() * SCALE_3D, rect.y2() * SCALE_3D, f * SCALE_3D,
-			(float)t_c.x2() / (float)tex->width, (float)t_c.y2() / (float)tex->height));
-		wall->verts.push_back(point3_t(rect.x1() * SCALE_3D, rect.y1() * SCALE_3D, f * SCALE_3D,
-			(float)t_c.x1() / (float)tex->width, (float)t_c.y2() / (float)tex->height));
-		wall->col.set(l, l, l, 255);
+		float z = plane_height(c_plane, x1, y1);
+		float s_m = (float(c * SCALE_3D) - z) / (tex->height * SCALE_3D);
+		wall->verts.push_back(point3_t(x1, y1, z,
+			(float)t_c.x1() / (float)tex->width, ((float)t_c.y1() / (float)tex->height) + s_m));
+
+		z = plane_height(c_plane, x2, y2);
+		s_m = (float(c * SCALE_3D) - z) / (tex->height * SCALE_3D);
+		wall->verts.push_back(point3_t(x2, y2, z,
+			(float)t_c.x2() / (float)tex->width, ((float)t_c.y1() / (float)tex->height) + s_m));
+
+		z = plane_height(f_plane, x2, y2);
+		s_m = (float(f * SCALE_3D) - z) / (tex->height * SCALE_3D);
+		wall->verts.push_back(point3_t(x2, y2, z,
+			(float)t_c.x2() / (float)tex->width, ((float)t_c.y2() / (float)tex->height) + s_m));
+
+		z = plane_height(f_plane, x1, y1);
+		s_m = (float(f * SCALE_3D) - z) / (tex->height * SCALE_3D);
+		wall->verts.push_back(point3_t(x1, y1, z,
+			(float)t_c.x1() / (float)tex->width, ((float)t_c.y2() / (float)tex->height) + s_m));
+
 		wall->tex = tex;
 	}
 
@@ -81,7 +105,8 @@ void setup_wallrect(wallrect_t *wall)
 	{
 		int f = map.sectors[side2->sector]->c_height;
 		int c = map.sectors[side1->sector]->c_height;
-		int l = map.sectors[side1->sector]->light;
+		plane_t f_plane = sector_info[side2->sector].c_plane;
+		plane_t c_plane = sector_info[side1->sector].c_plane;
 
 		Texture* tex = get_texture(side1->tex_upper, 1);
 		rect_t t_c;
@@ -91,7 +116,6 @@ void setup_wallrect(wallrect_t *wall)
 			map.sectors[side2->sector]->c_tex == "F_SKY1")
 		{
 			wall->light = 255;
-			l = 255;
 			tex = get_texture("SKY1", 1);
 		}
 
@@ -106,15 +130,26 @@ void setup_wallrect(wallrect_t *wall)
 			t_c.br.set(side1->x_offset + rect.length(), tex->height + side1->y_offset);
 		}
 
-		wall->verts.push_back(point3_t(rect.x1() * SCALE_3D, rect.y1() * SCALE_3D, c * SCALE_3D,
-			(float)t_c.x1() / (float)tex->width, (float)t_c.y1() / (float)tex->height));
-		wall->verts.push_back(point3_t(rect.x2() * SCALE_3D, rect.y2() * SCALE_3D, c * SCALE_3D,
-			(float)t_c.x2() / (float)tex->width, (float)t_c.y1() / (float)tex->height));
-		wall->verts.push_back(point3_t(rect.x2() * SCALE_3D, rect.y2() * SCALE_3D, f * SCALE_3D,
-			(float)t_c.x2() / (float)tex->width, (float)t_c.y2() / (float)tex->height));
-		wall->verts.push_back(point3_t(rect.x1() * SCALE_3D, rect.y1() * SCALE_3D, f * SCALE_3D,
-			(float)t_c.x1() / (float)tex->width, (float)t_c.y2() / (float)tex->height));
-		wall->col.set(l, l, l, 255);
+		float z = plane_height(c_plane, x1, y1);
+		float s_m = (float(c * SCALE_3D) - z) / (tex->height * SCALE_3D);
+		wall->verts.push_back(point3_t(x1, y1, z,
+			(float)t_c.x1() / (float)tex->width, ((float)t_c.y1() / (float)tex->height) + s_m));
+
+		z = plane_height(c_plane, x2, y2);
+		s_m = (float(c * SCALE_3D) - z) / (tex->height * SCALE_3D);
+		wall->verts.push_back(point3_t(x2, y2, z,
+			(float)t_c.x2() / (float)tex->width, ((float)t_c.y1() / (float)tex->height) + s_m));
+
+		z = plane_height(f_plane, x2, y2);
+		s_m = (float(f * SCALE_3D) - z) / (tex->height * SCALE_3D);
+		wall->verts.push_back(point3_t(x2, y2, z,
+			(float)t_c.x2() / (float)tex->width, ((float)t_c.y2() / (float)tex->height) + s_m));
+
+		z = plane_height(f_plane, x1, y1);
+		s_m = (float(f * SCALE_3D) - z) / (tex->height * SCALE_3D);
+		wall->verts.push_back(point3_t(x1, y1, z,
+			(float)t_c.x1() / (float)tex->width, ((float)t_c.y2() / (float)tex->height) + s_m));
+
 		wall->tex = tex;
 	}
 
@@ -122,7 +157,8 @@ void setup_wallrect(wallrect_t *wall)
 	{
 		int f = map.sectors[side1->sector]->f_height;
 		int c = map.sectors[side2->sector]->f_height;
-		int l = map.sectors[side1->sector]->light;
+		plane_t f_plane = sector_info[side1->sector].f_plane;
+		plane_t c_plane = sector_info[side2->sector].f_plane;
 
 		Texture* tex = get_texture(side1->tex_lower, 1);
 		rect_t t_c;
@@ -141,21 +177,31 @@ void setup_wallrect(wallrect_t *wall)
 			t_c.br.set(side1->x_offset + rect.length(), side1->y_offset + (c-f));
 		}
 
-		wall->verts.push_back(point3_t(rect.x1() * SCALE_3D, rect.y1() * SCALE_3D, c * SCALE_3D,
-			(float)t_c.x1() / (float)tex->width, (float)t_c.y1() / (float)tex->height));
-		wall->verts.push_back(point3_t(rect.x2() * SCALE_3D, rect.y2() * SCALE_3D, c * SCALE_3D,
-			(float)t_c.x2() / (float)tex->width, (float)t_c.y1() / (float)tex->height));
-		wall->verts.push_back(point3_t(rect.x2() * SCALE_3D, rect.y2() * SCALE_3D, f * SCALE_3D,
-			(float)t_c.x2() / (float)tex->width, (float)t_c.y2() / (float)tex->height));
-		wall->verts.push_back(point3_t(rect.x1() * SCALE_3D, rect.y1() * SCALE_3D, f * SCALE_3D,
-			(float)t_c.x1() / (float)tex->width, (float)t_c.y2() / (float)tex->height));
-		wall->col.set(l, l, l, 255);
+		float z = plane_height(c_plane, x1, y1);
+		float s_m = (float(c * SCALE_3D) - z) / (tex->height * SCALE_3D);
+		wall->verts.push_back(point3_t(x1, y1, z,
+			(float)t_c.x1() / (float)tex->width, ((float)t_c.y1() / (float)tex->height) + s_m));
+
+		z = plane_height(c_plane, x2, y2);
+		s_m = (float(c * SCALE_3D) - z) / (tex->height * SCALE_3D);
+		wall->verts.push_back(point3_t(x2, y2, z,
+			(float)t_c.x2() / (float)tex->width, ((float)t_c.y1() / (float)tex->height) + s_m));
+
+		z = plane_height(f_plane, x2, y2);
+		s_m = (float(f * SCALE_3D) - z) / (tex->height * SCALE_3D);
+		wall->verts.push_back(point3_t(x2, y2, z,
+			(float)t_c.x2() / (float)tex->width, ((float)t_c.y2() / (float)tex->height) + s_m));
+
+		z = plane_height(f_plane, x1, y1);
+		s_m = (float(f * SCALE_3D) - z) / (tex->height * SCALE_3D);
+		wall->verts.push_back(point3_t(x1, y1, z,
+			(float)t_c.x1() / (float)tex->width, ((float)t_c.y2() / (float)tex->height) + s_m));
+
 		wall->tex = tex;
 	}
 
 	if (wall->part == PART_TRANS)
 	{
-		int l = map.sectors[side1->sector]->light;
 		int t = min(map.sectors[side1->sector]->c_height, map.sectors[side2->sector]->c_height);
 		int b = max(map.sectors[side1->sector]->f_height, map.sectors[side2->sector]->f_height);
 		int rt = 0;
@@ -198,14 +244,21 @@ void setup_wallrect(wallrect_t *wall)
 			(float)t_c.x2() / (float)tex->width, (float)t_c.y2() / (float)tex->height));
 		wall->verts.push_back(point3_t(rect.x1() * SCALE_3D, rect.y1() * SCALE_3D, rb * SCALE_3D,
 			(float)t_c.x1() / (float)tex->width, (float)t_c.y2() / (float)tex->height));
-		wall->col.set(l, l, l, 255);
 		wall->tex = tex;
 	}
 }
 
 void setup_3d_line(int line)
 {
+	if (lines_3d.size() <= line)
+		lines_3d.push_back(line3d_t());
+
 	rect_t rect = map.l_getrect(line);
+	line3d_t* ldat = &lines_3d[line];
+
+	for (int a = 0; a < ldat->rects.size(); a++)
+		delete ldat->rects[a];
+	ldat->rects.clear();
 
 	int floor1 = 0;
 	int ceil1 = 0;
@@ -233,6 +286,7 @@ void setup_3d_line(int line)
 			mid->part = PART_MIDDLE;
 			mid->light = light;
 			setup_wallrect(mid);
+			ldat->rects.push_back(mid);
 		}
 
 		if (side)
@@ -249,6 +303,7 @@ void setup_3d_line(int line)
 				mid->part = PART_TRANS;
 				mid->light = light;
 				setup_wallrect(mid);
+				ldat->rects.push_back(mid);
 			}
 
 			// Upper
@@ -260,6 +315,7 @@ void setup_3d_line(int line)
 				upper->part = PART_UPPER;
 				upper->light = light;
 				setup_wallrect(upper);
+				ldat->rects.push_back(upper);
 			}
 
 			// Lower
@@ -271,6 +327,7 @@ void setup_3d_line(int line)
 				lower->part = PART_LOWER;
 				lower->light = light;
 				setup_wallrect(lower);
+				ldat->rects.push_back(lower);
 			}
 		}
 	}
@@ -291,6 +348,7 @@ void setup_3d_line(int line)
 			mid->part = PART_TRANS;
 			mid->light = light;
 			setup_wallrect(mid);
+			ldat->rects.push_back(mid);
 		}
 
 		// Upper
@@ -302,6 +360,7 @@ void setup_3d_line(int line)
 			upper->part = PART_UPPER;
 			upper->light = light;
 			setup_wallrect(upper);
+			ldat->rects.push_back(upper);
 		}
 
 		// Lower
@@ -313,46 +372,34 @@ void setup_3d_line(int line)
 			lower->part = PART_LOWER;
 			lower->light = light;
 			setup_wallrect(lower);
+			ldat->rects.push_back(lower);
 		}
 	}
+
+	//lines_3d.push_back(ldat);
 }
 
 // setup_sector: Sets up a sector
 // --------------------------- >>
 void setup_sector(int s)
 {
-	/*
-	string skytex = "SKY1"; // For now
-
-	if (map.sectors[s]->f_tex == "F_SKY1")
-		sector_info[s].f_tex = get_texture(skytex, 1);
-	else
-		sector_info[s].f_tex = get_texture(map.sectors[s]->f_tex, 2);
-
-	if (map.sectors[s]->c_tex == "F_SKY1")
-		sector_info[s].c_tex = get_texture(skytex, 1);
-	else
-		sector_info[s].c_tex = get_texture(map.sectors[s]->c_tex, 2);
-
-	sector_info[s].light = map.sectors[s]->light;
-	*/
-
 	sector_info[s].f_plane.set(0.0f, 0.0f, 1.0f, map.sectors[s]->f_height * SCALE_3D);
 	sector_info[s].c_plane.set(0.0f, 0.0f, 1.0f, map.sectors[s]->c_height * SCALE_3D);
 }
 
-void setup_flatpoly(flatpoly_t *poly)
+void setup_flatpoly(flatpoly_t *poly, int ssector)
 {
-	int startseg = gl_ssects[poly->ssector].startseg;
-	int endseg = startseg + gl_ssects[poly->ssector].n_segs;
+	poly->verts.clear();
+	int startseg = gl_ssects[ssector].startseg;
+	int endseg = startseg + gl_ssects[ssector].n_segs;
 
-	// Get parent sector
+	// Get parent sector & what segs are lines
 	if (poly->parent_sector == -1)
 	{
 		for (DWORD s = startseg; s < endseg; s++)
 		{
 			// If the seg runs along a line
-			if (gl_segs[s].line != SEG_MINISEG)
+			if (gl_segs[s].line != -1)
 			{
 				int sector = 0;
 
@@ -362,8 +409,10 @@ void setup_flatpoly(flatpoly_t *poly)
 					sector = map.l_getsector1(gl_segs[s].line);
 
 				poly->parent_sector = sector;
-				break;
+				poly->lines.push_back(true);
 			}
+			else
+				poly->lines.push_back(false);
 		}
 	}
 
@@ -375,21 +424,15 @@ void setup_flatpoly(flatpoly_t *poly)
 
 	if (tex->name != "F_SKY1")
 	{
-		poly->col = rgba_t(map.sectors[poly->parent_sector]->light,
-							map.sectors[poly->parent_sector]->light,
-							map.sectors[poly->parent_sector]->light,
-							255);
 		poly->tex = tex->get_gl_id();
 		poly->light = map.sectors[poly->parent_sector]->light;
 	}
 	else
 	{
 		tex = get_texture("SKY1", 1);
-		poly->col = rgba_t(255, 255, 255, 255);
 		poly->light = 255;
 		poly->tex = tex->get_gl_id();
 	}
-
 
 	float x, y, z, u, v;
 	plane_t p;
@@ -456,50 +499,38 @@ void setup_flatpoly(flatpoly_t *poly)
 
 void setup_ssector(int ssect)
 {
+	ssect3d_t ssinfo;
+
 	// Setup floor
 	flatpoly_t *poly = new flatpoly_t();
-	poly->ssector = ssect;
+	//poly->ssector = ssect;
 	poly->part = PART_FLOOR;
-	setup_flatpoly(poly);
+	setup_flatpoly(poly, ssects_3d.size());
+	ssinfo.flats.push_back(poly);
 
 	// Setup ceiling
 	poly = new flatpoly_t();
-	poly->ssector = ssect;
+	//poly->ssector = ssect;
 	poly->part = PART_CEIL;
-	setup_flatpoly(poly);
+	setup_flatpoly(poly, ssects_3d.size());
+	ssinfo.flats.push_back(poly);
+
+	ssects_3d.push_back(ssinfo);
 }
 
 void setup_3d_data()
 {
-	// Init wallrects
-	for (int a = 0; a < wallrects.size(); a++)
-		delete wallrects[a];
-	wallrects.clear();
+	while (wallrects.size() != 0)
+		delete wallrects[0];
+
+	// Init lines & ssector info
+	lines_3d.clear();
+	ssects_3d.clear();
 
 	// Init flats
 	for (int a = 0; a < flatpolys.size(); a++)
 		delete flatpolys[a];
 	flatpolys.clear();
-
-	/*
-	// Init visible lines
-	if (vis_lines)
-	{
-		free(vis_lines);
-		vis_lines = NULL;
-	}
-	vis_lines = (bool*)malloc(map.n_lines);
-
-	// Init visible subsectors
-	if (vis_ssects)
-	{
-		free(vis_ssects);
-		vis_ssects = NULL;
-	}
-	vis_ssects = (bool*)malloc(n_gl_ssects);
-	*/
-	//vis_lines = (bool*)malloc(map.n_lines);
-	//vis_ssects = (bool*)malloc(n_gl_ssects);
 
 	// Init camera
 	camera.position_camera(0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
@@ -514,9 +545,6 @@ void setup_3d_data()
 		}
 	}
 
-	// Test
-	//sector_info[0].f_plane.set(0.0f, 0.2f, 0.8f, -2.0f);
-
 	// Build gl nodes
 	splash("Building GL Nodes");
 	build_gl_nodes();
@@ -526,6 +554,9 @@ void setup_3d_data()
 	sector_info = (sectinfo_t *)realloc(sector_info, map.n_sectors * sizeof(sectinfo_t));
 	for (int a = 0; a < map.n_sectors; a++)
 		setup_sector(a);
+
+	// Test
+	//sector_info[0].f_plane.set(0.0f, 0.2f, 0.8f, -2.2f);
 
 	// Setup walls
 	splash("Setup Walls");

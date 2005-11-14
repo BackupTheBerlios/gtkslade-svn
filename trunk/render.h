@@ -1,8 +1,4 @@
 
-void render_3d_view();
-void setup_3d_data();
-float plane_height(plane_t plane, float x, float y);
-
 #include "textures.h"
 
 #define SCALE_3D	0.01f
@@ -26,31 +22,33 @@ struct wallrect_t
 	// Draw info
 	Texture*			tex;
 	vector<point3_t>	verts;
-	rgba_t				col;
+	//rgba_t				col;
 	BYTE				light;
 
 	wallrect_t();
 	~wallrect_t();
 
 	void draw();
+	void draw_hilight();
 };
 
 struct flatpoly_t
 {
 	int		parent_sector;
 	BYTE	part;			// 0 = floor, 1 = ceiling
-	int		ssector;
 
 	// Draw info
-	//Texture*			tex;
 	GLuint				tex;
 	vector<point3_t>	verts;
-	rgba_t				col;
+	vector<bool>		lines;
+	//rgba_t				col;
 	BYTE				light;
 
 	flatpoly_t();
+	~flatpoly_t();
 
 	void draw();
+	void draw_hilight();
 };
 
 struct sectinfo_t
@@ -58,10 +56,25 @@ struct sectinfo_t
 	plane_t	f_plane;
 	plane_t	c_plane;
 	bool visible;
-
-	/*
-	BYTE light;
-	Texture *f_tex;
-	Texture *c_tex;
-	*/
 };
+
+struct line3d_t
+{
+	vector<wallrect_t*> rects;
+	bool visible;
+};
+
+struct ssect3d_t
+{
+	vector<flatpoly_t*> flats;
+	bool visible;
+};
+
+void setup_wallrect(wallrect_t *wall);
+void setup_flatpoly(flatpoly_t *poly, int ssector);
+void setup_sector(int s);
+void setup_3d_line(int line);
+void render_3d_view();
+void setup_3d_data();
+float plane_height(plane_t plane, float x, float y);
+void add_3d_message(string message);

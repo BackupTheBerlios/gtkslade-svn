@@ -38,6 +38,9 @@ void scroll_to_selected_texture(int width)
 				return;
 			}
 			a++;
+
+			if (a >= tex_names.size())
+				return;
 		}
 	}
 }
@@ -214,7 +217,7 @@ GtkWidget* setup_texture_browser()
 	return hbox;
 }
 
-string open_texture_browser(bool tex, bool flat, bool sprite, string init_tex)
+string open_texture_browser(bool tex, bool flat, bool sprite, string init_tex, bool fullscreen)
 {
 	tex_names.clear();
 	browsesprites.clear();
@@ -261,6 +264,9 @@ string open_texture_browser(bool tex, bool flat, bool sprite, string init_tex)
 	gtk_window_set_position(GTK_WINDOW(browser_dialog), GTK_WIN_POS_CENTER_ON_PARENT);
 	gtk_window_set_default_size(GTK_WINDOW(browser_dialog), 640, 480);
 	gtk_widget_show_all(browser_dialog);
+
+	if (fullscreen)
+		gtk_window_fullscreen(GTK_WINDOW(browser_dialog));
 
 	string ret = init_tex;
 	int response = gtk_dialog_run(GTK_DIALOG(browser_dialog));

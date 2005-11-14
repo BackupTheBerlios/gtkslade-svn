@@ -182,3 +182,11 @@ void line_extrude(int amount)
 	map_changelevel(3);
 	force_map_redraw(true, false);
 }
+
+void line_align_x()
+{
+}
+
+void line_align_y()
+{
+}

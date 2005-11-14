@@ -22,6 +22,7 @@ int				console_hcmd = -1;
 
 string qdb[] = {
 	"SLADE: SlayeR's LeetAss Doom Editor",
+	"SLADE: Some Lame Ancient Doom Editor",
 	"Having fun playing with useless console commands?",
 	"Initializing Nickbakery...",
 	"Truth is beautiful, without doubt; but so are lies.",
