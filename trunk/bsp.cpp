@@ -230,7 +230,11 @@ bool seg_is_visible(float x1, float y1, float x2, float y2)
 	unsigned short a1 = (short)(get_2d_angle(camera.view - camera.position, vec1) * 10.0f);
 	unsigned short a2 = (short)(get_2d_angle(camera.view - camera.position, vec2) * 10.0f);
 
-	/*
+	if (a2 > 3600)
+		a2 = 3600;
+	if (a1 > 3600)
+		a1 = 3600;
+
 	// A cheap hack for now until I can figure out why sometimes I get 'backwards' segs
 	if (a1 > a2 && a1 - a2 < 450)
 	{
@@ -238,7 +242,6 @@ bool seg_is_visible(float x1, float y1, float x2, float y2)
 		a1 = a2;
 		a2 = temp;
 	}
-	*/
 
 	if (a1 > a2)
 	{
@@ -276,7 +279,11 @@ void block_seg(float x1, float y1, float x2, float y2)
 	unsigned short a1 = (short)(get_2d_angle(camera.view - camera.position, vec1) * 10.0f);
 	unsigned short a2 = (short)(get_2d_angle(camera.view - camera.position, vec2) * 10.0f);
 
-	/*
+	if (a2 > 3600)
+		a2 = 3600;
+	if (a1 > 3600)
+		a1 = 3600;
+
 	// A cheap hack for now until I can figure out why sometimes I get 'backwards' segs
 	if (a1 > a2 && a1 - a2 < 450)
 	{
@@ -284,7 +291,6 @@ void block_seg(float x1, float y1, float x2, float y2)
 		a1 = a2;
 		a2 = temp;
 	}
-	*/
 
 	//log_message("seg from (%1.2f, %1.2f) to (%1.2f, %1.2f)\n", x1, y1, x2, y2);
 	//log_message("block %d to %d\n", a1, a2);
@@ -355,7 +361,7 @@ void process_subsector(short subsect)
 		}
 
 		// If seg runs along a line
-		if (gl_segs[s].line != SEG_MINISEG)
+		if (gl_segs[s].line != SEG_MINISEG && gl_segs[s].line >= 0 && gl_segs[s].line < lines_3d.size())
 		{
 			bool side = true;
 
@@ -387,7 +393,8 @@ void process_subsector(short subsect)
 					}
 
 					// The line and subsector are visible
-					lines_3d[gl_segs[s].line].visible = true;
+					int line = gl_segs[s].line;
+					lines_3d[line].visible = true;
 					visible = true;
 				}
 			}

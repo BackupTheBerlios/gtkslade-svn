@@ -188,8 +188,6 @@ void close_all_click()
 
 void begin_mapedit()
 {
-	splash("");
-
 	load_flats();
 	load_textures();
 	load_sprites();

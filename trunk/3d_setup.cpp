@@ -567,6 +567,7 @@ void setup_3d_data()
 
 		setup_3d_line(a);
 	}
+	printf("%d / %d\n", lines_3d.size(), map.n_lines);
 
 	// Setup subsectors
 	splash("Setup Flats");

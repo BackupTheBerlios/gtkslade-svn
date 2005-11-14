@@ -12,8 +12,6 @@
 GtkWidget *draw_3d_area;
 bool run_3d = false;
 
-
-
 extern GtkWidget *editor_window;
 extern GdkGLConfig *glconfig;
 extern GdkGLContext *glcontext;
@@ -180,7 +178,7 @@ static gboolean motion_3d_event(GtkWidget *widget, GdkEventMotion *event)
 	if (reset)
 	{
 		reset = false;
-		return false;
+		return true;
 	}
 
 	int center_x = (widget->allocation.width * 0.5);
@@ -199,7 +197,7 @@ static gboolean motion_3d_event(GtkWidget *widget, GdkEventMotion *event)
 
 	//run_3d = keys_3d();
 
-	return false;
+	return true;
 }
 
 gboolean button_press_3d_event(GtkWidget *widget, GdkEventButton *event)
@@ -233,9 +231,9 @@ void start_3d_mode()
 	gtk_window_set_modal(GTK_WINDOW(window), true);
 	gtk_window_set_transient_for(GTK_WINDOW(window), GTK_WINDOW(editor_window));
 	gtk_window_fullscreen(GTK_WINDOW(window));
+	//wait_gtk_events();
 
 	draw_3d_area = gtk_drawing_area_new();
-	gtk_container_add(GTK_CONTAINER(window), draw_3d_area);
 	gtk_widget_set_gl_capability(draw_3d_area, glconfig, glcontext, true, GDK_GL_RGBA_TYPE);
 
 	gtk_widget_add_events(draw_3d_area, GDK_EXPOSURE_MASK
@@ -257,6 +255,7 @@ void start_3d_mode()
 	g_signal_connect(G_OBJECT(draw_3d_area), "motion_notify_event", G_CALLBACK(motion_3d_event), NULL);
 	g_signal_connect(G_OBJECT(draw_3d_area), "button_press_event", G_CALLBACK(button_press_3d_event), NULL);
 
+	gtk_container_add(GTK_CONTAINER(window), draw_3d_area);
 	gtk_widget_show_all(window);
 	gtk_widget_grab_focus(draw_3d_area);
 

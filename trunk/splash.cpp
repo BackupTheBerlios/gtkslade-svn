@@ -23,7 +23,7 @@ void setup_splash()
 	// Image
 	GtkWidget *vbox = gtk_vbox_new(false, 0);
 	GtkWidget *image = gtk_image_new_from_file("res/logo.png");
-	gtk_box_pack_start(GTK_BOX(vbox), image, true, true, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), image, false, false, 0);
 
 	// Progress bar
 	splash_pbar = gtk_progress_bar_new();
@@ -37,6 +37,7 @@ void splash(string message)
 {
 	gtk_progress_bar_set_text(GTK_PROGRESS_BAR(splash_pbar), message.c_str());
 	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(splash_pbar), 0);
+	gtk_window_set_position(GTK_WINDOW(splash_window), GTK_WIN_POS_CENTER);
 	gtk_widget_show_all(splash_window);
 	gtk_window_present(GTK_WINDOW(splash_window));
 	wait_gtk_events();
@@ -49,6 +50,7 @@ void splash_hide()
 
 void splash_progress(double prog)
 {
+	gtk_window_set_position(GTK_WINDOW(splash_window), GTK_WIN_POS_CENTER);
 	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(splash_pbar), prog);
 	wait_gtk_events();
 }
