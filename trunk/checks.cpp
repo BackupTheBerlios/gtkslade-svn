@@ -12,6 +12,7 @@
 #include "textures.h"
 #include "line_edit.h"
 #include "sector_edit.h"
+#include "console.h"
 
 // Variables ------------------------------------ >>
 
@@ -325,4 +326,73 @@ void check_textures()
 			open_sector_edit();
 		}
 	}
+}
+
+bool check_lines()
+{
+	bool errors = false;
+
+	for (int a = 0; a < map.n_lines; a++)
+	{
+		bool error = false;
+
+		if (map.lines[a]->vertex1 > map.n_verts)
+		{
+			console_print(parse_string("Line #%d has invalid vertex %d! Deleting.", a, map.lines[a]->vertex1));
+			error = true;
+		}
+
+		if (map.lines[a]->vertex2 > map.n_verts && !error)
+		{
+			console_print(parse_string("Line #%d has invalid vertex %d! Deleting.", a, map.lines[a]->vertex2));
+			error = true;
+		}
+
+		if (map.lines[a]->side1 > map.n_sides)
+		{
+			console_print(parse_string("Line %d references invalid sidedef %d! Setting it to -1.", a, map.lines[a]->side1));
+			map.lines[a]->side1 = -1;
+		}
+
+		if (map.lines[a]->side2 > map.n_sides)
+		{
+			console_print(parse_string("Line %d references invalid sidedef %d! Setting it to -1.", a, map.lines[a]->side2));
+			map.lines[a]->side2 = -1;
+		}
+
+
+		if (error)
+		{
+			map.delete_line(a);
+			a--;
+			errors = true;
+		}
+	}
+
+	return errors;
+}
+
+bool check_sides()
+{
+	bool errors = false;
+
+	for (int a = 0; a < map.n_sides; a++)
+	{
+		bool error = false;
+
+		if (map.sides[a]->sector > map.n_sectors || map.sides[a]->sector < 0)
+		{
+			console_print(parse_string("Sidedef #%d has invalid sector reference %d! Deleting.", a, map.sides[a]->sector));
+			error = true;
+		}
+
+		if (error)
+		{
+			map.delete_side(a);
+			a--;
+			errors = true;
+		}
+	}
+
+	return errors;
 }

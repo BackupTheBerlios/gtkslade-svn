@@ -50,6 +50,7 @@ gboolean window3d_expose_event(GtkWidget *w, GdkEventExpose *event, gpointer dat
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	determine_hilight();
 	render_3d_view();
 
 	if (gdk_gl_drawable_is_double_buffered(gldrawable))
@@ -145,9 +146,6 @@ gboolean key_3d_press_event(GtkWidget *widget, GdkEventKey *event, gpointer data
 	string key = gtk_accelerator_name(vals[0], (GdkModifierType)event->state);
 	binds.set(key);
 
-	//run_3d = keys_3d();
-	//gtk_widget_destroy(GTK_WIDGET(data));
-
 	return false;
 }
 
@@ -166,8 +164,6 @@ gboolean key_3d_release_event(GtkWidget *widget, GdkEventKey *event, gpointer da
 
 	string key = gtk_accelerator_name(vals[0], (GdkModifierType)event->state);
 	binds.unset(key);
-
-	//window3d_render();
 
 	return false;
 }
@@ -194,8 +190,6 @@ static gboolean motion_3d_event(GtkWidget *widget, GdkEventMotion *event)
 
 	reset = true;
 	set_cursor(center_x, center_y);
-
-	//run_3d = keys_3d();
 
 	return true;
 }
@@ -272,8 +266,6 @@ void start_3d_mode()
 	// Center cursor to middle of the window
 	set_cursor(draw_3d_area->allocation.x + (draw_3d_area->allocation.width * 0.5),
 				draw_3d_area->allocation.y + (draw_3d_area->allocation.height * 0.5));
-
-	//window3d_render();
 
 	GTimer* timer = g_timer_new();
 	g_timer_start(timer);

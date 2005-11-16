@@ -196,8 +196,9 @@ void set_visbuffer(int blocked)
 
 void open_view()
 {
-	int mlook_mod = (int)(((camera.view.z - camera.position.z) * 3000.0f));
-	//int mlook_mod = 0;
+	float mmod = (camera.view.z - camera.position.z) * 1000.0f;
+	//int mlook_mod = (int)mmod;
+	int mlook_mod = 0;
 
 	if (mlook_mod < 0)
 		mlook_mod = -mlook_mod;

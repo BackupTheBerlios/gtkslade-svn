@@ -11,12 +11,15 @@
 // Variables ----------------------------- >>
 GtkListStore	*wads_store;
 GtkListStore	*maps_store;
+GtkListStore	*recent_store;
 Wad*			selected_wad;
 GtkWidget		*wad_manager_window;
 bool			game_changed = true;
 int				cur_game = 0;
+vector<string>	recent_wads;
 
 CVAR(String, game_config, "Doom 2", CVAR_SAVE)
+CVAR(Int, n_recent_wads, 4, CVAR_SAVE)
 
 // External Variables -------------------- >>
 extern WadList wads;
@@ -26,6 +29,58 @@ extern vector<string> valid_map_names;
 extern Map map;
 extern Wad *edit_wad;
 extern bool allow_tex_load;
+
+void load_recent_wads(Tokenizer *tz)
+{
+	tz->check_token("{");
+
+	string token = tz->get_token();
+	while (token != "}")
+	{
+		if (token == "wad")
+			recent_wads.push_back(tz->get_token());
+
+		token = tz->get_token();
+	}
+}
+
+void save_recent_wads(FILE *fp)
+{
+	fprintf(fp, "recent_wads\n{\n");
+
+	for (int a = 0; a < recent_wads.size(); a++)
+		fprintf(fp, "\twad \"%s\"\n", recent_wads[a].c_str());
+
+	fprintf(fp, "}\n\n");
+}
+
+void populate_recent_wads_list()
+{
+	GtkTreeIter iter;
+
+	gtk_list_store_clear(recent_store);
+
+	for (int i = 0; i < recent_wads.size(); i++)
+	{
+		gtk_list_store_append(recent_store, &iter);
+		gtk_list_store_set(recent_store, &iter,
+							0, recent_wads[i].c_str(),
+							-1);
+	}
+}
+
+void add_recent_wad(string path)
+{
+	// If the list is full, delete the least recent
+	if (recent_wads.size() == n_recent_wads)
+		recent_wads.pop_back();
+
+	// Add the path
+	recent_wads.insert(recent_wads.begin(), path);
+
+	// Refresh the list
+	populate_recent_wads_list();
+}
 
 void populate_wad_list()
 {
@@ -168,6 +223,8 @@ void open_wad_click()
 	{
 		if (!wads.open_wad(wadfile))
 			message_box(parse_string("Failed opening wadfile \"%s\"", wadfile.c_str()), GTK_MESSAGE_ERROR);
+		else
+			add_recent_wad(wadfile);
 	}
 
 	populate_wad_list();
@@ -178,6 +235,7 @@ void close_wad_click()
 {
 	wads.close_wad(selected_wad->path);
 	populate_wad_list();
+	populate_map_list(wads.get_iwad());
 }
 
 void close_all_click()
@@ -226,8 +284,28 @@ void new_standalone_click()
 	}
 }
 
+void recent_list_activated(GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewColumn *col, gpointer data)
+{
+	GtkTreeIter iter;
+	gtk_tree_model_get_iter(GTK_TREE_MODEL(recent_store), &iter, path);
+
+	gchar* filename;
+	gtk_tree_model_get(GTK_TREE_MODEL(recent_store), &iter, 0, &filename, -1);
+
+	if (filename != "")
+	{
+		if (!wads.open_wad(filename))
+			message_box(parse_string("Failed opening wadfile \"%s\"", filename), GTK_MESSAGE_ERROR);
+	}
+
+	populate_wad_list();
+	g_free(filename);
+}
+
 void setup_wad_list(GtkWidget *box)
 {
+	GtkWidget *m_vbox = gtk_vbox_new(true, 0);
+
 	// Setup the list model
 	wads_store = gtk_list_store_new (2, G_TYPE_STRING, G_TYPE_INT);
 	populate_wad_list();
@@ -247,6 +325,7 @@ void setup_wad_list(GtkWidget *box)
 	// Setup the scrolled window
 	GtkWidget *s_window = gtk_scrolled_window_new(NULL, NULL);
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(s_window), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+	gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(s_window), GTK_SHADOW_IN);
 	gtk_container_add(GTK_CONTAINER(s_window), wads_view);
 	gtk_box_pack_start(GTK_BOX(vbox), s_window, true, true, 0);
 
@@ -275,11 +354,40 @@ void setup_wad_list(GtkWidget *box)
 
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, false, false, 0);
 
-	// Setup the frame
+	// Setup the open wads frame
 	GtkWidget *frame = gtk_frame_new("Open Wads");
 	gtk_container_add(GTK_CONTAINER(frame), vbox);
 	gtk_container_set_border_width(GTK_CONTAINER(frame), 4);
-	gtk_box_pack_start(GTK_BOX(box), frame, true, true, 0);
+	gtk_box_pack_start(GTK_BOX(m_vbox), frame, true, true, 0);
+
+
+
+	// Setup the recent wads frame
+	frame = gtk_frame_new("Recent Wads");
+	gtk_container_set_border_width(GTK_CONTAINER(frame), 4);
+	gtk_box_pack_start(GTK_BOX(m_vbox), frame, true, true, 0);
+
+	// Setup the list model
+	recent_store = gtk_list_store_new(1, G_TYPE_STRING);
+	populate_recent_wads_list();
+
+	// Setup the list view
+	GtkWidget *recent_view = gtk_tree_view_new_with_model(GTK_TREE_MODEL(recent_store));
+	renderer = gtk_cell_renderer_text_new();
+	col = gtk_tree_view_column_new_with_attributes("Wad", renderer, "text", 0, NULL);
+	gtk_tree_view_append_column(GTK_TREE_VIEW(recent_view), col);
+	gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(recent_view), false);
+	g_signal_connect(G_OBJECT(recent_view), "row-activated", G_CALLBACK(recent_list_activated), NULL);
+
+	// Setup the scrolled window
+	s_window = gtk_scrolled_window_new(NULL, NULL);
+	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(s_window), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+	gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(s_window), GTK_SHADOW_IN);
+	gtk_container_set_border_width(GTK_CONTAINER(s_window), 4);
+	gtk_container_add(GTK_CONTAINER(s_window), recent_view);
+	gtk_container_add(GTK_CONTAINER(frame), s_window);
+
+	gtk_box_pack_start(GTK_BOX(box), m_vbox, true, true, 0);
 }
 
 void maps_list_activated(GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewColumn *col, gpointer data)
@@ -325,6 +433,7 @@ void setup_map_list(GtkWidget *box)
 	// Setup the scrolled window
 	GtkWidget *s_window = gtk_scrolled_window_new(NULL, NULL);
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(s_window), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+	gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(s_window), GTK_SHADOW_IN);
 	gtk_container_add(GTK_CONTAINER(s_window), maps_view);
 	gtk_box_pack_start(GTK_BOX(vbox), s_window, true, true, 0);
 
@@ -333,7 +442,7 @@ void setup_map_list(GtkWidget *box)
 	gtk_box_pack_start(GTK_BOX(vbox), button, false, false, 0);
 
 	// Setup the frame
-	GtkWidget *frame = gtk_frame_new("Available Maps");
+	GtkWidget *frame = gtk_frame_new("Available Maps ");
 	gtk_container_add(GTK_CONTAINER(frame), vbox);
 	gtk_container_set_border_width(GTK_CONTAINER(frame), 4);
 	gtk_box_pack_start(GTK_BOX(box), frame, false, false, 0);
@@ -380,6 +489,7 @@ void open_main_window()
 		gtk_widget_show_all(window);
 		*/
 
+	gtk_window_set_position(GTK_WINDOW(wad_manager_window), GTK_WIN_POS_CENTER);
 	gtk_widget_show_all(wad_manager_window);
 	gtk_window_present(GTK_WINDOW(wad_manager_window));
 }

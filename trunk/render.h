@@ -61,7 +61,8 @@ struct sectinfo_t
 struct line3d_t
 {
 	vector<wallrect_t*> rects;
-	bool visible;
+	bool				visible;
+	BYTE				alpha;
 };
 
 struct ssect3d_t

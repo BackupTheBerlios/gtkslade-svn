@@ -6,6 +6,7 @@
 #include "bsp.h"
 #include "render.h"
 #include "draw.h"
+#include "mathstuff.h"
 
 struct fademsg_t
 {
@@ -27,6 +28,10 @@ CVAR(Bool, render_hilight, true, CVAR_SAVE)
 rgba_t col_3d_crosshair;
 rgba_t col_3d_hilight;
 rgba_t col_3d_hilight_line;
+
+// Test stuff
+int wall_count = 0;
+int flat_count = 0;
 
 extern Map map;
 //extern bool vis_lines[65535];
@@ -66,6 +71,8 @@ void wallrect_t::draw()
 
 	for (int a = 0; a < verts.size(); a++)
 		verts[a].gl_draw(true);
+
+	wall_count++;
 
 	glEnd();
 }
@@ -125,6 +132,8 @@ void flatpoly_t::draw()
 
 	for (int a = 0; a < verts.size(); a++)
 		verts[a].gl_draw(true);
+
+	flat_count++;
 
 	glEnd();
 }
@@ -198,6 +207,9 @@ rgba_t sector_col(int sector)
 
 void render_3d_view()
 {
+	wall_count = 0;
+	flat_count = 0;
+
 	// Set 3d screen
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
@@ -235,7 +247,8 @@ void render_3d_view()
 	else
 		glDisable(GL_FOG);
 
-	glAlphaFunc(GL_GREATER, 0.8);
+	// Draw non-transparent walls
+	vector<wallrect_t*> trans_walls;
 	glCullFace(GL_FRONT);
 	for (int a = 0; a < map.n_lines; a++)
 	{
@@ -243,19 +256,38 @@ void render_3d_view()
 		{
 			for (int b = 0; b < lines_3d[a].rects.size(); b++)
 			{
+				
+
+				/*
 				if (lines_3d[a].rects[b]->part == PART_TRANS)
+				{
 					glEnable(GL_ALPHA_TEST);
+					col.a = lines_3d[a].alpha;
+
+					if (col.a != 255)
+						glAlphaFunc(GL_GREATER, 0.0f);
+					else
+						glAlphaFunc(GL_GREATER, 0.8f);
+				}
 				else
 					glDisable(GL_ALPHA_TEST);
+					*/
 
-				set_light(sector_col(lines_3d[a].rects[b]->sector), lines_3d[a].rects[b]->light);
-				lines_3d[a].rects[b]->draw();
+				if (lines_3d[a].rects[b]->part == PART_TRANS)
+					trans_walls.push_back(lines_3d[a].rects[b]);
+				else
+				{
+					rgba_t col = sector_col(lines_3d[a].rects[b]->sector);
+					set_light(col, lines_3d[a].rects[b]->light);
+					lines_3d[a].rects[b]->draw();
+				}
 			}
 		}
 	}
 
 	glDisable(GL_ALPHA_TEST);
 
+	// Get hilighted flats (if any)
 	vector<flatpoly_t*> hl_polys;
 	if (hl_fpoly)
 	{
@@ -267,6 +299,7 @@ void render_3d_view()
 		}
 	}
 
+	// Draw flats
 	for (int a = 0; a < ssects_3d.size(); a++)
 	{
 		if (ssects_3d[a].visible)
@@ -284,8 +317,34 @@ void render_3d_view()
 		}
 	}
 
+	// Draw transparent walls
+	glCullFace(GL_FRONT);
+	for (int a = 0; a < trans_walls.size(); a++)
+	{
+		rgba_t col = sector_col(trans_walls[a]->sector);
+		col.a = lines_3d[trans_walls[a]->line].alpha;
+
+		if (col.a == 255)
+		{
+			glEnable(GL_ALPHA_TEST);
+			glAlphaFunc(GL_GREATER, 0.8f);
+		}
+		else
+		{
+			glDisable(GL_ALPHA_TEST);
+			glDepthMask(GL_FALSE);
+		}
+
+		set_light(col, trans_walls[a]->light);
+		trans_walls[a]->draw();
+	}
+
+	glDepthMask(GL_TRUE);
+	glDisable(GL_ALPHA_TEST);
+
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
+	// Draw hilighted wallrect/flatpoly
 	if (render_hilight)
 	{
 		if (hl_wrect)
@@ -334,8 +393,8 @@ void render_3d_view()
 
 	// Test info
 	int bottom = draw_3d_area->allocation.height;
-	draw_text(0, bottom - 10, rgba_t(255, 255, 255, 255), 0, "Wallrects: %d", wallrects.size());
-	draw_text(0, bottom - 20, rgba_t(255, 255, 255, 255), 0, "Flatpolys: %d", flatpolys.size());
+	draw_text(0, bottom - 10, rgba_t(255, 255, 255, 255), 0, "Wallrects: %d (%d)", wallrects.size(), wall_count);
+	draw_text(0, bottom - 20, rgba_t(255, 255, 255, 255), 0, "Flatpolys: %d (%d)", flatpolys.size(), flat_count);
 }
 
 void add_3d_message(string message)

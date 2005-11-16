@@ -9,6 +9,12 @@ Goes in bottom-up order
 ~: Changed
 ': Note
 
+[16/11/05]
+* Wad manager window is now centered
+* Maps with over 32767 sidedefs no longer crash SLADE
++ Added some checks to prevent crashes if map data is corrupted
++ Added 'recent wads' list to wad manager window
+
 [14/11/05]
 * Texture boxes on the line info bar weren't cleared if their side didn't exist
 + Added most of the old 3d editing features (except for the automatic texture alignment and 'paint texture' features, they need a rewrite)

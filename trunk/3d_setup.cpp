@@ -376,7 +376,28 @@ void setup_3d_line(int line)
 		}
 	}
 
+	ldat->alpha = 255;
 	//lines_3d.push_back(ldat);
+}
+
+void setup_specials_3d()
+{
+	for (int a = 0; a < map.n_lines; a++)
+	{
+		// Translucentline
+		if (map.zdoom && map.lines[a]->type == 208)
+		{
+			if (map.lines[a]->args[0] != 0)
+			{
+				vector<int> lines = map.l_getfromid(map.lines[a]->args[0]);
+
+				for (int b = 0; b < lines.size(); b++)
+					lines_3d[b].alpha = map.lines[a]->args[1];
+			}
+			else
+				lines_3d[a].alpha = map.lines[a]->args[1];
+		}
+	}
 }
 
 // setup_sector: Sets up a sector
@@ -578,6 +599,9 @@ void setup_3d_data()
 
 		setup_ssector(a);
 	}
+
+	// Setup specials
+	setup_specials_3d();
 
 	splash_hide();
 }

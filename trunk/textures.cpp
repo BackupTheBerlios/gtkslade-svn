@@ -270,8 +270,15 @@ bool Texture::load_file(string name, string filename, int filter)
 
 	log_message("%s: %dx%d\n", name.c_str(), width, height);
 
-	data = (BYTE *)realloc(data, width * height * 4);
-	memcpy(data, gdk_pixbuf_get_pixels(pbuf), width * height * 4);
+	free(data);
+	data = (BYTE*)malloc(width * height * 4);
+	//data = (BYTE *)realloc(data, width * height * 4);
+
+	int size = gdk_pixbuf_get_rowstride(pbuf) * (height - 1);
+	size += width * ((gdk_pixbuf_get_n_channels(pbuf) * gdk_pixbuf_get_bits_per_sample(pbuf) + 7) / 8);
+
+	memset(data, 0, width * height * 4);
+	memcpy(data, gdk_pixbuf_get_pixels(pbuf), size);
 	//memset(data, 180, width * height * 4);
 
 	g_object_unref(pbuf);
@@ -952,8 +959,15 @@ void load_tx_textures()
 			bool done = false;
 			long lump = wad->tx[START] + 1;
 
+			int end = wad->tx[END];
+			if (end == -1)
+				end = wad->num_lumps;
+
 			while (!done)
 			{
+				double prog = float(lump - wad->tx[START]) / float(end - wad->tx[START]);
+				splash_progress(prog);
+
 				load_tx_texture(wad, lump);
 				lump++;
 

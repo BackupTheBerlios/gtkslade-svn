@@ -27,8 +27,8 @@ struct linedef_t
 	WORD	vertex2;
 	WORD	flags;
 	WORD	type;
-	short	side1;
-	short	side2;
+	long	side1;
+	long	side2;
 
 	// Doom format only
 	short	sector_tag;

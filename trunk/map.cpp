@@ -9,6 +9,9 @@
 #include "main.h"
 #include "map.h"
 #include "edit.h"
+#include "checks.h"
+#include "console.h"
+#include "console_window.h"
 
 // VARIABLES ----------------------------- >>
 Map map;
@@ -209,65 +212,6 @@ bool Map::open(Wad *wad, string mapname)
 		//verts[i]->moving = false;
 	}
 
-	// << ---- Read Lines ---- >>
-	lump = wad->get_lump("LINEDEFS", offset);
-
-	if (!lump)
-	{
-		printf("Map has no LINEDEFS lump\n");
-		return false;
-	}
-
-	// Seek to lump
-	fseek(fp, lump->Offset(), SEEK_SET);
-
-	if (hexen)
-	{
-		// Setup & read hexen format lines
-
-		// Setup lines array
-		unit_size = 16;
-		n_lines = lump->Size() / unit_size;
-		lines = (linedef_t **)calloc(n_lines, sizeof(linedef_t *));
-
-		// Read line data
-		for (DWORD i = 0; i < n_lines; i++)
-		{
-			BYTE temp = 0;
-
-			lines[i] = new linedef_t;
-			fread(&lines[i]->vertex1, 2, 1, fp);
-			fread(&lines[i]->vertex2, 2, 1, fp);
-			fread(&lines[i]->flags, 2, 1, fp);
-			fread(&temp, 1, 1, fp);
-			lines[i]->type = temp;
-			fread(lines[i]->args, 1, 5, fp);
-			fread(&lines[i]->side1, 2, 1, fp);
-			fread(&lines[i]->side2, 2, 1, fp);
-		}
-	}
-	else
-	{
-		// Setup lines array
-		unit_size = 14;
-		n_lines = lump->Size() / unit_size;
-		lines = (linedef_t **)calloc(n_lines, sizeof(linedef_t *));
-
-		// Read line data
-		for (DWORD i = 0; i < n_lines; i++)
-		{
-			lines[i] = new linedef_t;
-			fread(&lines[i]->vertex1, 2, 1, fp);
-			fread(&lines[i]->vertex2, 2, 1, fp);
-			fread(&lines[i]->flags, 2, 1, fp);
-			fread(&lines[i]->type, 2, 1, fp);
-			fread(&lines[i]->sector_tag, 2, 1, fp);
-			fread(&lines[i]->side1, 2, 1, fp);
-			fread(&lines[i]->side2, 2, 1, fp);
-			printf("%d %d\n", lines[i]->vertex1, lines[i]->vertex2);
-		}
-	}
-
 	// << ---- Read sides ---- >>
 	lump = wad->get_lump("SIDEDEFS", offset);
 
@@ -307,6 +251,98 @@ bool Map::open(Wad *wad, string mapname)
 		sides[i]->tex_middle = g_ascii_strup(temp, -1);
 
 		fread(&sides[i]->sector, 2, 1, fp);
+	}
+
+	// << ---- Read Lines ---- >>
+	lump = wad->get_lump("LINEDEFS", offset);
+
+	if (!lump)
+	{
+		printf("Map has no LINEDEFS lump\n");
+		return false;
+	}
+
+	// Seek to lump
+	fseek(fp, lump->Offset(), SEEK_SET);
+
+	if (hexen)
+	{
+		// Setup & read hexen format lines
+
+		// Setup lines array
+		unit_size = 16;
+		n_lines = lump->Size() / unit_size;
+		lines = (linedef_t **)calloc(n_lines, sizeof(linedef_t *));
+
+		// Read line data
+		for (DWORD i = 0; i < n_lines; i++)
+		{
+			BYTE temp = 0;
+
+			lines[i] = new linedef_t;
+			fread(&lines[i]->vertex1, 2, 1, fp);
+			fread(&lines[i]->vertex2, 2, 1, fp);
+			fread(&lines[i]->flags, 2, 1, fp);
+			fread(&temp, 1, 1, fp);
+			lines[i]->type = temp;
+			fread(lines[i]->args, 1, 5, fp);
+
+			short s1, s2;
+			fread(&s1, 2, 1, fp);
+			fread(&s2, 2, 1, fp);
+			lines[i]->side1 = (int)s1;
+			lines[i]->side2 = (int)s2;
+
+			if (n_sides > 32767)
+			{
+				unsigned short us1 = static_cast<unsigned short>(s1);
+				unsigned short us2 = static_cast<unsigned short>(s2);
+				
+				if (s1 != -1)
+					lines[i]->side1 = us1;
+
+				if (s2 != -1)
+					lines[i]->side2 = us2;
+			}
+		}
+	}
+	else
+	{
+		// Setup lines array
+		unit_size = 14;
+		n_lines = lump->Size() / unit_size;
+		lines = (linedef_t **)calloc(n_lines, sizeof(linedef_t *));
+
+		// Read line data
+		for (DWORD i = 0; i < n_lines; i++)
+		{
+			lines[i] = new linedef_t;
+			fread(&lines[i]->vertex1, 2, 1, fp);
+			fread(&lines[i]->vertex2, 2, 1, fp);
+			fread(&lines[i]->flags, 2, 1, fp);
+			fread(&lines[i]->type, 2, 1, fp);
+			fread(&lines[i]->sector_tag, 2, 1, fp);
+
+			short s1, s2;
+			fread(&s1, 2, 1, fp);
+			fread(&s2, 2, 1, fp);
+			lines[i]->side1 = (int)s1;
+			lines[i]->side2 = (int)s2;
+
+			if (n_sides > 32767)
+			{
+				unsigned short us1 = static_cast<unsigned short>(s1);
+				unsigned short us2 = static_cast<unsigned short>(s2);
+				
+				if (s1 != -1)
+					lines[i]->side1 = us1;
+
+				if (s2 != -1)
+					lines[i]->side2 = us2;
+			}
+
+			//printf("%d %d\n", lines[i]->vertex1, lines[i]->vertex2);
+		}
 	}
 
 	// << ---- Read sectors ---- >>
@@ -433,15 +469,13 @@ bool Map::open(Wad *wad, string mapname)
 			behavior = new Lump(0, 0, "BEHAVIOR");
 	}
 
-	// Remove detached vertices (from nodes)
-	for (DWORD v = 0; v < n_verts; v++)
-	{
-		if (!v_isattached(v))
-		{
-			delete_vertex(v);
-			v--;
-		}
-	}
+	remove_free_verts();
+
+	if (check_lines())
+		popup_console();
+
+	if (check_sides())
+		popup_console();
 
 	// Set thing colours/radii/angle
 	for (int a = 0; a < n_things; a++)
