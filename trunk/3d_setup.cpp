@@ -15,6 +15,7 @@ vector<ssect3d_t>	ssects_3d;
 extern Camera camera;
 extern vector<wallrect_t*> wallrects;
 extern vector<flatpoly_t*> flatpolys;
+extern vector<thing3d_t*> things_3d;
 extern Map map;
 
 extern gl_vertex_t	*gl_verts;
@@ -24,6 +25,8 @@ extern gl_node_t	*gl_nodes;
 extern DWORD		n_gl_verts;
 extern DWORD		n_gl_segs;
 extern DWORD		n_gl_ssects;
+
+extern int map_changed;
 
 void setup_wallrect(wallrect_t *wall)
 {
@@ -380,10 +383,162 @@ void setup_3d_line(int line)
 	//lines_3d.push_back(ldat);
 }
 
-void setup_specials_3d()
+void setup_slopes_3d(int sector)
 {
 	for (int a = 0; a < map.n_lines; a++)
 	{
+		if (sector != -1 &&
+			map.l_getsector1(a) != sector &&
+			map.l_getsector2(a) != sector)
+			continue;
+		
+		// Plane_Align
+		if (map.zdoom && map.lines[a]->type == 181)
+		{
+			// Get start height and end height depending on the type of slope
+			float f_start_height = 0;
+			float f_end_height = 0;
+			float c_start_height = 0;
+			float c_end_height = 0;
+			bool valid = false;
+			int sector = -1;
+
+			// Slope front side floor
+			if (map.lines[a]->args[0] == 1 && map.lines[a]->side1 != -1 && map.lines[a]->side2 != -1)
+			{
+				f_start_height = map.sectors[map.l_getsector2(a)]->f_height * SCALE_3D;
+				f_end_height = map.sectors[map.l_getsector1(a)]->f_height * SCALE_3D;
+				sector = map.l_getsector1(a);
+			}
+
+			// Slope back side floor
+			if (map.lines[a]->args[0] == 2 && map.lines[a]->side1 != -1 && map.lines[a]->side2 != -1)
+			{
+				f_start_height = map.sectors[map.l_getsector1(a)]->f_height * SCALE_3D;
+				f_end_height = map.sectors[map.l_getsector2(a)]->f_height * SCALE_3D;
+				sector = map.l_getsector2(a);
+			}
+
+			// Slope front side ceiling
+			if (map.lines[a]->args[1] == 1 && map.lines[a]->side1 != -1 && map.lines[a]->side2 != -1)
+			{
+				c_start_height = map.sectors[map.l_getsector2(a)]->c_height * SCALE_3D;
+				c_end_height = map.sectors[map.l_getsector1(a)]->c_height * SCALE_3D;
+				sector = map.l_getsector1(a);
+			}
+
+			// Slope back side ceiling
+			if (map.lines[a]->args[1] == 2 && map.lines[a]->side1 != -1 && map.lines[a]->side2 != -1)
+			{
+				c_start_height = map.sectors[map.l_getsector1(a)]->c_height * SCALE_3D;
+				c_end_height = map.sectors[map.l_getsector2(a)]->c_height * SCALE_3D;
+				sector = map.l_getsector2(a);
+			}
+
+			if (sector != -1)
+			{
+				bool c_sloped = false;
+				bool f_sloped = false;
+				point3_t c_1, c_2, c_3;
+				point3_t f_1, f_2, f_3;
+
+				// Set start point
+				if (map.lines[a]->args[0] > 0)
+				{
+					f_1.set(map.l_getrect(a).x1() * SCALE_3D, map.l_getrect(a).y1() * SCALE_3D, f_start_height);
+					f_2.set(map.l_getrect(a).x2() * SCALE_3D, map.l_getrect(a).y2() * SCALE_3D, f_start_height);
+					f_sloped = true;
+				}
+
+				if (map.lines[a]->args[1] > 0)
+				{
+					c_1.set(map.l_getrect(a).x1() * SCALE_3D, map.l_getrect(a).y1() * SCALE_3D, c_start_height);
+					c_2.set(map.l_getrect(a).x2() * SCALE_3D, map.l_getrect(a).y2() * SCALE_3D, c_start_height);
+					c_sloped = true;
+				}
+
+				// Get end point
+				rect_t s_line = map.l_getrect(a);
+				point3_t mid(float(s_line.x1()) + ((s_line.x2() - s_line.x1()) / 2.0f),
+					float(s_line.y1()) + ((s_line.y2() - s_line.y1()) / 2.0f), 0.0f);
+				point3_t dir(float(s_line.y2() - s_line.y1()), -float(s_line.x2() - s_line.x1()), 0.1f);
+				point3_t side(mid.x + dir.x, mid.y + dir.y, mid.z + dir.z);
+				float max_dist = 0.0f;
+				float min_dist = 0.0f;
+
+				// Run through all lines in the sector and get their vertices
+				//numlist_t verts;
+				vector<int> verts;
+				for (DWORD l2 = 0; l2 < map.n_lines; l2++)
+				{
+					if ((map.l_getsector1(l2) == sector ||
+						map.l_getsector2(l2) == sector) &&
+						l2 != a)
+					{
+						verts.push_back(map.lines[l2]->vertex1);
+						verts.push_back(map.lines[l2]->vertex2);
+					}
+				}
+
+				for (DWORD b = 0; b < verts.size(); b++)
+				{
+					int v = verts[b];
+					float x1 = (float)map.verts[v]->x;
+					float x2 = x1 + float(s_line.x2() - s_line.x1());
+					float y1 = (float)map.verts[v]->y;
+					float y2 = y1 + float(s_line.y2() - s_line.y1());
+
+					if ((y2 - y1) * (side.x - mid.x) - (x2 - x1) * (side.y - mid.y) != 0.0f)
+					{
+						float dist = ((x2 - x1) * (mid.y - y1) - (y2 - y1) * (mid.x - (x1))) /
+							((y2 - y1) * (side.x - mid.x) - (x2 - x1) * (side.y - mid.y));
+
+						if (dist > max_dist)
+							max_dist = dist;
+
+						if (dist < min_dist)
+							min_dist = dist;
+					}
+				}
+
+				// Get 2 intersection points: max for side1 and min for side2
+				float max_x = float(mid.x) + (float(dir.x) * max_dist);
+				float max_y = float(mid.y) + (float(dir.y) * max_dist);
+				float min_x = float(mid.x) + (float(dir.x) * min_dist);
+				float min_y = float(mid.y) + (float(dir.y) * min_dist);
+
+				if (map.lines[a]->args[0] == 1)
+					f_3.set(max_x * SCALE_3D, max_y * SCALE_3D, f_end_height);
+
+				if (map.lines[a]->args[0] == 2)
+					f_3.set(min_x * SCALE_3D, min_y * SCALE_3D, f_end_height);
+
+				if (map.lines[a]->args[1] == 1)
+					c_3.set(max_x * SCALE_3D, max_y * SCALE_3D, c_end_height);
+
+				if (map.lines[a]->args[1] == 2)
+					c_3.set(min_x * SCALE_3D, min_y * SCALE_3D, c_end_height);
+
+				if (f_sloped)
+					sector_info[sector].f_plane.from_triangle(f_3, f_1, f_2);
+
+				if (c_sloped)
+					sector_info[sector].c_plane.from_triangle(c_3, c_1, c_2);
+			}
+		}
+	}
+}
+
+
+void setup_specials_3d(int sector)
+{
+	for (int a = 0; a < map.n_lines; a++)
+	{
+		if (sector != -1 &&
+			map.l_getsector1(a) != sector &&
+			map.l_getsector2(a) != sector)
+			continue;
+
 		// Translucentline
 		if (map.zdoom && map.lines[a]->type == 208)
 		{
@@ -539,8 +694,28 @@ void setup_ssector(int ssect)
 	ssects_3d.push_back(ssinfo);
 }
 
+void setup_3d_things()
+{
+	for (int a = 0; a < map.n_things; a++)
+	{
+		thing3d_t* t = new thing3d_t();
+		t->parent_sector = determine_sector(map.things[a]->x, map.things[a]->y);
+		t->sprite = get_texture(map.things[a]->ttype->spritename, 3);
+	}
+}
+
 void setup_3d_data()
 {
+	if (map_changed == 3)
+	{
+		// Build gl nodes
+		splash("Building GL Nodes");
+		build_gl_nodes();
+	}
+
+	if (map_changed < 2)
+		return;
+
 	while (wallrects.size() != 0)
 		delete wallrects[0];
 
@@ -552,6 +727,11 @@ void setup_3d_data()
 	for (int a = 0; a < flatpolys.size(); a++)
 		delete flatpolys[a];
 	flatpolys.clear();
+
+	// Init things
+	for (int a = 0; a < things_3d.size(); a++)
+		delete things_3d[a];
+	things_3d.clear();
 
 	// Init camera
 	camera.position_camera(0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
@@ -566,10 +746,6 @@ void setup_3d_data()
 		}
 	}
 
-	// Build gl nodes
-	splash("Building GL Nodes");
-	build_gl_nodes();
-
 	// Setup sectors
 	splash("Setup Sectors");
 	sector_info = (sectinfo_t *)realloc(sector_info, map.n_sectors * sizeof(sectinfo_t));
@@ -578,6 +754,8 @@ void setup_3d_data()
 
 	// Test
 	//sector_info[0].f_plane.set(0.0f, 0.2f, 0.8f, -2.2f);
+
+	setup_slopes_3d();
 
 	// Setup walls
 	splash("Setup Walls");
@@ -588,7 +766,7 @@ void setup_3d_data()
 
 		setup_3d_line(a);
 	}
-	printf("%d / %d\n", lines_3d.size(), map.n_lines);
+	//printf("%d / %d\n", lines_3d.size(), map.n_lines);
 
 	// Setup subsectors
 	splash("Setup Flats");
@@ -603,5 +781,10 @@ void setup_3d_data()
 	// Setup specials
 	setup_specials_3d();
 
+	// Setup things
+	setup_3d_things();
+
 	splash_hide();
+
+	map_changed = 1;
 }

@@ -17,14 +17,6 @@ DWORD		n_gl_ssects = 0;
 
 int n_gl_nodes = 0;
 
-//bool *vis_lines = 0;
-//bool *vis_ssects = 0;
-
-// I have to do this because for some reason dynamically allocating this
-// was causing some very bad problems. I'll work it out later :P
-//bool vis_lines[65535];
-//bool vis_ssects[65535];
-
 BYTE vis_buffer[3600];
 
 extern Map map;

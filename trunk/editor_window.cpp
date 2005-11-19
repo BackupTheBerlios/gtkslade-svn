@@ -423,6 +423,7 @@ void file_saveas()
 		map.add_to_wad(edit_wad);
 		edit_wad->save(true);
 		gtk_window_set_title(GTK_WINDOW(editor_window), parse_string("SLADE (%s, %s)", edit_wad->path.c_str(), map.name.c_str()).c_str());
+		add_recent_wad(filename);
 	}
 
 	gtk_widget_destroy(dialog);
@@ -552,6 +553,8 @@ static void menu_action(GtkAction *action)
 		message_box(parse_string("%d Sectors Removed", remove_unused_sectors()), GTK_MESSAGE_INFO);
 	else if (act == "CheckTextures")
 		check_textures();
+	else if (act == "AlignX")
+		line_align_x();
 	else
 		message_box("Menu action not implemented", GTK_MESSAGE_INFO);
 }
@@ -640,7 +643,7 @@ static const gchar *ui_info =
 "   <menu action='EditMenu'>"
 "    <menu action='EditLineMenu'>"
 "     <menuitem action='AlignX'/>"
-"     <menuitem action='AlignY'/>"
+//"     <menuitem action='AlignY'/>"
 "    </menu>"
 "    <menu action='EditSectorMenu'>"
 "     <menuitem action='MergeSectors'/>"

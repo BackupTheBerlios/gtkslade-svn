@@ -9,6 +9,20 @@ Goes in bottom-up order
 ~: Changed
 ': Note
 
+[19/11/05]
++ Texture browser can now be navigated with the arrow keys
++ Added texture paint function (shift+p by default, instead of the old shift+click)
++ Missing textures ("-") are now a blue/white checkerboard, invalid textures are the old red/black
++ Opening a recent wad will move it to the top of the list
++ New wads created are now added to the recent wads list
++ Added 'Align X' menu command (aligns the selected lines in selection order, reguardless of textures etc)
++ Added auto x-alignment feature to 3d mode
++ Added line trigger selection to line edit dialog
++ Added thing boxes and editing in 3d mode
+
+[18/11/05]
++ Things are now drawn in 3d mode (no bounding boxes or editing yet though)
+
 [16/11/05]
 * Wad manager window is now centered
 * Maps with over 32767 sidedefs no longer crash SLADE

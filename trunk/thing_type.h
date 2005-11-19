@@ -12,7 +12,7 @@ struct thing_type_t
 	string		args[5];
 	string		arg_types[5];
 
-	thing_type_t(int type = 0, string name = "Unknown");
+	thing_type_t(int type = -1, string name = "Unknown");
 	void parse(Tokenizer *tz);
 };
 

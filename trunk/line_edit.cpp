@@ -14,6 +14,7 @@ vector<int> set_flags;
 vector<int> unset_flags;
 int			special = -1;
 int			tag = -1;
+int			trigger = -1;
 
 BYTE	args[5];
 bool	arg_consistent[5];
@@ -139,18 +140,26 @@ GtkWidget* setup_flag_checkbox(string name, int type, int flag)
 	return cbox;
 }
 
+void line_edit_trigger_changed(GtkWidget *w, gpointer data)
+{
+	int index = gtk_combo_box_get_active(GTK_COMBO_BOX(w));
+	trigger = index - 1;
+}
+
 GtkWidget* setup_line_edit_props()
 {
 	memset(arg_consistent, 1, 5);
 
 	if (selected_items.size() == 0 && hilight_item != -1)
 	{
+		trigger = map.lines[hilight_item]->get_trigger();
 		special = map.lines[hilight_item]->type;
 		tag = map.lines[hilight_item]->sector_tag;
 		memcpy(args, map.lines[hilight_item]->args, 5);
 	}
 	else
 	{
+		trigger = map.lines[selected_items[0]]->get_trigger();
 		special = map.lines[selected_items[0]]->type;
 		tag = map.lines[selected_items[0]]->sector_tag;
 		memcpy(args, map.lines[selected_items[0]]->args, 5);
@@ -162,6 +171,9 @@ GtkWidget* setup_line_edit_props()
 
 			if (map.lines[selected_items[a]]->sector_tag != tag)
 				tag = -1;
+
+			if (map.lines[selected_items[a]]->get_trigger() != trigger)
+				trigger = -1;
 
 			for (int b = 0; b < 5; b++)
 			{
@@ -242,7 +254,37 @@ GtkWidget* setup_line_edit_props()
 	if (selected_items.size() == 0 && hilight_item != -1)
 		gtk_entry_set_text(GTK_ENTRY(entry), parse_string("%d", map.lines[hilight_item]->type).c_str());
 
-	if (!map.hexen)
+	if (map.hexen)
+	{
+		// Trigger
+		hbox = gtk_hbox_new(false, 0);
+		gtk_container_set_border_width(GTK_CONTAINER(hbox), 4);
+
+		GtkWidget *label = gtk_label_new("Activation Trigger:");
+		gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
+		gtk_box_pack_start(GTK_BOX(hbox), label, true, true, 0);
+
+		GtkWidget *combo = gtk_combo_box_new_text();
+		gtk_combo_box_append_text(GTK_COMBO_BOX(combo), "");
+		gtk_combo_box_append_text(GTK_COMBO_BOX(combo), "Player Crosses Line");
+		gtk_combo_box_append_text(GTK_COMBO_BOX(combo), "Player Uses Line");
+		gtk_combo_box_append_text(GTK_COMBO_BOX(combo), "Monster Crosses Line");
+		gtk_combo_box_append_text(GTK_COMBO_BOX(combo), "Projectile Hits Line");
+		gtk_combo_box_append_text(GTK_COMBO_BOX(combo), "Player Bumps Line");
+		gtk_combo_box_append_text(GTK_COMBO_BOX(combo), "Projectile Crosses Line");
+		gtk_combo_box_append_text(GTK_COMBO_BOX(combo), "Player Uses Line (PassThru)");
+		gtk_combo_box_append_text(GTK_COMBO_BOX(combo), "Projectile Hits OR Crosses Line");
+		g_signal_connect(G_OBJECT(combo), "changed", G_CALLBACK(line_edit_trigger_changed), NULL);
+		gtk_box_pack_start(GTK_BOX(hbox), combo, false, false, 4);
+
+		if (trigger != -1)
+			gtk_combo_box_set_active(GTK_COMBO_BOX(combo), trigger + 1);
+		else
+			gtk_combo_box_set_active(GTK_COMBO_BOX(combo), 0);
+
+		gtk_box_pack_start(GTK_BOX(vbox), hbox, false, false, 0);
+	}
+	else
 	{
 		// Sector Tag
 		hbox = gtk_hbox_new(false, 0);
@@ -281,10 +323,7 @@ GtkWidget* setup_line_edit()
 								setup_line_edit_props(),
 								gtk_label_new("Properties"));
 
-	//GtkWidget *temp = gtk_label_new("Front Side");
 	gtk_notebook_append_page(GTK_NOTEBOOK(tabs), setup_side_edit(1), gtk_label_new("Side 1"));
-
-	//temp = gtk_label_new("Back Side");
 	gtk_notebook_append_page(GTK_NOTEBOOK(tabs), setup_side_edit(2), gtk_label_new("Side 2"));
 
 	return tabs;
@@ -337,6 +376,18 @@ void apply_line_edit()
 		{
 			for (int i = 0; i < selected_items.size(); i++)
 				map.lines[selected_items[i]]->sector_tag = tag;
+		}
+	}
+
+	// Trigger
+	if (trigger != -1)
+	{
+		if (selected_items.size() == 0 && hilight_item != -1)
+			map.lines[hilight_item]->set_trigger(trigger);
+		else if (selected_items.size() > 0)
+		{
+			for (int i = 0; i < selected_items.size(); i++)
+				map.lines[selected_items[i]]->set_trigger(trigger);
 		}
 	}
 

@@ -1,4 +1,10 @@
 
+#define CHANGE_SAVE		0x01
+#define CHANGE_NODES	0x02
+#define CHANGE_THINGS	0x04
+#define CHANGE_LINES	0x08
+#define CHANGE_SECTORS	0x10
+
 double s_x(double x);
 double s_y(double y);
 double m_x(double x);
@@ -6,8 +12,6 @@ double m_y(double y);
 point2_t s_p(point2_t point);
 point2_t m_p(point2_t point);
 int difference(int v1, int v2);
-//double distance(int x1, int y1, int x2, int y2);
-//double distance_to_line(int x1, int y1, int x2, int y2, int vx, int vy);
 void draw_2d_screen();
 void get_hilight_item(int x, int y);
 void select_item();

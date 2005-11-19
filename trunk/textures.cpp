@@ -14,6 +14,7 @@ vector<string>		pnames;
 rgba_t				palette[256];
 
 Texture*			no_tex;
+Texture*			blank_tex;
 
 bool				allow_tex_load = false;
 bool				mix_tex = false;
@@ -397,6 +398,9 @@ GdkPixbuf* Texture::get_pbuf_scale_fit(int w, int h, float scaling, GdkInterpTyp
 
 Texture* get_texture(string name, int type)
 {
+	if (name == "-")
+		return blank_tex;
+
 	// Search textures
 	if (type == 0 || type == TEXTURES_WALLS || (type == TEXTURES_FLATS && mix_tex))
 	{
@@ -478,15 +482,43 @@ void init_textures()
 		}
 	}
 
+	blank_tex = new Texture();
+	blank_tex->setup("-", 32, 128, 128);
+
+	for (int x = 0; x < 128; x++)
+	{
+		for (int y = 0; y < 128; y++)
+		{
+			rgba_t col1, col2;
+			col1.set(255, 255, 255, 255);
+			col2.set(0, 150, 190, 255);
+
+			if ((x / 8) % 2 == 0)
+			{
+				if ((y / 8) % 2 == 0)
+					blank_tex->add_pixel(x, y, col1);
+				else
+					blank_tex->add_pixel(x, y, col2);
+			}
+			else
+			{
+				if ((y / 8) % 2 == 0)
+					blank_tex->add_pixel(x, y, col2);
+				else
+					blank_tex->add_pixel(x, y, col1);
+			}
+		}
+	}
+
 	load_editor_texture("_font", "res/font.png");
 	load_editor_texture("_thing", "res/thing.png", -1, -1, 2);
-	load_editor_texture("_unknownsprite", "res/no_thing.png", 64, 64, 2);
-	load_editor_texture("_thing_sound", "res/thing_sound.png", 64, 64, 2);
-	load_editor_texture("_thing_spot", "res/thing_spot.png", 64, 64, 2);
-	load_editor_texture("_thing_light", "res/thing_light.png", 64, 64, 2);
-	load_editor_texture("_thing_fountain", "res/thing_fountain.png", 64, 64, 2);
-	load_editor_texture("_thing_slope", "res/thing_slope.png", 64, 64, 2);
-	load_editor_texture("_xhair", "res/xhair.png", 32, 32, 2);
+	load_editor_texture("_unknownsprite", "res/no_thing.png", 32, 32);
+	load_editor_texture("_thing_sound", "res/thing_sound.png", 32, 32);
+	load_editor_texture("_thing_spot", "res/thing_spot.png", 32, 32);
+	load_editor_texture("_thing_light", "res/thing_light.png", 32, 32);
+	load_editor_texture("_thing_fountain", "res/thing_fountain.png", 32, 32);
+	load_editor_texture("_thing_slope", "res/thing_slope.png", 32, 32);
+	load_editor_texture("_xhair", "res/xhair.png", 32, 32);
 }
 
 // read_palette: Reads the palette from a wad

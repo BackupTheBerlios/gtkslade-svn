@@ -1,4 +1,5 @@
 
+void set_gl_colour(rgba_t col);
 void draw_map();
 void update_map();
 void update_grid();

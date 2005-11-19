@@ -51,6 +51,14 @@ struct flatpoly_t
 	void draw_hilight();
 };
 
+struct thing3d_t
+{
+	Texture*	sprite;
+	int			parent_sector;
+
+	thing3d_t();
+};
+
 struct sectinfo_t
 {
 	plane_t	f_plane;
@@ -77,5 +85,7 @@ void setup_sector(int s);
 void setup_3d_line(int line);
 void render_3d_view();
 void setup_3d_data();
+void setup_specials_3d(int sector = -1);
+void setup_slopes_3d(int sector = -1);
 float plane_height(plane_t plane, float x, float y);
 void add_3d_message(string message);

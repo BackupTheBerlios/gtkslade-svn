@@ -7,6 +7,7 @@
 #include "textures.h"
 #include "console_window.h"
 #include "splash.h"
+#include "main_window.h"
 
 // Variables ----------------------------- >>
 GtkListStore	*wads_store;
@@ -29,6 +30,7 @@ extern vector<string> valid_map_names;
 extern Map map;
 extern Wad *edit_wad;
 extern bool allow_tex_load;
+extern GtkWidget* editor_window;
 
 void load_recent_wads(Tokenizer *tz)
 {
@@ -71,6 +73,10 @@ void populate_recent_wads_list()
 
 void add_recent_wad(string path)
 {
+	// If the wad exists in the list, remove it
+	if (vector_exists(recent_wads, path))
+		recent_wads.erase(find(recent_wads.begin(), recent_wads.end(), path));
+
 	// If the list is full, delete the least recent
 	if (recent_wads.size() == n_recent_wads)
 		recent_wads.pop_back();
@@ -259,6 +265,37 @@ void begin_mapedit()
 	splash_hide();
 }
 
+string map_name_select_dialog(string title, vector<string> options, int index = 0)
+{
+	string ret = "";
+
+	GtkWidget *dialog = gtk_dialog_new_with_buttons(title.c_str(),
+													GTK_WINDOW(editor_window),
+													GTK_DIALOG_MODAL,
+													GTK_STOCK_OK,
+													GTK_RESPONSE_ACCEPT,
+													GTK_STOCK_CANCEL,
+													GTK_RESPONSE_CANCEL,
+													NULL);
+
+	GtkWidget *combo = gtk_combo_box_new_text();
+	for (int a = 0; a < options.size(); a++)
+		gtk_combo_box_append_text(GTK_COMBO_BOX(combo), options[a].c_str());
+	gtk_combo_box_set_active(GTK_COMBO_BOX(combo), index);
+
+	gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dialog)->vbox), combo, false, false, 0);
+	gtk_widget_show_all(dialog);
+
+	gint response = gtk_dialog_run(GTK_DIALOG(dialog));
+
+	if (response == GTK_RESPONSE_ACCEPT)
+		ret = options[gtk_combo_box_get_active(GTK_COMBO_BOX(combo))];
+
+	gtk_widget_destroy(dialog);
+
+	return ret;
+}
+
 void new_standalone_click()
 {
 	if (wads.get_iwad()->path == "")
@@ -267,7 +304,12 @@ void new_standalone_click()
 		return;
 	}
 
-	string mapname = str_upper(entry_box("Enter map name"));
+	string mapname;
+	
+	//if (valid_map_names.size() == 0)
+		mapname = str_upper(entry_box("Enter map name"));
+	//else
+	//	mapname = str_upper(map_name_select_dialog("Select map name", valid_map_names));
 
 	if (mapname != "")
 	{
@@ -296,6 +338,8 @@ void recent_list_activated(GtkTreeView *treeview, GtkTreePath *path, GtkTreeView
 	{
 		if (!wads.open_wad(filename))
 			message_box(parse_string("Failed opening wadfile \"%s\"", filename), GTK_MESSAGE_ERROR);
+		else
+			add_recent_wad(filename);
 	}
 
 	populate_wad_list();
@@ -454,7 +498,7 @@ void setup_main_window()
 	gtk_window_set_title(GTK_WINDOW(wad_manager_window), "SLADE");
 	g_signal_connect(G_OBJECT(wad_manager_window), "delete-event", G_CALLBACK(gtk_widget_hide_on_delete), NULL);
 	//gtk_widget_hide_on_delete(wad_manager_window);
-	gtk_widget_set_size_request(wad_manager_window, -1, 300);
+	gtk_widget_set_size_request(wad_manager_window, 512, 384);
 	GtkWidget *main_vbox = gtk_vbox_new(false, 0);
 
 	// Game combo

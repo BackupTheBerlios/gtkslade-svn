@@ -41,6 +41,7 @@ extern Camera camera;
 EXTERN_CVAR(Bool, render_fog)
 EXTERN_CVAR(Bool, render_fullbright)
 EXTERN_CVAR(Bool, render_hilight)
+EXTERN_CVAR(Int, render_things)
 
 // cycle_edit_mode: Cycles the edit mode
 // ----------------------------------- >>
@@ -422,7 +423,11 @@ int key_3d_rep = 0;
 
 bool keys_3d()
 {
+	bool key_3d_allow = false;
 	float speed = 0.2 * move_speed_3d;
+
+	if (key_3d_rep == 0)
+		key_3d_allow = true;
 
 	if (binds.pressed("3d_exit"))
 	{
@@ -472,91 +477,139 @@ bool keys_3d()
 		binds.clear("3d_toggle_fog");
 		render_fog = !render_fog;
 	}
+	
+	if (binds.pressed("3d_toggle_things"))
+	{
+		binds.clear("3d_toggle_things");
+		render_things = render_things + 1;
+
+		if (render_things > 3)
+			render_things = 0;
+	}
 
 	// Sector height quick changes (8 units)
-	if (binds.pressed("3d_upfloor8") && key_3d_rep == 0)
+	if (binds.pressed("3d_upfloor8") && key_3d_allow)
 	{
 		change_sector_height_3d(8);
 		key_3d_rep = KEY_3D_DELAY;
 	}
 
-	if (binds.pressed("3d_downfloor8") && key_3d_rep == 0)
+	if (binds.pressed("3d_downfloor8") && key_3d_allow)
 	{
 		change_sector_height_3d(-8);
 		key_3d_rep = KEY_3D_DELAY;
 	}
 
-	if (binds.pressed("3d_upceil8") && key_3d_rep == 0)
+	if (binds.pressed("3d_upceil8") && key_3d_allow)
 	{
 		change_sector_height_3d(8, false);
 		key_3d_rep = KEY_3D_DELAY;
 	}
 
-	if (binds.pressed("3d_downceil8") && key_3d_rep == 0)
+	if (binds.pressed("3d_downceil8") && key_3d_allow)
 	{
 		change_sector_height_3d(-8, false);
 		key_3d_rep = KEY_3D_DELAY;
 	}
 
-	if (binds.pressed("3d_upboth8") && key_3d_rep == 0)
+	if (binds.pressed("3d_upboth8") && key_3d_allow)
 	{
 		change_sector_height_3d(8);
 		change_sector_height_3d(8, false);
 		key_3d_rep = KEY_3D_DELAY;
 	}
 
-	if (binds.pressed("3d_downboth8") && key_3d_rep == 0)
+	if (binds.pressed("3d_downboth8") && key_3d_allow)
 	{
 		change_sector_height_3d(-8);
 		change_sector_height_3d(-8, false);
+		key_3d_rep = KEY_3D_DELAY;
+	}
+
+	// Sector height quick changes (1 unit)
+	if (binds.pressed("3d_upfloor") && key_3d_allow)
+	{
+		change_sector_height_3d(1);
+		key_3d_rep = KEY_3D_DELAY;
+	}
+
+	if (binds.pressed("3d_downfloor") && key_3d_allow)
+	{
+		change_sector_height_3d(-1);
+		key_3d_rep = KEY_3D_DELAY;
+	}
+
+	if (binds.pressed("3d_upceil") && key_3d_allow)
+	{
+		change_sector_height_3d(1, false);
+		key_3d_rep = KEY_3D_DELAY;
+	}
+
+	if (binds.pressed("3d_downceil") && key_3d_allow)
+	{
+		change_sector_height_3d(-1, false);
+		key_3d_rep = KEY_3D_DELAY;
+	}
+
+	if (binds.pressed("3d_upboth") && key_3d_allow)
+	{
+		change_sector_height_3d(1);
+		change_sector_height_3d(1, false);
+		key_3d_rep = KEY_3D_DELAY;
+	}
+
+	if (binds.pressed("3d_downboth") && key_3d_allow)
+	{
+		change_sector_height_3d(-1);
+		change_sector_height_3d(-1, false);
 		key_3d_rep = KEY_3D_DELAY;
 	}
 
 	// Texture offset
-	if (binds.pressed("3d_upyoffset") && key_3d_rep == 0)
+	if (binds.pressed("3d_upyoffset") && key_3d_allow)
 	{
 		change_offsets_3d(0, 1);
 		key_3d_rep = KEY_3D_DELAY;
 	}
 
-	if (binds.pressed("3d_downyoffset") && key_3d_rep == 0)
+	if (binds.pressed("3d_downyoffset") && key_3d_allow)
 	{
 		change_offsets_3d(0, -1);
 		key_3d_rep = KEY_3D_DELAY;
 	}
 
-	if (binds.pressed("3d_upxoffset") && key_3d_rep == 0)
+	if (binds.pressed("3d_upxoffset") && key_3d_allow)
 	{
 		change_offsets_3d(1, 0);
 		key_3d_rep = KEY_3D_DELAY;
 	}
 
-	if (binds.pressed("3d_downxoffset") && key_3d_rep == 0)
+	if (binds.pressed("3d_downxoffset") && key_3d_allow)
 	{
 		change_offsets_3d(-1, 0);
 		key_3d_rep = KEY_3D_DELAY;
 	}
 
 	// Texture offset x8
-	if (binds.pressed("3d_upyoffset8") && key_3d_rep == 0)
+	if (binds.pressed("3d_upyoffset8") && key_3d_allow)
 	{
 		change_offsets_3d(0, 8);
 		key_3d_rep = KEY_3D_DELAY;
 	}
 
-	if (binds.pressed("3d_downyoffset8") && key_3d_rep == 0)
+	if (binds.pressed("3d_downyoffset8") && key_3d_allow)
 	{
 		change_offsets_3d(0, -8);
 		key_3d_rep = KEY_3D_DELAY;
 	}
 
-	if (binds.pressed("3d_upxoffset8") && key_3d_rep == 0)
+	if (binds.pressed("3d_upxoffset8") && key_3d_allow)
 	{
 		change_offsets_3d(8, 0);
 		key_3d_rep = KEY_3D_DELAY;
 	}
 
-	if (binds.pressed("3d_downxoffset8") && key_3d_rep == 0)
+	if (binds.pressed("3d_downxoffset8") && key_3d_allow)
 	{
 		change_offsets_3d(-8, 0);
 		key_3d_rep = KEY_3D_DELAY;
@@ -592,6 +645,65 @@ bool keys_3d()
 	{
 		binds.clear("3d_downlightlevel");
 		change_light_3d(-16);
+	}
+
+	// Change thing angle
+	if (binds.pressed("3d_upthingangle") && key_3d_allow)
+	{
+		change_thing_angle_3d(45);
+		key_3d_rep = KEY_3D_DELAY;
+	}
+
+	if (binds.pressed("3d_downthingangle") && key_3d_allow)
+	{
+		change_thing_angle_3d(-45);
+		key_3d_rep = KEY_3D_DELAY;
+	}
+
+	// Change thing z height
+	if (map.hexen)
+	{
+		if (binds.pressed("3d_upthingz8") && key_3d_allow)
+		{
+			change_thing_z_3d(8);
+			key_3d_rep = KEY_3D_DELAY;
+		}
+
+		if (binds.pressed("3d_downthingz8") && key_3d_allow)
+		{
+			change_thing_z_3d(-8);
+			key_3d_rep = KEY_3D_DELAY;
+		}
+
+		if (binds.pressed("3d_upthingz") && key_3d_allow)
+		{
+			change_thing_z_3d(1);
+			key_3d_rep = KEY_3D_DELAY;
+		}
+
+		if (binds.pressed("3d_downthingz") && key_3d_allow)
+		{
+			change_thing_z_3d(-1);
+			key_3d_rep = KEY_3D_DELAY;
+		}
+	}
+
+	if (binds.pressed("3d_align_tex_x"))
+	{
+		binds.clear("3d_align_tex_x");
+		auto_align_x_3d();
+	}
+
+	if (binds.pressed("3d_paste_paint"))
+	{
+		binds.clear("3d_paste_paint");
+		paste_texture_3d(true);
+	}
+
+	if (binds.pressed("3d_reset_offsets"))
+	{
+		binds.clear("3d_reset_offsets");
+		reset_offsets_3d();
 	}
 
 	key_3d_rep--;

@@ -91,9 +91,9 @@ void setup_font()
 
 
 
-// set_colour: Sets the current OpenGL colour
+// set_gl_colour: Sets the current OpenGL colour
 // ------------------------------------------ >>
-void set_colour(rgba_t col)
+void set_gl_colour(rgba_t col)
 {
 	glColor4f(col.fr(), col.fg(), col.fb(), col.fa());
 }
@@ -104,7 +104,7 @@ void draw_point(int x, int y, int size, rgba_t col)
 {
 	glDisable(GL_TEXTURE_2D);
 
-	set_colour(col);
+	set_gl_colour(col);
 	col.set_blend();
 	glPointSize((float)size);
 
@@ -124,7 +124,7 @@ void draw_line(rect_t rect, rgba_t col, bool aa, bool side_indicator = false)
 	else
 		glDisable(GL_LINE_SMOOTH);
 
-	set_colour(col);
+	set_gl_colour(col);
 	col.set_blend();
 	
 	glBegin(GL_LINES);
@@ -153,7 +153,7 @@ void draw_rect(rect_t rect, rgba_t col, bool fill)
 {
 	glDisable(GL_TEXTURE_2D);
 
-	set_colour(col);
+	set_gl_colour(col);
 	col.set_blend();
 
 	if (fill)
@@ -187,7 +187,7 @@ void draw_texture(int x, int y, int width, int height, string texname, int texty
 	if (height == -1)
 		height = tex->height;
 
-	set_colour(col);
+	set_gl_colour(col);
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, tex->get_gl_id());
 
@@ -243,7 +243,7 @@ void draw_texture_scale(rect_t rect, string texname, int textype, rgba_t col, fl
 		}
 	}
 
-	set_colour(col);
+	set_gl_colour(col);
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, tex->get_gl_id());
 
@@ -300,7 +300,7 @@ void draw_text(int x, int y, rgba_t colour, BYTE alignment, const char* text, ..
 	if (alignment == 2) // Right
 		x -= ((int)strlen(string) * size_x);
 
-	set_colour(colour);
+	set_gl_colour(colour);
 
 	Texture* tex = get_texture("_font", 4);
 
@@ -898,7 +898,7 @@ void update_map()
 		draw_sectors();
 	}
 
-	if (edit_mode == 3) // Things
+	if (edit_mode >= 3) // Things
 	{
 		draw_basic_lines();
 		draw_things();

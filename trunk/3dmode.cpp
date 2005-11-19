@@ -11,14 +11,17 @@
 #include "bsp.h"
 #include "tex_browser.h"
 #include "misc.h"
+#include "edit_misc.h"
 
 float grav = 0.01f;
 
 wallrect_t*	hl_wrect = NULL;
 flatpoly_t* hl_fpoly = NULL;
+thing3d_t*	hl_thing = NULL;
 
 string copy_wtex = "-";
 string copy_ftex = "";
+string copy_ttype = "";
 
 extern Camera camera;
 extern Map map;
@@ -27,8 +30,11 @@ extern sectinfo_t *sector_info;
 extern vector<line3d_t> lines_3d;
 extern vector<ssect3d_t> ssects_3d;
 extern vector<wallrect_t*> wallrects;
+extern vector<thing3d_t*> things_3d;
 extern gl_ssect_t *gl_ssects;
 extern bool mix_tex;
+
+EXTERN_CVAR(Int, render_things)
 
 // line_intersect: Determines if the camera is looking at a line
 // (borrowed from Doom Builder, thanks CodeImp :D)
@@ -92,11 +98,56 @@ void determine_hilight()
 	float min_dist = 1024;
 	hl_wrect = NULL;
 	hl_fpoly = NULL;
+	hl_thing = NULL;
 
 	// List of sectors the camera view ray passes through
 	vector<int> sectors;
 
-	// Eventually: Check Things
+	// Check Things
+	if (render_things > 0)
+	{
+		for (int t = 0; t < map.n_things; t++)
+		{
+			int f_height = 0;
+			int height = things_3d[t]->sprite->height;
+
+			if (things_3d[t]->parent_sector == -1)
+				continue;
+
+			if (sector_info[things_3d[t]->parent_sector].visible)
+			{
+				if (map.things[t]->ttype->hanging)
+					f_height = map.sectors[things_3d[t]->parent_sector]->c_height - height;
+				else
+					f_height = map.sectors[things_3d[t]->parent_sector]->f_height;
+			}
+
+			if (map.things[t]->z != 0 && map.hexen)
+				f_height += map.things[t]->z;
+
+			float x1 = (map.things[t]->x - camera.strafe.x * (things_3d[t]->sprite->width / 2)) * SCALE_3D;
+			float y1 = (map.things[t]->y - camera.strafe.y * (things_3d[t]->sprite->width / 2)) * SCALE_3D;
+			float x2 = (map.things[t]->x + camera.strafe.x * (things_3d[t]->sprite->width / 2)) * SCALE_3D;
+			float y2 = (map.things[t]->y + camera.strafe.y * (things_3d[t]->sprite->width / 2)) * SCALE_3D;
+
+			float dist = line_intersect(camera.position, camera.view, x1, y1, x2, y2);
+
+			if (dist != -1 && dist < min_dist)
+			{
+				point3_t direction = camera.view - camera.position;
+
+				point3_t hit_point(camera.position.x + (direction.x * dist),
+					camera.position.y + (direction.y * dist),
+					camera.position.z + (direction.z * dist));
+
+				if (hit_point.z >= f_height * SCALE_3D && hit_point.z <= (f_height + height) * SCALE_3D)
+				{
+					min_dist = dist;
+					hl_thing = things_3d[t];
+				}
+			}
+		}
+	}
 
 	// Check Lines
 	for (int a = 0; a < map.n_lines; a++)
@@ -132,6 +183,7 @@ void determine_hilight()
 
 				if (up >= hit_point.z && lo <= hit_point.z)
 				{
+					hl_thing = NULL;
 					hl_wrect = lines_3d[a].rects[r];
 					min_dist = dist;
 					break;
@@ -184,6 +236,7 @@ void determine_hilight()
 				if (in)
 				{
 					hl_wrect = NULL;
+					hl_thing = NULL;
 					hl_fpoly = poly;
 					min_dist = dist;
 				}
@@ -200,52 +253,39 @@ void apply_gravity()
 
 	if (sector != -1)
 	{
-		float floor_height = 0.0f;
-		bool moved = false;
+		float f_h = plane_height(sector_info[sector].f_plane, camera.position.x, camera.position.y) + (40 * SCALE_3D);
+		float c_h = plane_height(sector_info[sector].c_plane, camera.position.x, camera.position.y);
 
-		if (sector_info[sector].f_plane.c != 1.0f)
+		if (f_h >= c_h)
 		{
-			floor_height = plane_height(sector_info[sector].f_plane, camera.position.x, camera.position.y) + (40 * SCALE_3D);
-			float diff = floor_height - camera.position.z;
-			camera.position.z = floor_height;
-			camera.view.z += diff;
-			return;
-		}
-
-		if (map.sectors[sector]->f_height + 40 < map.sectors[sector]->c_height)
-			floor_height = (float)(map.sectors[sector]->f_height + 40) * SCALE_3D;
-		else
-		{
-			floor_height = (float)(map.sectors[sector]->c_height - 4) * SCALE_3D;
-			float diff = floor_height - camera.position.z;
-			camera.position.z = floor_height;
+			f_h = c_h - (4 * SCALE_3D);
+			float diff = f_h - camera.position.z;
+			camera.position.z = f_h;
 			camera.view.z += diff;
 			grav = 0.01f;
 			return;
 		}
 
-		if (camera.position.z > floor_height + 0.05f)
+		if (camera.position.z > f_h - grav && camera.position.z < f_h + grav)
 		{
-			grav = grav * 2;
+			float diff = f_h - camera.position.z;
+			camera.position.z = f_h;
+			camera.view.z += diff;
+			grav = 0.01f;
+			return;
+		}
+
+		if (camera.position.z > f_h + grav)
+		{
+			grav = grav * 1.5;
 			camera.position.z -= grav;
 			camera.view.z -= grav;
-			moved = true;
 		}
-
-		if (camera.position.z < floor_height - 0.05f)
+		else if (camera.position.z < f_h - grav)
 		{
-			grav = grav * 2;
+			grav = grav * 1.5;
 			camera.position.z += grav;
 			camera.view.z += grav;
-			moved = true;
-		}
-
-		if (camera.position.z > floor_height - grav && camera.position.z < floor_height + grav && moved)
-		{
-			float diff = floor_height - camera.position.z;
-			camera.position.z = floor_height;
-			camera.view.z += diff;
-			grav = 0.01f;
 		}
 	}
 }
@@ -285,11 +325,38 @@ void change_sector_height_3d(int amount, bool floor)
 
 	setup_sector(sector);
 
+	vector<int> setup_lines;
+	vector<int> setup_sectors;
+	setup_sectors.push_back(sector);
+
+	for (int a = 0; a < lines_3d.size(); a++)
+	{
+		if (map.l_getsector1(a) == sector ||
+			map.l_getsector2(a) == sector)
+		{
+			//setup_lines.push_back(a);
+
+			if (!(vector_exists(setup_sectors, map.l_getsector1(a))))
+				setup_sectors.push_back(map.l_getsector1(a));
+
+			if (!(vector_exists(setup_sectors, map.l_getsector2(a))))
+				setup_sectors.push_back(map.l_getsector2(a));
+		}
+	}
+	
+	for (int a = 0; a < setup_sectors.size(); a++)
+	{
+		if (setup_sectors[a] != -1)
+			setup_slopes_3d(setup_sectors[a]);
+	}
+
 	for (int a = 0; a < ssects_3d.size(); a++)
 	{
 		for (int b = 0; b < ssects_3d[a].flats.size(); b++)
 		{
-			if (ssects_3d[a].flats[b]->parent_sector == sector &&
+			//if (ssects_3d[a].flats[b]->parent_sector == sector &&
+			//	ssects_3d[a].flats[b]->part == part)
+			if (vector_exists(setup_sectors, ssects_3d[a].flats[b]->parent_sector) &&
 				ssects_3d[a].flats[b]->part == part)
 				setup_flatpoly(ssects_3d[a].flats[b], a);
 		}
@@ -297,8 +364,10 @@ void change_sector_height_3d(int amount, bool floor)
 
 	for (int a = 0; a < lines_3d.size(); a++)
 	{
-		if (map.l_getsector1(a) == sector ||
-			map.l_getsector2(a) == sector)
+		//if (map.l_getsector1(a) == sector ||
+		//	map.l_getsector2(a) == sector)
+		if ((map.l_getsector1(a) != -1 && vector_exists(setup_sectors, map.l_getsector1(a))) ||
+			(map.l_getsector2(a) != -1 && vector_exists(setup_sectors, map.l_getsector2(a))))
 			setup_3d_line(a);
 	}
 
@@ -359,6 +428,27 @@ void change_texture_3d(bool paint)
 				map.l_getside(hl_wrect->line, hl_wrect->side)->tex_lower = ntex;
 
 			setup_3d_line(hl_wrect->line);
+		}
+	}
+
+	// Change thing type
+	else if (hl_thing)
+	{
+		int t = 0;
+		for (t = 0; t < map.n_things; t++)
+		{
+			if (hl_thing == things_3d[t])
+				break;
+		}
+
+		string ntype = open_texture_browser(false, false, true, map.things[t]->ttype->name, true);
+
+		thing_type_t* ttype = get_thing_type_from_name(ntype);
+		if (ttype->type != -1)
+		{
+			map.things[t]->ttype = ttype;
+			map.things[t]->type = ttype->type;
+			things_3d[t]->sprite = get_texture(ttype->spritename, 3);
 		}
 	}
 }
@@ -428,20 +518,45 @@ void copy_texture_3d()
 
 		add_3d_message(parse_string("Copied texture \"%s\"", ct.c_str()));
 	}
+
+	else if (hl_thing)
+	{
+		int t = 0;
+		for (t = 0; t < map.n_things; t++)
+		{
+			if (hl_thing == things_3d[t])
+				break;
+		}
+		
+		copy_ttype = map.things[t]->ttype->name;
+		add_3d_message(parse_string("Copied thing type \"%s\"", copy_ttype.c_str()));
+	}
 }
 
 void paste_texture_3d(bool paint)
 {
 	if (hl_wrect)
 	{
-		if (hl_wrect->part == PART_MIDDLE || hl_wrect->part == PART_TRANS)
-			map.l_getside(hl_wrect->line, hl_wrect->side)->tex_middle = copy_wtex;
-		else if (hl_wrect->part == PART_UPPER)
-			map.l_getside(hl_wrect->line, hl_wrect->side)->tex_upper = copy_wtex;
-		else if (hl_wrect->part == PART_LOWER)
-			map.l_getside(hl_wrect->line, hl_wrect->side)->tex_lower = copy_wtex;
+		if (!paint)
+		{
+			if (hl_wrect->part == PART_MIDDLE || hl_wrect->part == PART_TRANS)
+				map.l_getside(hl_wrect->line, hl_wrect->side)->tex_middle = copy_wtex;
+			else if (hl_wrect->part == PART_UPPER)
+				map.l_getside(hl_wrect->line, hl_wrect->side)->tex_upper = copy_wtex;
+			else if (hl_wrect->part == PART_LOWER)
+				map.l_getside(hl_wrect->line, hl_wrect->side)->tex_lower = copy_wtex;
 
-		setup_3d_line(hl_wrect->line);
+			setup_3d_line(hl_wrect->line);
+		}
+		else
+		{
+			vector<int> lines;
+			line_paint_tex(hl_wrect->line, hl_wrect->side, hl_wrect->tex->name, copy_wtex, &lines);
+
+			for (int a = 0; a < lines.size(); a++)
+				setup_3d_line(lines[a]);
+		}
+
 		add_3d_message(parse_string("Pasted texture \"%s\"", copy_wtex.c_str()));
 	}
 	else if (hl_fpoly)
@@ -451,6 +566,9 @@ void paste_texture_3d(bool paint)
 			tex = copy_wtex;
 		else
 			tex = copy_ftex;
+
+		if (tex == "")
+			return;
 
 		if (hl_fpoly->part == PART_FLOOR)
 			map.sectors[hl_fpoly->parent_sector]->f_tex = tex;
@@ -468,6 +586,26 @@ void paste_texture_3d(bool paint)
 		}
 
 		add_3d_message(parse_string("Pasted texture \"%s\"", tex.c_str()));
+	}
+
+	else if (hl_thing && copy_ttype != "")
+	{
+		int t = 0;
+		for (t = 0; t < map.n_things; t++)
+		{
+			if (hl_thing == things_3d[t])
+				break;
+		}
+		
+		thing_type_t* ttype = get_thing_type_from_name(copy_ttype);
+
+		if (ttype->type != -1)
+		{
+			map.things[t]->ttype = ttype;
+			map.things[t]->type = ttype->type;
+			things_3d[t]->sprite = get_texture(ttype->spritename, 3);
+			add_3d_message(parse_string("Pasted thing type \"%s\"", copy_ttype.c_str()));
+		}
 	}
 }
 
@@ -495,4 +633,56 @@ void change_light_3d(int amount)
 	map.sectors[sector]->light = light;
 
 	add_3d_message(parse_string("Light level: %d", light));
+}
+
+// change_thing_angle_3d: Changes the angle of the hilighted thing
+// ------------------------------------------------------------ >>
+void change_thing_angle_3d(int amount)
+{
+	for (int a = 0; a < things_3d.size(); a++)
+	{
+		if (things_3d[a] == hl_thing)
+		{
+			map.things[a]->increment_angle(amount);
+			add_3d_message(parse_string("Angle: %s", map.things[a]->angle_string().c_str()));
+		}
+	}
+}
+
+void change_thing_z_3d(int amount)
+{
+	for (int a = 0; a < things_3d.size(); a++)
+	{
+		if (things_3d[a] == hl_thing)
+		{
+			map.things[a]->z += amount;
+			add_3d_message(parse_string("Z Height: %d", map.things[a]->z));
+		}
+	}
+}
+
+void auto_align_x_3d()
+{
+	if (hl_wrect == NULL)
+		return;
+
+	vector<int> lines;
+	line_auto_align_x(hl_wrect->line, -51403, hl_wrect->side, hl_wrect->tex->name, hl_wrect->tex->width, &lines);
+
+	for (int a = 0; a < lines.size(); a++)
+		setup_3d_line(lines[a]);
+
+	add_3d_message("Auto X-Alignment done");
+}
+
+void reset_offsets_3d()
+{
+	if (hl_wrect == NULL)
+		return;
+
+	sidedef_t* side = map.l_getside(hl_wrect->side, hl_wrect->side);
+	side->x_offset = 0;
+	side->y_offset = 0;
+
+	setup_3d_line(hl_wrect->line);
 }

@@ -182,7 +182,6 @@ string entry_box(string prompt)
 	return ret;
 }
 
-
 // load_main_config: Loads the main SLADE configuration file
 // ------------------------------------------------------ >>
 void load_main_config()

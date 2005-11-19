@@ -79,6 +79,7 @@ void BindList::set_defaults()
 	add("3d_toggle_fullbright", "b");
 	add("3d_toggle_fog", "f");
 	add("3d_toggle_hilight", "h");
+	add("3d_toggle_things", "t");
 
 	add("3d_upceil8", "KP_Add");
 	add("3d_downceil8", "KP_Subtract");
@@ -108,31 +109,20 @@ void BindList::set_defaults()
 	add("3d_uplightlevel", "equal");
 	add("3d_downlightlevel", "minus");
 
+	add("3d_upthingangle", "Left");
+	add("3d_downthingangle", "Right");
+
+	add("3d_upthingz8", "Up");
+	add("3d_downthingz8", "Down");
+	add("3d_upthingz", "<Control>Up");
+	add("3d_downthingz", "<Control>Down");
+
+	add("3d_align_tex_x", "<Control>a");
+	add("3d_paste_paint", "<Shift>p");
+	add("3d_reset_offsets", "r");
+
 	/*
-	add("3d_2dmode", 'q', 0);
-	add("3d_toggle_things", 't', 0);
-
-	add("3d_upyoffset", key_id("KEYPAD_UP"), KEYMOD_CTRL);
-	add("3d_downyoffset", key_id("KEYPAD_DOWN"), KEYMOD_CTRL);
-	add("3d_upxoffset", key_id("KEYPAD_LEFT"), KEYMOD_CTRL);
-	add("3d_downxoffset", key_id("KEYPAD_RIGHT"), KEYMOD_CTRL);
-	add("3d_upyoffset8", key_id("KEYPAD_UP"), 0);
-	add("3d_downyoffset8", key_id("KEYPAD_DOWN"), 0);
-	add("3d_upxoffset8", key_id("KEYPAD_LEFT"), 0);
-	add("3d_downxoffset8", key_id("KEYPAD_RIGHT"), 0);
-
-	add("3d_upthingangle", key_id("KEYPAD_LEFT"), 0);
-	add("3d_downthingangle", key_id("KEYPAD_RIGHT"), 0);
-
-	add("3d_upthingz8", key_id("KEYPAD_UP"), 0);
-	add("3d_downthingz8", key_id("KEYPAD_DOWN"), 0);
-	add("3d_upthingz", key_id("KEYPAD_UP"), KEYMOD_CTRL);
-	add("3d_downthingz", key_id("KEYPAD_DOWN"), KEYMOD_CTRL);
-
-	
 	add("3d_clear_texture", key_id("KEY_DELETE"), 0);
-	add("3d_reset_offsets", 'r', 0);
-	add("3d_align_tex_x", 'a', KEYMOD_CTRL);
 	*/
 
 	add("open_console", "grave");

@@ -487,15 +487,15 @@ void apply_thing_edit()
 	// Set changed flags
 	for (int a = 0; a < set_flags.size(); a++)
 	{
-		for (int a = 0; a < edit_things.size(); a++)
-			edit_things[a]->set_flag(set_flags[a]);
+		for (int b = 0; b < edit_things.size(); b++)
+			edit_things[b]->set_flag(set_flags[a]);
 	}
 
 	// Unset changed flags
 	for (int a = 0; a < unset_flags.size(); a++)
 	{
-		for (int a = 0; a < edit_things.size(); a++)
-			edit_things[a]->clear_flag(unset_flags[a]);
+		for (int b = 0; b < edit_things.size(); b++)
+			edit_things[b]->clear_flag(unset_flags[a]);
 	}
 
 	// Type
