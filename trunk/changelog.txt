@@ -10,6 +10,8 @@ Goes in bottom-up order
 ': Note
 
 [21/11/05]
+~ A message is now shown if a hexen format map is loaded when a non-hexen format game is selected
+* Textures weren't reloading properly (I wasn't clearing the PNAMES data)
 ~ Greatly improved map loading speed (especially for large maps)
 * Things in 3d mode could be drawn wrong when translucent walls were in view
 * Fixed a few things with mixing flats/textures

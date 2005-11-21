@@ -134,7 +134,7 @@ bool Map::open(Wad *wad, string mapname)
 	}
 
 	// Check for BEHAVIOR lump
-	if (hexen)
+	//if (hexen)
 	{
 		long index = offset;
 		bool done = false;
@@ -160,12 +160,20 @@ bool Map::open(Wad *wad, string mapname)
 				done = false;
 			}
 			else if (strncmp(wad->directory[index]->Name().c_str(), "BEHAVIOR", 8) == 0)
-				done = true;
+			{
+				if (hexen)
+					done = true;
+				else
+				{
+					message_box("This looks like a hexen-format map, please select a different game configuration!", GTK_MESSAGE_INFO);
+					return false;
+				}
+			}
 			else
 				done = true;
 		}
 
-		if (strncmp(wad->directory[index]->Name().c_str(), "BEHAVIOR", 8) != 0)
+		if (strncmp(wad->directory[index]->Name().c_str(), "BEHAVIOR", 8) != 0 && hexen)
 		{
 			message_box("Map has no BEHAVIOR lump\n", GTK_MESSAGE_ERROR);
 			return false;

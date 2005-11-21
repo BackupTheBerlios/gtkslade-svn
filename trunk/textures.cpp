@@ -600,6 +600,7 @@ void read_palette(Wad* wad)
 // ------------------------------------------ >>
 void load_pnames(Wad* wad)
 {
+	pnames.clear();
 	DWORD n_pnames = 0;
 	FILE *fp = fopen(wad->path.c_str(), "rb");
 	Lump *lump = wad->get_lump("PNAMES", 0);

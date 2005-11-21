@@ -850,11 +850,13 @@ void setup_editor_window()
 
 // open_map: Opens a map to edit, if wad is NULL then it's a new/standalone map
 // ------------------------------------------------------------------------- >>
-void open_map(Wad* wad, string mapname)
+bool open_map(Wad* wad, string mapname)
 {
 	if (wad)
 	{
-		map.open(wad, mapname);
+		if (!map.open(wad, mapname))
+			return false;
+
 		gtk_window_set_title(GTK_WINDOW(editor_window), parse_string("SLADE (%s, %s)", wad->path.c_str(), mapname.c_str()).c_str());
 	}
 	else
@@ -865,4 +867,5 @@ void open_map(Wad* wad, string mapname)
 
 	force_map_redraw(true, true);
 	edit_wad = wad;
+	return true;
 }

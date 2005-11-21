@@ -449,7 +449,9 @@ void maps_list_activated(GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewCo
 	gchar* mapname;
 	gtk_tree_model_get(GTK_TREE_MODEL(maps_store), &iter, 0, &mapname, -1);
 
-	open_map(selected_wad, mapname);
+	if (!open_map(selected_wad, mapname))
+		return;
+
 	gtk_widget_hide(wad_manager_window);
 
 	if (game_changed)
