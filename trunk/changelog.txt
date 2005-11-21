@@ -9,6 +9,12 @@ Goes in bottom-up order
 ~: Changed
 ': Note
 
+[21/11/05]
+~ Sprites are no longer 'stretched' when allow_np2_tex is off
++ Added exit/close confirmation when there are unsaved changes
+~ Changed how map changes are handled (now moving a thing doesn't require the gl nodes to be rebuilt etc etc)
++ Added search to texture browser
+
 [19/11/05]
 + Texture browser can now be navigated with the arrow keys
 + Added texture paint function (shift+p by default, instead of the old shift+click)

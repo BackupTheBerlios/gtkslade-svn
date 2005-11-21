@@ -192,10 +192,10 @@ void draw_texture(int x, int y, int width, int height, string texname, int texty
 	glBindTexture(GL_TEXTURE_2D, tex->get_gl_id());
 
 	glBegin(GL_QUADS);
-		glTexCoord2f(0.0f, 0.0f);	glVertex2d(x, y);
-		glTexCoord2f(1.0f, 0.0f);	glVertex2d(x + width, y);
-		glTexCoord2f(1.0f, 1.0f);	glVertex2d(x + width, y + height);
-		glTexCoord2f(0.0f, 1.0f);	glVertex2d(x, y + height);
+		glTexCoord2f(0.0f, 0.0f);			glVertex2d(x, y);
+		glTexCoord2f(tex->t_x, 0.0f);		glVertex2d(x + width, y);
+		glTexCoord2f(tex->t_x, tex->t_y);	glVertex2d(x + width, y + height);
+		glTexCoord2f(0.0f, tex->t_y);		glVertex2d(x, y + height);
 	glEnd();
 }
 
@@ -248,10 +248,10 @@ void draw_texture_scale(rect_t rect, string texname, int textype, rgba_t col, fl
 	glBindTexture(GL_TEXTURE_2D, tex->get_gl_id());
 
 	glBegin(GL_QUADS);
-		glTexCoord2f(0.0f, 0.0f);	glVertex2d(midx - (nwidth / 2), midy - (nheight / 2));
-		glTexCoord2f(1.0f, 0.0f);	glVertex2d(midx + (nwidth / 2), midy - (nheight / 2));
-		glTexCoord2f(1.0f, 1.0f);	glVertex2d(midx + (nwidth / 2), midy + (nheight / 2));
-		glTexCoord2f(0.0f, 1.0f);	glVertex2d(midx - (nwidth / 2), midy + (nheight / 2));
+		glTexCoord2f(0.0f, 0.0f);			glVertex2d(midx - (nwidth / 2), midy - (nheight / 2));
+		glTexCoord2f(tex->t_x, 0.0f);		glVertex2d(midx + (nwidth / 2), midy - (nheight / 2));
+		glTexCoord2f(tex->t_x, tex->t_y);	glVertex2d(midx + (nwidth / 2), midy + (nheight / 2));
+		glTexCoord2f(0.0f, tex->t_y);		glVertex2d(midx - (nwidth / 2), midy + (nheight / 2));
 	glEnd();
 }
 

@@ -701,7 +701,8 @@ void end_linedraw()
 		ldraw_verts.clear();
 		ldraw_lines.clear();
 		force_map_redraw(true, false);
-		map_changelevel(3);
+		//map_changelevel(3);
+		map.change_level(MC_NODE_REBUILD);
 	}
 
 	line_draw = false;

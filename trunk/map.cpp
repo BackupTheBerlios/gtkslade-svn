@@ -33,6 +33,7 @@ string map_lumps[12] =
 };
 
 // EXTERNAL VARIABLES -------------------- >>
+extern GtkWidget *editor_window;
 
 // Map::create: Clears all map data and sets map name
 // ----------------------------------------------- >>
@@ -1281,6 +1282,12 @@ void Map::add_to_wad(Wad *wadfile)
 		wadfile->replace_lump("SCRIPTS", this->scripts->Size(), this->scripts->Data(), mapindex);
 		wadfile->replace_lump("BEHAVIOR", this->behavior->Size(), this->behavior->Data(), mapindex);
 	}
+
+	changed = (changed & ~MC_SAVE_NEEDED);
+	string title = gtk_window_get_title(GTK_WINDOW(editor_window));
+	if (g_str_has_suffix(title.c_str(), "*"))
+		title.erase(title.size() - 1, 1);
+	gtk_window_set_title(GTK_WINDOW(editor_window), title.c_str());
 }
 
 void Map::l_flip(int l)
@@ -1411,23 +1418,19 @@ point2_t Map::l_getmidpoint(int l)
 	return midpoint(tl, br);
 }
 
-vector<int> Map::l_getfromid(int line_id)
+void Map::l_getfromid(int line_id, vector<int> *vec)
 {
-	vector<int> ret;
-
 	for (int l = 0; l < n_lines; l++)
 	{
 		if (lines[l]->type == 121)
 		{
 			if (line_id == lines[l]->args[0])
 			{
-				if (vector_exists(ret, l))
-					ret.push_back(l);
+				if (find(vec->begin(), vec->end(), l) == vec->end())
+					vec->push_back(l);
 			}
 		}
 	}
-
-	return ret;
 }
 
 void Map::v_getattachedlines(int v, numlist_t* list)
@@ -1437,4 +1440,20 @@ void Map::v_getattachedlines(int v, numlist_t* list)
 		if (lines[l]->vertex1 == v || lines[l]->vertex2 == v)
 			list->add(l, false);
 	}
+}
+
+void Map::change_level(BYTE flags)
+{
+	if (!(changed & MC_SAVE_NEEDED))
+	{
+		string title = gtk_window_get_title(GTK_WINDOW(editor_window));
+		title += "*";
+		gtk_window_set_title(GTK_WINDOW(editor_window), title.c_str());
+	}
+
+	if (flags & MC_NODE_REBUILD)
+		flags |= MC_SSECTS|MC_LINES;
+
+	changed |= MC_SAVE_NEEDED;	// If anything changes a save is needed
+	changed |= flags;
 }

@@ -220,7 +220,7 @@ static gboolean browser_click_event(GtkWidget *widget, GdkEventButton *event)
 		}
 	}
 
-	return true;
+	return false;
 }
 
 gboolean browser_key_event(GtkWidget *widget, GdkEventKey *event)
@@ -233,6 +233,9 @@ gboolean browser_key_event(GtkWidget *widget, GdkEventKey *event)
 		if (tex_names[a] == selected_tex)
 			index = a;
 	}
+
+	if (event->keyval == GDK_Return)
+		gtk_dialog_response(GTK_DIALOG(browser_dialog), GTK_RESPONSE_ACCEPT);
 
 	if (event->keyval == GDK_Up && index - browser_columns >= 0)
 		index -= browser_columns;
@@ -251,6 +254,32 @@ gboolean browser_key_event(GtkWidget *widget, GdkEventKey *event)
 	gdk_window_invalidate_rect(widget->window, &widget->allocation, false);
 
 	return true;
+}
+
+void browser_search_entry_changed(GtkWidget *w, gpointer data)
+{
+	string search = g_strup((gchar*)gtk_entry_get_text(GTK_ENTRY(w)));
+
+	for (int a = 0; a < tex_names.size(); a++)
+	{
+		if (tex_names[a].size() < search.size())
+			continue;
+
+		bool match = true;
+		for (int c = 0; c < search.size(); c++)
+		{
+			if (tex_names[a][c] != search[c])
+				match = false;
+		}
+
+		if (match)
+		{
+			selected_tex = tex_names[a];
+			scroll_to_selected_texture(GTK_WIDGET(data));
+			gdk_window_invalidate_rect(GTK_WIDGET(data)->window, &GTK_WIDGET(data)->allocation, false);
+			return;
+		}
+	}
 }
 
 GtkWidget* setup_texture_browser()
@@ -273,6 +302,17 @@ GtkWidget* setup_texture_browser()
 	gtk_range_set_range(GTK_RANGE(browse_vscroll), 0.0, 1.0);
 	g_signal_connect(G_OBJECT(browse_vscroll), "change-value", G_CALLBACK(browse_vscroll_change), draw_area);
 	gtk_box_pack_start(GTK_BOX(hbox), browse_vscroll, false, false, 0);
+
+	GtkWidget *vbox = gtk_vbox_new(false, 0);
+	gtk_container_set_border_width(GTK_CONTAINER(vbox), 4);
+	gtk_box_pack_start(GTK_BOX(hbox), vbox, false, false, 0);
+
+	// 'search' entry
+	GtkWidget *entry = gtk_entry_new();
+	gtk_widget_set_size_request(entry, 64, -1);
+	g_signal_connect(G_OBJECT(entry), "changed", G_CALLBACK(browser_search_entry_changed), draw_area);
+	gtk_box_pack_start(GTK_BOX(vbox), gtk_label_new("Search:"), false, false, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), entry, false, false, 0);
 
 	gtk_widget_grab_focus(draw_area);
 

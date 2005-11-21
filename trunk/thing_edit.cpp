@@ -575,6 +575,7 @@ void open_thing_edit()
 	if (response == GTK_RESPONSE_ACCEPT)
 	{
 		apply_thing_edit();
+		map.change_level(MC_THINGS);
 		force_map_redraw(true, false);
 	}
 

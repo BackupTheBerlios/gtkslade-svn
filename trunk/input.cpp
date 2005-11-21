@@ -379,7 +379,8 @@ void keys_edit()
 		clear_selection();
 		hilight_item = -1;
 		force_map_redraw(true, true);
-		map_changelevel(3);
+		//map_changelevel(3);
+		map.change_level(MC_NODE_REBUILD);
 		binds.clear("edit_undo");
 	}
 

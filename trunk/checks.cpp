@@ -106,6 +106,7 @@ DWORD remove_zerolength_lines()
 		}
 	}
 
+	map.change_level(MC_LINES);
 	//remove_free_verts();
 
 	return c;
@@ -348,13 +349,13 @@ bool check_lines()
 			error = true;
 		}
 
-		if (map.lines[a]->side1 > map.n_sides)
+		if (map.lines[a]->side1 > (double)map.n_sides)
 		{
 			console_print(parse_string("Line %d references invalid sidedef %d! Setting it to -1.", a, map.lines[a]->side1));
 			map.lines[a]->side1 = -1;
 		}
 
-		if (map.lines[a]->side2 > map.n_sides)
+		if (map.lines[a]->side2 > (double)map.n_sides)
 		{
 			console_print(parse_string("Line %d references invalid sidedef %d! Setting it to -1.", a, map.lines[a]->side2));
 			map.lines[a]->side2 = -1;

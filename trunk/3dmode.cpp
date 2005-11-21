@@ -215,7 +215,7 @@ void determine_hilight()
 				plane = sector_info[poly->parent_sector].f_plane;
 
 			float dist = dist_ray_plane(camera.position, direction, plane);
-			if (dist < min_dist && dist > 0.0f)
+			if (dist <= min_dist && dist > 0.0f)
 			{
 				point3_t intersection(camera.position.x + (direction.x * dist),
 								camera.position.y + (direction.y * dist),
@@ -655,6 +655,10 @@ void change_thing_z_3d(int amount)
 	{
 		if (things_3d[a] == hl_thing)
 		{
+			// Disallow changing z height of slope things for now
+			if (map.things[a]->type == 9500 || map.things[a]->type == 9501)
+				return;
+
 			map.things[a]->z += amount;
 			add_3d_message(parse_string("Z Height: %d", map.things[a]->z));
 		}
@@ -677,12 +681,27 @@ void auto_align_x_3d()
 
 void reset_offsets_3d()
 {
-	if (hl_wrect == NULL)
+	if (hl_wrect)
+	{
+		sidedef_t* side = map.l_getside(hl_wrect->line, hl_wrect->side);
+		side->x_offset = 0;
+		side->y_offset = 0;
+
+		setup_3d_line(hl_wrect->line);
+		add_3d_message("Offsets reset");
 		return;
+	}
 
-	sidedef_t* side = map.l_getside(hl_wrect->side, hl_wrect->side);
-	side->x_offset = 0;
-	side->y_offset = 0;
-
-	setup_3d_line(hl_wrect->line);
+	else if (hl_thing)
+	{
+		for (int a = 0; a < things_3d.size(); a++)
+		{
+			if (things_3d[a] == hl_thing)
+			{
+				map.things[a]->z = 0;
+				add_3d_message(parse_string("Z height reset", map.things[a]->z));
+				return;
+			}
+		}
+	}
 }

@@ -276,9 +276,9 @@ int main(int argc, char *argv[])
 	open_main_window();
 
 	// Setup gl font
-	font_list = glGenLists(256);
-	PangoFontDescription *font_desc = pango_font_description_from_string("Monospace 10");
-	gdk_gl_font_use_pango_font(font_desc, 0, 255, font_list);
+	//font_list = glGenLists(256);
+	//PangoFontDescription *font_desc = pango_font_description_from_string("Monospace 10");
+	//gdk_gl_font_use_pango_font(font_desc, 0, 255, font_list);
 
 	splash_hide();
 

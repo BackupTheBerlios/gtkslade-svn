@@ -385,6 +385,7 @@ void setup_3d_line(int line)
 
 void setup_slopes_3d(int sector)
 {
+	// Check lines
 	for (int a = 0; a < map.n_lines; a++)
 	{
 		if (sector != -1 &&
@@ -527,6 +528,110 @@ void setup_slopes_3d(int sector)
 			}
 		}
 	}
+
+	// Check things
+	for (int t = 0; t < map.n_things; t++)
+	{
+		// 'Slope floor to here' thing
+		if (map.things[t]->type == 9500)
+		{
+			// Get a list of lines with associated lineid
+			vector<int> list;
+			map.l_getfromid(map.things[t]->args[0], &list);
+
+			for (int a = 0; a < list.size(); a++)
+			{
+				int line = list[a];
+				point3_t p1, p2, p3;
+				float x, y, z;
+				int s;
+
+				if (determine_line_side(line, map.things[t]->x, map.things[t]->y))
+					s = map.l_getsector1(line);
+				else
+					s = map.l_getsector2(line);
+
+				if (sector != -1 && sector != s)
+					continue;
+
+				if (s != -1)
+				{
+					rect_t rect = map.l_getrect(line);
+
+					// Get line endpoints
+					x = rect.x1() * SCALE_3D;
+					y = rect.y1() * SCALE_3D;
+					z = plane_height(sector_info[s].f_plane, x, y);
+					p2.set(x, y, z);
+
+					x = rect.x2() * SCALE_3D;
+					y = rect.y2() * SCALE_3D;
+					z = plane_height(sector_info[s].f_plane, x, y);
+					p3.set(x, y, z);
+
+					// Get point to slope to
+					x = map.things[t]->x * SCALE_3D;
+					y = map.things[t]->y * SCALE_3D;
+					//sector = determine_sector(x / scale, y / scale);
+					z = p2.z + (map.things[t]->z * SCALE_3D);
+					p1.set(x, y, z);
+
+					sector_info[s].f_plane.from_triangle(p1, p2, p3);
+				}
+			}
+		}
+
+		// 'Slope ceiling to here' thing
+		if (map.things[t]->type == 9501)
+		{
+			// Get a list of lines with associated lineid
+			//numlist_t list;
+			vector<int> list;
+			map.l_getfromid(map.things[t]->args[0], &list);
+
+			for (int a = 0; a < list.size(); a++)
+			{
+				int line = list[a];
+				point3_t p1, p2, p3;
+				float x, y, z;
+				int s;
+
+				// Get line endpoints
+				if (determine_line_side(line, map.things[t]->x, map.things[t]->y))
+					s = map.l_getsector1(line);
+				else
+					s = map.l_getsector2(line);
+
+				if (sector != -1 && sector != s)
+					continue;
+
+				if (s != -1)
+				{
+					rect_t rect = map.l_getrect(line);
+
+					// Get line endpoints
+					x = rect.x1() * SCALE_3D;
+					y = rect.y1() * SCALE_3D;
+					z = plane_height(sector_info[s].c_plane, x, y);
+					p2.set(x, y, z);
+
+					x = rect.x2() * SCALE_3D;
+					y = rect.y2() * SCALE_3D;
+					z = plane_height(sector_info[s].c_plane, x, y);
+					p3.set(x, y, z);
+
+					// Get point to slope to
+					x = map.things[t]->x * SCALE_3D;
+					y = map.things[t]->y * SCALE_3D;
+					//sector = determine_sector(x / scale, y / scale);
+					z = (map.things[t]->z * SCALE_3D) - p2.z;
+					p1.set(x, y, z);
+
+					sector_info[s].c_plane.from_triangle(p1, p2, p3);
+				}
+			}
+		}
+	}
 }
 
 
@@ -544,7 +649,8 @@ void setup_specials_3d(int sector)
 		{
 			if (map.lines[a]->args[0] != 0)
 			{
-				vector<int> lines = map.l_getfromid(map.lines[a]->args[0]);
+				vector<int> lines;
+				map.l_getfromid(map.lines[a]->args[0], &lines);
 
 				for (int b = 0; b < lines.size(); b++)
 					lines_3d[b].alpha = map.lines[a]->args[1];
@@ -706,44 +812,40 @@ void setup_3d_things()
 
 void setup_3d_data()
 {
-	if (map_changed == 3)
+	if (map.changed & MC_NODE_REBUILD)
 	{
 		// Build gl nodes
 		splash("Building GL Nodes");
 		build_gl_nodes();
+
+		map.changed = (map.changed & ~MC_NODE_REBUILD);
 	}
 
-	if (map_changed < 2)
-		return;
-
-	while (wallrects.size() != 0)
-		delete wallrects[0];
-
-	// Init lines & ssector info
-	lines_3d.clear();
-	ssects_3d.clear();
-
-	// Init flats
-	for (int a = 0; a < flatpolys.size(); a++)
-		delete flatpolys[a];
-	flatpolys.clear();
-
-	// Init things
-	for (int a = 0; a < things_3d.size(); a++)
-		delete things_3d[a];
-	things_3d.clear();
-
-	// Init camera
-	camera.position_camera(0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
-	for (int a = 0; a < map.n_things; a++)
+	// Init lines
+	if (map.changed & MC_LINES)
 	{
-		if (map.things[a]->type == 1)
-		{
-			camera.position_camera(map.things[a]->x * SCALE_3D, map.things[a]->y * SCALE_3D, 0.0f,
-									1.0f, 0.0f, 0.0f,
-									0.0f, 0.0f, 1.0f);
-			break;
-		}
+		while (wallrects.size() != 0)
+			delete wallrects[0];
+
+		lines_3d.clear();
+	}
+
+	if (map.changed & MC_SSECTS)
+	{
+		ssects_3d.clear();
+
+		// Init flats
+		for (int a = 0; a < flatpolys.size(); a++)
+			delete flatpolys[a];
+		flatpolys.clear();
+	}
+
+	if (map.changed & MC_THINGS)
+	{
+		// Init things
+		for (int a = 0; a < things_3d.size(); a++)
+			delete things_3d[a];
+		things_3d.clear();
 	}
 
 	// Setup sectors
@@ -752,37 +854,49 @@ void setup_3d_data()
 	for (int a = 0; a < map.n_sectors; a++)
 		setup_sector(a);
 
-	// Test
-	//sector_info[0].f_plane.set(0.0f, 0.2f, 0.8f, -2.2f);
-
 	setup_slopes_3d();
 
-	// Setup walls
-	splash("Setup Walls");
-	for (int a = 0; a < map.n_lines; a++)
+	if (map.changed & MC_LINES)
 	{
-		if (a % 10 == 0)
-			splash_progress((double)a / (double)map.n_lines);
+		// Setup walls
+		splash("Setup Walls");
+		for (int a = 0; a < map.n_lines; a++)
+		{
+			if (a % 10 == 0)
+				splash_progress((double)a / (double)map.n_lines);
 
-		setup_3d_line(a);
+			setup_3d_line(a);
+		}
+
+		map.changed = (map.changed & ~MC_LINES);
 	}
-	//printf("%d / %d\n", lines_3d.size(), map.n_lines);
 
-	// Setup subsectors
-	splash("Setup Flats");
-	for (int a = 0; a < n_gl_ssects; a++)
+	if (map.changed & MC_SSECTS)
 	{
-		if (a % 10 == 0)
-			splash_progress((double)a / (double)n_gl_ssects);
+		// Setup subsectors
+		splash("Setup Flats");
+		for (int a = 0; a < n_gl_ssects; a++)
+		{
+			if (a % 10 == 0)
+				splash_progress((double)a / (double)n_gl_ssects);
 
-		setup_ssector(a);
+			setup_ssector(a);
+		}
+
+		map.changed = (map.changed & ~MC_SSECTS);
 	}
 
 	// Setup specials
 	setup_specials_3d();
 
-	// Setup things
-	setup_3d_things();
+	if (map.changed & MC_THINGS)
+	{
+		// Setup things
+		splash("Setup Things");
+		setup_3d_things();
+
+		map.changed = (map.changed & ~MC_THINGS);
+	}
 
 	splash_hide();
 

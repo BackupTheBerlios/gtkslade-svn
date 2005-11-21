@@ -20,7 +20,7 @@ int				cur_game = 0;
 vector<string>	recent_wads;
 
 CVAR(String, game_config, "Doom 2", CVAR_SAVE)
-CVAR(Int, n_recent_wads, 4, CVAR_SAVE)
+CVAR(Int, n_recent_wads, 6, CVAR_SAVE)
 
 // External Variables -------------------- >>
 extern WadList wads;
@@ -261,6 +261,7 @@ void begin_mapedit()
 
 	game_changed = false;
 	allow_tex_load = true;
+	map.changed = MC_NODE_REBUILD|MC_LINES|MC_SSECTS|MC_THINGS;
 
 	splash_hide();
 }
@@ -495,7 +496,7 @@ void setup_map_list(GtkWidget *box)
 void setup_main_window()
 {
 	wad_manager_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	gtk_window_set_title(GTK_WINDOW(wad_manager_window), "SLADE");
+	gtk_window_set_title(GTK_WINDOW(wad_manager_window), "SLADE Wad Manager");
 	g_signal_connect(G_OBJECT(wad_manager_window), "delete-event", G_CALLBACK(gtk_widget_hide_on_delete), NULL);
 	//gtk_widget_hide_on_delete(wad_manager_window);
 	gtk_widget_set_size_request(wad_manager_window, 512, 384);

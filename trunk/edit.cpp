@@ -8,6 +8,8 @@
 #include "info_bar.h"
 #include "struct_3d.h"
 #include "mathstuff.h"
+#include "camera.h"
+#include "render.h"
 
 // VARIABLES ----------------------------- >>
 float	zoom = 16;			// Zoom level (pixels per 32 map units)
@@ -45,6 +47,7 @@ rgba_t	col_line_special(100, 115, 180, 255);
 extern int vid_width, vid_height;
 extern Map map;
 extern point2_t mouse;
+extern Camera camera;
 
 // increase_grid: Increases the grid size
 // ----------------------------------- >>
@@ -638,9 +641,11 @@ void line_flip(bool verts, bool sides)
 	}
 
 	if (verts)
-		map_changelevel(3);
+		map.change_level(MC_NODE_REBUILD);
+		//map_changelevel(3);
 	else
-		map_changelevel(2);
+		map.change_level(MC_LINES);
+		//map_changelevel(2);
 }
 
 // sector_changeheight: Changes floor/ceiling height of hilighted or selected sector(s)
@@ -664,7 +669,8 @@ void sector_changeheight(bool floor, int amount)
 	if (hilight_item != -1)
 		update_sector_info_bar(hilight_item);
 
-	map_changelevel(2);
+	//map_changelevel(2);
+	map.change_level(MC_LINES|MC_SSECTS);
 }
 
 // delete_vertex: Deletes the currently hilighted vertex or all selected vertices
@@ -693,7 +699,8 @@ void delete_vertex()
 
 	hilight_item = -1;
 	//remove_free_verts();
-	map_changelevel(3);
+	//map_changelevel(3);
+	map.change_level(MC_NODE_REBUILD);
 }
 
 // delete_line: Deletes the currently hilighted line or all selected lines
@@ -722,7 +729,8 @@ void delete_line()
 
 	hilight_item = -1;
 	remove_free_verts();
-	map_changelevel(3);
+	//map_changelevel(3);
+	map.change_level(MC_NODE_REBUILD);
 }
 
 // delete_thing: Deletes the currently hilighted thing or all selected things
@@ -750,7 +758,8 @@ void delete_thing()
 	}
 
 	hilight_item = -1;
-	map_changelevel(2);
+	//map_changelevel(2);
+	map.change_level(MC_THINGS);
 }
 
 // delete_sector: Deletes the currently hilighted sector or all selected sectors
@@ -778,7 +787,8 @@ void delete_sector()
 	}
 
 	hilight_item = -1;
-	map_changelevel(3);
+	//map_changelevel(3);
+	map.change_level(MC_NODE_REBUILD);
 }
 
 // map_changelevel: Sets the map_changed variable, ignores the change if not applicable
@@ -814,7 +824,8 @@ void create_vertex()
 	else
 		return;
 
-	map_changelevel(2);
+	//map_changelevel(2);
+	map.change_level(MC_LINES);
 }
 
 // create_lines: Creates lines between vertices in the select_order array
@@ -862,7 +873,8 @@ void create_lines(bool close)
 
 	lines.clear();
 
-	map_changelevel(3);
+	//map_changelevel(3);
+	map.change_level(MC_NODE_REBUILD);
 }
 
 // create_sector: Creates a sector out of selected lines
@@ -900,7 +912,8 @@ void create_sector()
 	clear_selection();
 	selected_items.push_back(sector);
 	edit_mode = 2;
-	map_changelevel(3);
+	//map_changelevel(3);
+	map.change_level(MC_NODE_REBUILD);
 }
 
 // create_thing: Creates a thing at the mouse pointer, with properties taken from the last thing edited
@@ -910,7 +923,8 @@ void create_thing()
 	make_backup(false, false, false, false, true);
 	map.add_thing(snap_to_grid(m_x(mouse.x)), snap_to_grid(-m_y(mouse.y)), last_thing);
 	map.things[map.n_things - 1]->ttype = get_thing_type(last_thing.type);
-	map_changelevel(2);
+	//map_changelevel(2);
+	map.change_level(MC_THINGS);
 }
 
 // check_vertex_split: Checks if a vertex is close enough to a line to split it
@@ -967,7 +981,8 @@ void merge_verts()
 	for (DWORD v = 0; v < map.n_verts; v++)
 		map.v_mergespot(map.verts[v]->x, map.verts[v]->y);
 
-	map_changelevel(3);
+	//map_changelevel(3);
+	map.change_level(MC_NODE_REBUILD);
 	//remove_free_verts();
 }
 
@@ -1058,7 +1073,8 @@ void merge_overlapping_lines(vector<int> lines)
 		}
 	}
 
-	map_changelevel(3);
+	map.change_level(MC_NODE_REBUILD);
+	//map_changelevel(3);
 }
 
 void change_edit_mode(int mode)
@@ -1098,7 +1114,6 @@ void init_map()
 	yoff = (min_y + ((max_y - min_y) / 2)) / MAJOR_UNIT;
 
 	// Init camera
-	/*
 	point3_t pos;
 	point3_t view;
 	pos.z = 0.0f;
@@ -1107,13 +1122,13 @@ void init_map()
 	{
 		if (map.things[t]->type == 1)
 		{
-			pos.x = map.things[t]->x * scale;
-			pos.y = map.things[t]->y * scale;
+			pos.x = map.things[t]->x * SCALE_3D;
+			pos.y = map.things[t]->y * SCALE_3D;
 
 			int sector = determine_sector(map.things[t]->x, map.things[t]->y);
 			
 			if (sector != -1)
-				pos.z = (map.sectors[sector]->f_height + 40) * scale;
+				pos.z = (map.sectors[sector]->f_height + 40) * SCALE_3D;
 
 			if (map.things[t]->angle == 0)			// east
 				view.set(1.0f, 0.0f, 0.0f);
@@ -1138,8 +1153,8 @@ void init_map()
 	
 	camera.position.set(pos);
 	camera.view.set(pos + view);
-	map_changelevel(3);
-	*/
+	//map_changelevel(3);
+	map.change_level(255);
 }
 
 // get_angle: Gets a doom thing angle from two points

@@ -13,6 +13,13 @@
 #define	MAP_HEXEN	0x02
 #define MAP_ZDOOM	0x04
 
+#define MC_SAVE_NEEDED	0x01
+#define MC_NODE_REBUILD	0x02
+#define MC_LINES		0x04
+#define MC_SSECTS		0x08
+#define MC_SECTORS		0x10
+#define MC_THINGS		0x20
+
 class Map
 {
 public:
@@ -26,6 +33,7 @@ public:
 	Lump		*behavior;
 
 	bool	opened;
+	BYTE	changed;
 
 	bool	hexen;	// Hexen format?
 	bool	zdoom;	// ZDoom extras?
@@ -88,7 +96,8 @@ public:
 
 	int			l_getindex(linedef_t* line);
 
-	vector<int>	l_getfromid(int line_id);
+	//vector<int>	l_getfromid(int line_id);
+	void		l_getfromid(int line_id, vector<int> *vec);
 
 	// Get/set vertex properties
 	point2_t	v_getpoint(int v)	{ return point2_t(verts[v]->x, verts[v]->y);			}
@@ -130,6 +139,9 @@ public:
 	// Save
 	//void save_as(string filename, string mapname);
 	void add_to_wad(Wad* wadfile);
+
+	// Misc
+	void change_level(BYTE flags);
 };
 
 #define SELECTED(index) selected_items.exists(index)

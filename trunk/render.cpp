@@ -269,7 +269,7 @@ void render_3d_things(bool boxes)
 			else
 				f = plane_height(sector_info[sector].f_plane, x, y);
 
-			if (map.hexen)
+			if (map.hexen && map.things[a]->type != 9500 && map.things[a]->type != 9501)
 				f += (map.things[a]->z * SCALE_3D);
 
 			float x1 = x - camera.strafe.x * r;
@@ -284,17 +284,18 @@ void render_3d_things(bool boxes)
 				glCullFace(GL_FRONT);
 
 				// Bind texture
-				glBindTexture(GL_TEXTURE_2D, things_3d[a]->sprite->get_gl_id());
+				Texture* tex = things_3d[a]->sprite;
+				glBindTexture(GL_TEXTURE_2D, tex->get_gl_id());
 
 				// Draw sprite
 				glBegin(GL_QUADS);
 				glTexCoord2f(0.0f, 0.0f);
 				glVertex3f(x1, y1, f + h);
-				glTexCoord2f(1.0f, 0.0f);
+				glTexCoord2f(tex->t_x, 0.0f);
 				glVertex3f(x2, y2, f + h);
-				glTexCoord2f(1.0f, 1.0f);
+				glTexCoord2f(tex->t_x, tex->t_y);
 				glVertex3f(x2, y2, f);
-				glTexCoord2f(0.0f, 1.0f);
+				glTexCoord2f(0.0f, tex->t_y);
 				glVertex3f(x1, y1, f);
 				glEnd();
 
@@ -659,7 +660,7 @@ void render_3d_view()
 
 		draw_text(0, a*10, rgba_t(255, 255, 255, al), 0, messages_3d[a].message.c_str());
 
-		messages_3d[a].fade -= 10;
+		messages_3d[a].fade -= 7;
 	}
 
 	// Test info

@@ -260,7 +260,7 @@ void clear_move_items()
 	{
 		for (DWORD v = 0; v < map.n_verts; v++)
 		{
-			if (/*!selection() && */MOVING(v))
+			if (MOVING(v))
 			{
 				int split_line = check_vertex_split(v);
 				
@@ -273,11 +273,7 @@ void clear_move_items()
 					merge = true;
 				}
 			}
-
-			//map.verts[v]->moving = false;
 		}
-
-		map_changelevel(3);
 	}
 	
 	// Lines
@@ -290,7 +286,6 @@ void clear_move_items()
 		{
 			if (MOVING(map.lines[l]->vertex1) && MOVING(map.lines[l]->vertex2))
 				vector_add_nodup(moving_lines, l);
-				//moving_lines.add(l, true);
 		}
 
 		// Split any lines that need splitting
@@ -317,38 +312,18 @@ void clear_move_items()
 			make_backup(true, true, false, false, false);
 			merge_overlapping_lines(moving_lines);
 		}
-
-		//for (DWORD l = 0; l < map.n_lines; l++)
-			//map.lines[l]->moving = false;
-
-		map_changelevel(3);
 	}
 	
-	// Sectors
-	if (edit_mode == 2)
+	if (edit_mode != 3)
 	{
-		//for (DWORD s = 0; s < map.n_sectors; s++)
-			//map.sectors[s]->moving = false;
+		// Remove any free vertices or zerolength lines
+		merge_verts();
+		remove_zerolength_lines();
 
-		map_changelevel(3);
-	}
-	
-	// Things
-	if (edit_mode == 3)
-	{
-		//for (DWORD t = 0; t < map.n_things; t++)
-			//map.things[t]->moving = false;
-
-		map_changelevel(3);
+		if (edit_mode != 0)
+			remove_free_verts();
 	}
 
-	// Remove any free vertices or zerolength lines
-	merge_verts();
-	remove_zerolength_lines();
-
-	if (edit_mode != 0)
-		remove_free_verts();
-	
 	move_list.clear();
 }
 
@@ -365,7 +340,7 @@ void move_items()
 			{
 				map.verts[v]->x = move_list.get_x(v, m_x(mouse.x));
 				map.verts[v]->y = -move_list.get_y(v, m_y(mouse.y));
-				map_changelevel(2);
+				map.change_level(MC_NODE_REBUILD);
 			}
 		}
 	}
@@ -380,7 +355,7 @@ void move_items()
 				map.things[t]->x = move_list.get_x(t, m_x(mouse.x));
 				map.things[t]->y = -move_list.get_y(t, m_y(mouse.y));
 
-				map_changelevel(1);
+				map.change_level(MC_THINGS);
 			}
 		}
 	}

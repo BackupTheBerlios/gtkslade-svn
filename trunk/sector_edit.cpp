@@ -441,7 +441,10 @@ void open_sector_edit()
 	int response = gtk_dialog_run(GTK_DIALOG(dialog));
 
 	if (response == GTK_RESPONSE_ACCEPT)
+	{
 		apply_sector_edit();
+		map.change_level(MC_SSECTS|MC_LINES);
+	}
 
 	gtk_widget_destroy(dialog);
 	gtk_window_present(GTK_WINDOW(editor_window));

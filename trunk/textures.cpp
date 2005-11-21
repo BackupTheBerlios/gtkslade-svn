@@ -38,6 +38,8 @@ Texture::Texture()
 	this->bpp = 8;
 	this->gl_tex_generated = false;
 	this->gl_filter = tex_filter;
+	this->t_x = 1.0f;
+	this->t_y = 1.0f;
 	//this->gl_id = 0;
 }
 
@@ -50,7 +52,7 @@ Texture::~Texture()
 		glDeleteTextures(1, &gl_id);
 }
 
-void Texture::setup(string name, BYTE bpp, int width, int height, bool has_alpha)
+void Texture::setup(string name, BYTE bpp, int width, int height, bool has_alpha, bool sprite)
 {
 		this->width = width;
 		this->height = height;
@@ -59,6 +61,7 @@ void Texture::setup(string name, BYTE bpp, int width, int height, bool has_alpha
 		this->bpp = bpp;
 		this->name = name;
 		this->has_alpha = has_alpha;
+		this->sprite = sprite;
 
 		/*
 		if (data)
@@ -198,7 +201,18 @@ GLuint Texture::get_gl_id()
 					destroy_pb, NULL);
 
 				// Create a new, resized pixbuf
-				GdkPixbuf *pb2 = gdk_pixbuf_scale_simple(pbuf, nwidth, nheight, GDK_INTERP_BILINEAR);
+				GdkPixbuf *pb2;
+				
+				if (!sprite)
+					pb2 = gdk_pixbuf_scale_simple(pbuf, nwidth, nheight, GDK_INTERP_BILINEAR);
+				else
+				{
+					pb2 = gdk_pixbuf_new(GDK_COLORSPACE_RGB, true, 8, nwidth, nheight);
+					gdk_pixbuf_fill(pb2, 0);
+					gdk_pixbuf_copy_area(pbuf, 0, 0, width, height, pb2, 0, 0);
+					t_x = (float)width / (float)nwidth;
+					t_y = (float)height / (float)nheight;
+				}
 				g_object_unref(pbuf);
 				temp = NULL;
 
@@ -238,7 +252,7 @@ GLuint Texture::get_gl_id()
 			glGenTextures(1, &gl_id);
 			glBindTexture(GL_TEXTURE_2D, gl_id);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, rwidth, rheight, GL_RGBA, GL_UNSIGNED_BYTE, temp);
 		}
 
@@ -866,7 +880,7 @@ void load_sprite(Wad* wad, string name)
 	if (tex->name == "_notex")
 	{
 		tex = new Texture();
-		tex->setup(patch->Name(), 8, header.width, header.height);
+		tex->setup(patch->Name(), 8, header.width, header.height, true, true);
 		sprites.push_back(tex);
 	}
 
@@ -997,8 +1011,11 @@ void load_tx_textures()
 
 			while (!done)
 			{
-				double prog = float(lump - wad->tx[START]) / float(end - wad->tx[START]);
-				splash_progress(prog);
+				if ((lump - wad->tx[START]) % 10)
+				{
+					double prog = float(lump - wad->tx[START]) / float(end - wad->tx[START]);
+					splash_progress(prog);
+				}
 
 				load_tx_texture(wad, lump);
 				lump++;

@@ -10,16 +10,18 @@ private:
 	GLuint		gl_id;
 	WORD		rwidth;
 	WORD		rheight;
+	bool		sprite;
 
 public:
 	WORD		width;
 	WORD		height;
 	string		name;
+	float		t_x, t_y;
 
 	Texture();
 	~Texture();
 
-	void setup(string name, BYTE bpp, int width, int height, bool has_alpha = true);
+	void setup(string name, BYTE bpp, int width, int height, bool has_alpha = true, bool sprite = false);
 
 	bool load_file(string name, string filename, int filter = 2);
 

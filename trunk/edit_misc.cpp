@@ -49,7 +49,8 @@ void sector_create_stairs(int floor_step, int ceil_step)
 		map.sectors[selected_items[a]]->c_height = height;
 	}
 
-	map_changelevel(2);
+	//map_changelevel(2);
+	map.change_level(MC_SSECTS|MC_LINES);
 }
 
 // sector_create_door: Creates a door from any selected sectors
@@ -114,7 +115,8 @@ void sector_create_door(string texture)
 	}
 
 	force_map_redraw(true, false);
-	map_changelevel(2);
+	map.change_level(MC_SSECTS|MC_LINES);
+	//map_changelevel(2);
 }
 
 // sector_merge: Merges selected sectors to the first selected sector
@@ -147,7 +149,8 @@ void sector_merge(bool remove_lines)
 
 	selected_items.clear();
 	force_map_redraw(true, false);
-	map_changelevel(3);
+	//map_changelevel(3);
+	map.change_level(MC_NODE_REBUILD);
 }
 
 // LINES
@@ -180,7 +183,8 @@ void line_extrude(int amount)
 	}
 
 	selected_items.clear();
-	map_changelevel(3);
+	//map_changelevel(3);
+	map.change_level(MC_NODE_REBUILD);
 	force_map_redraw(true, false);
 }
 

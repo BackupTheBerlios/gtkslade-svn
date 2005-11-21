@@ -433,6 +433,7 @@ void open_line_edit()
 	{
 		apply_line_edit();
 		apply_side_edit();
+		map.change_level(MC_LINES);
 		force_map_redraw(true, false);
 	}
 

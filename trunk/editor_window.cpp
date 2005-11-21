@@ -176,6 +176,7 @@ gboolean configure_event(GtkWidget *widget, GdkEventConfigure *event)
 	init_opengl();
 	update_map();
 	update_grid();
+	render_map();
 
 	gdk_gl_drawable_gl_end (gldrawable);
 
@@ -201,9 +202,6 @@ static gboolean motion_notify_event(GtkWidget *widget, GdkEventMotion *event)
 		y = event->y;
 		state = (GdkModifierType)(event->state);
 	}
-
-	//if (state & GDK_BUTTON1_MASK && pixmap != NULL)
-		//draw_brush (widget, x, y);
 
 	mouse.set(x, y);
 
@@ -235,8 +233,9 @@ static gboolean motion_notify_event(GtkWidget *widget, GdkEventMotion *event)
 	else
 	{
 		if (line_draw)
-			force_map_redraw();
-		else if (!thing_quickangle)
+			redraw_map = true;
+
+		if (!thing_quickangle)
 		{
 			int old_hilight = hilight_item;
 			get_hilight_item(x, y);
@@ -259,46 +258,52 @@ static gboolean button_press_event(GtkWidget *widget, GdkEventButton *event)
 	bool redraw_map = false;
 	bool update_map = false;
 
-	if (event->button == 1)
+	// Single click
+	if (event->type == GDK_BUTTON_PRESS)
 	{
-		if (event->state & GDK_SHIFT_MASK)
-			sel_box.set(event->x, event->y, event->x, event->y);
-		else
+		if (event->button == 1)
+		{
+			if (event->state & GDK_SHIFT_MASK)
+				sel_box.set(event->x, event->y, event->x, event->y);
+			else
+			{
+				if (line_draw)
+				{
+					line_drawpoint();
+					redraw_map = true;
+				}
+				else
+				{
+					select_item();
+					redraw_map = true;
+					update_map = true;
+				}
+			}
+		}
+
+		if (event->button == 3)
 		{
 			if (line_draw)
 			{
-				line_drawpoint();
+				line_undrawpoint();
 				redraw_map = true;
-			}
-			else
-			{
-				select_item();
-				redraw_map = true;
-				update_map = true;
-			}
-		}
-	}
-
-	if (event->button == 3)
-	{
-		if (line_draw)
-		{
-			line_undrawpoint();
-			redraw_map = true;
-		}
-		else
-		{
-			if (event->type == GDK_2BUTTON_PRESS)
-			{
-				clear_move_items();
-				edit_item();
-				redraw_map = update_map = true;
 			}
 			else
 			{
 				add_move_items();
 				redraw_map = update_map = true;
 			}
+		}
+	}
+
+	// Double click
+	if (event->type == GDK_2BUTTON_PRESS)
+	{
+		if (event->button == 3)
+		{
+			edit_item();
+			clear_move_items();
+			redraw_map = update_map = true;
 		}
 	}
 
@@ -390,9 +395,19 @@ gboolean key_release_event(GtkWidget *widget, GdkEventKey *event, gpointer data)
 
 // destroy: Called when the editor window is closed
 // --------------------------------------------- >>
-static void destroy(GtkWidget *widget, gpointer data)
+static gboolean destroy(GtkWidget *widget, gpointer data)
 {
+	gtk_widget_show_all(editor_window);
+
+	if (map.changed & MC_SAVE_NEEDED)
+	{
+		if (!yesno_box("There are unsaved changes, are you sure you want to exit?"))
+			return true;
+	}
+
     gtk_main_quit();
+
+	return false;
 }
 
 // MENU STUFF
@@ -427,6 +442,19 @@ void file_saveas()
 	}
 
 	gtk_widget_destroy(dialog);
+}
+
+void file_close()
+{
+	if (map.changed & MC_SAVE_NEEDED)
+	{
+		if (!yesno_box("There are unsaved changes, are you sure you want to close the map?"))
+			return;
+	}
+
+	map.close();
+	force_map_redraw(true, true);
+	gtk_window_set_title(GTK_WINDOW(editor_window), "SLADE");
 }
 
 void edit_create_stairs()
@@ -494,11 +522,7 @@ static void menu_action(GtkAction *action)
 	else if (act == "Exit")
 		gtk_main_quit();
 	else if (act == "Close")
-	{
-		map.close();
-		force_map_redraw(true, true);
-		gtk_window_set_title(GTK_WINDOW(editor_window), "SLADE");
-	}
+		file_close();
 	else if (act == "ModeVerts")
 		change_edit_mode(0);
 	else if (act == "ModeLines")
@@ -775,7 +799,7 @@ void setup_editor_window()
 	g_signal_connect(G_OBJECT(editor_window), "key-press-event", G_CALLBACK(key_press_event), NULL);
 	g_signal_connect(G_OBJECT(editor_window), "key-release-event", G_CALLBACK(key_release_event), NULL);
 	g_signal_connect_after(G_OBJECT(map_area), "realize", G_CALLBACK (realize_main), NULL);
-	g_signal_connect(G_OBJECT(editor_window), "destroy", G_CALLBACK(destroy), NULL);
+	g_signal_connect(G_OBJECT(editor_window), "delete_event", G_CALLBACK(destroy), NULL);
 	gtk_box_pack_start(GTK_BOX(main_vbox), map_area, true, true, 0);
 
 	// Setup widgets that need to share the context
