@@ -1282,12 +1282,6 @@ void Map::add_to_wad(Wad *wadfile)
 		wadfile->replace_lump("SCRIPTS", this->scripts->Size(), this->scripts->Data(), mapindex);
 		wadfile->replace_lump("BEHAVIOR", this->behavior->Size(), this->behavior->Data(), mapindex);
 	}
-
-	changed = (changed & ~MC_SAVE_NEEDED);
-	string title = gtk_window_get_title(GTK_WINDOW(editor_window));
-	if (g_str_has_suffix(title.c_str(), "*"))
-		title.erase(title.size() - 1, 1);
-	gtk_window_set_title(GTK_WINDOW(editor_window), title.c_str());
 }
 
 void Map::l_flip(int l)

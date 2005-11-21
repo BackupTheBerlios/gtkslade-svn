@@ -428,6 +428,12 @@ void file_save()
 {
 	map.add_to_wad(edit_wad);
 	edit_wad->save(true);
+
+	map.changed = (map.changed & ~MC_SAVE_NEEDED);
+	string title = gtk_window_get_title(GTK_WINDOW(editor_window));
+	if (g_str_has_suffix(title.c_str(), "*"))
+		title.erase(title.size() - 1, 1);
+	gtk_window_set_title(GTK_WINDOW(editor_window), title.c_str());
 }
 
 void file_saveas()
@@ -452,6 +458,12 @@ void file_saveas()
 		edit_wad->save(true);
 		gtk_window_set_title(GTK_WINDOW(editor_window), parse_string("SLADE (%s, %s)", edit_wad->path.c_str(), map.name.c_str()).c_str());
 		add_recent_wad(filename);
+
+		map.changed = (map.changed & ~MC_SAVE_NEEDED);
+		string title = gtk_window_get_title(GTK_WINDOW(editor_window));
+		if (g_str_has_suffix(title.c_str(), "*"))
+			title.erase(title.size() - 1, 1);
+		gtk_window_set_title(GTK_WINDOW(editor_window), title.c_str());
 	}
 
 	gtk_widget_destroy(dialog);

@@ -900,5 +900,5 @@ void setup_3d_data()
 
 	splash_hide();
 
-	map_changed = 1;
+	//map_changed = 1;
 }
