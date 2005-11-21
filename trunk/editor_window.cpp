@@ -42,6 +42,7 @@ int vid_width;
 int vid_height;
 
 bool thing_quickangle = false;
+bool items_moving = false;
 
 // External Variables --------------------- >>
 extern Map map;
@@ -207,9 +208,18 @@ static gboolean motion_notify_event(GtkWidget *widget, GdkEventMotion *event)
 
 	if (state & GDK_BUTTON3_MASK)
 	{
-		move_items();
-		redraw_map = true;
-		update_map = true;
+		if (items_moving)
+		{
+			move_items();
+			redraw_map = true;
+			update_map = true;
+		}
+		else
+		{
+			add_move_items();
+			items_moving = true;
+			redraw_map = update_map = true;
+		}
 	}
 
 	if (state & GDK_BUTTON2_MASK)
@@ -288,11 +298,13 @@ static gboolean button_press_event(GtkWidget *widget, GdkEventButton *event)
 				line_undrawpoint();
 				redraw_map = true;
 			}
+			/*
 			else
 			{
 				add_move_items();
 				redraw_map = update_map = true;
 			}
+			*/
 		}
 	}
 
@@ -335,6 +347,7 @@ static gboolean button_release_event(GtkWidget *widget, GdkEventButton *event)
 		if (!line_draw)
 		{
 			clear_move_items();
+			items_moving = false;
 			redraw_map = update_map = true;
 		}
 	}
@@ -579,6 +592,8 @@ static void menu_action(GtkAction *action)
 		check_textures();
 	else if (act == "AlignX")
 		line_align_x();
+	else if (act == "CorrectRefs")
+		line_correct_references();
 	else
 		message_box("Menu action not implemented", GTK_MESSAGE_INFO);
 }
@@ -610,6 +625,8 @@ static GtkActionEntry entries[] = {
 	// Line edit menu
 	{ "AlignX", NULL, "Align Textures _X", NULL, "Align selected wall textures along the x axis", G_CALLBACK(menu_action) },
 	{ "AlignY", NULL, "Align Textures _Y", NULL, "Align selected wall textures along the y axis", G_CALLBACK(menu_action) },
+	{ "CorrectRefs", NULL, "_Correct Sector References", NULL,
+	  "Attempts to set the correct sector references for the line", G_CALLBACK(menu_action) },
 
 	// Sector edit menu
 	{ "MergeSectors", NULL, "_Merge Sectors", NULL, "Merge selected sectors", G_CALLBACK(menu_action) },
@@ -667,6 +684,7 @@ static const gchar *ui_info =
 "   <menu action='EditMenu'>"
 "    <menu action='EditLineMenu'>"
 "     <menuitem action='AlignX'/>"
+"     <menuitem action='CorrectRefs'/>"
 //"     <menuitem action='AlignY'/>"
 "    </menu>"
 "    <menu action='EditSectorMenu'>"

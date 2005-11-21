@@ -10,6 +10,9 @@ Goes in bottom-up order
 ': Note
 
 [21/11/05]
+~ Right clicking no longer begins an item move (it doesn't start until the mouse is moved while right click is held)
++ Added 'Correct Sector References' to the edit->line menu
++ Added 3d mode options to the preferences dialog
 ~ Sprites are no longer 'stretched' when allow_np2_tex is off
 + Added exit/close confirmation when there are unsaved changes
 ~ Changed how map changes are handled (now moving a thing doesn't require the gl nodes to be rebuilt etc etc)

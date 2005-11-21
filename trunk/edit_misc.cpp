@@ -21,6 +21,7 @@
 extern Map map;
 extern vector<int> selected_items;
 extern int edit_mode;
+extern int hilight_item;
 
 // SECTORS
 
@@ -208,6 +209,32 @@ void line_align_x()
 
 void line_align_y()
 {
+}
+
+void line_correct_references()
+{
+	if (edit_mode != 1)
+		return;
+
+	if (selected_items.size() == 0 && hilight_item != -1)
+	{
+		if (map.l_getside(hilight_item, 1))
+			map.l_getside(hilight_item, 1)->sector = get_side_sector(hilight_item, 1);
+
+		if (map.l_getside(hilight_item, 2))
+			map.l_getside(hilight_item, 2)->sector = get_side_sector(hilight_item, 2);
+	}
+	else if (selected_items.size() > 0)
+	{
+		for (int a = 0; a < selected_items.size(); a++)
+		{
+			if (map.l_getside(selected_items[a], 1))
+				map.l_getside(selected_items[a], 1)->sector = get_side_sector(selected_items[a], 1);
+
+			if (map.l_getside(selected_items[a], 2))
+				map.l_getside(selected_items[a], 2)->sector = get_side_sector(selected_items[a], 2);
+		}
+	}
 }
 
 void line_auto_align_x(int line, int offset, int side, string tex, int texwidth, vector<int> *processed_lines)

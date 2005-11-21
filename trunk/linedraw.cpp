@@ -176,6 +176,11 @@ bool check_split(int split_sector)
 	return false;
 }
 
+void check_lines_twosided()
+{
+	
+}
+
 // end_linedraw: Finishes a line drawing session, builds lines/vertices/sectors
 // ------------------------------------------------------------------------- >>
 void end_linedraw()
@@ -482,6 +487,17 @@ void end_linedraw()
 								}
 							}
 						}
+					}
+				}
+
+				// Check for any new non-twosided lines that have the 2s flag
+				for (DWORD l = 0; l < ldraw_lines.n_numbers; l++)
+				{
+					int a = ldraw_lines.numbers[l];
+					if (map.lines[a]->flags & LINE_TWOSIDED)
+					{
+						if (map.lines[a]->side2 == -1)
+							map.lines[a]->clear_flag(LINE_TWOSIDED);
 					}
 				}
 			}

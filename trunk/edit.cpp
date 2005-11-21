@@ -1114,8 +1114,8 @@ void init_map()
 	yoff = (min_y + ((max_y - min_y) / 2)) / MAJOR_UNIT;
 
 	// Init camera
-	point3_t pos;
-	point3_t view;
+	point3_t pos(0.0f, 0.0f, 0.0f);
+	point3_t view(0.0f, 1.0f, 0.0f);
 	pos.z = 0.0f;
 
 	for (int t = 0; t < map.n_things; t++)

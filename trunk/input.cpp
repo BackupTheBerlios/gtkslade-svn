@@ -25,6 +25,7 @@
 
 CVAR(Float, move_speed_3d, 0.3f, CVAR_SAVE)
 CVAR(Float, mouse_speed_3d, 1.0f, CVAR_SAVE)
+CVAR(Int, key_delay_3d, 7, CVAR_SAVE)
 
 // External Variables --------------------- >>
 extern BindList binds;
@@ -419,7 +420,7 @@ void keys_edit()
 	}
 }
 
-#define KEY_3D_DELAY 7
+//#define KEY_3D_DELAY 7
 int key_3d_rep = 0;
 
 bool keys_3d()
@@ -492,128 +493,128 @@ bool keys_3d()
 	if (binds.pressed("3d_upfloor8") && key_3d_allow)
 	{
 		change_sector_height_3d(8);
-		key_3d_rep = KEY_3D_DELAY;
+		key_3d_rep = key_delay_3d;
 	}
 
 	if (binds.pressed("3d_downfloor8") && key_3d_allow)
 	{
 		change_sector_height_3d(-8);
-		key_3d_rep = KEY_3D_DELAY;
+		key_3d_rep = key_delay_3d;
 	}
 
 	if (binds.pressed("3d_upceil8") && key_3d_allow)
 	{
 		change_sector_height_3d(8, false);
-		key_3d_rep = KEY_3D_DELAY;
+		key_3d_rep = key_delay_3d;
 	}
 
 	if (binds.pressed("3d_downceil8") && key_3d_allow)
 	{
 		change_sector_height_3d(-8, false);
-		key_3d_rep = KEY_3D_DELAY;
+		key_3d_rep = key_delay_3d;
 	}
 
 	if (binds.pressed("3d_upboth8") && key_3d_allow)
 	{
 		change_sector_height_3d(8);
 		change_sector_height_3d(8, false);
-		key_3d_rep = KEY_3D_DELAY;
+		key_3d_rep = key_delay_3d;
 	}
 
 	if (binds.pressed("3d_downboth8") && key_3d_allow)
 	{
 		change_sector_height_3d(-8);
 		change_sector_height_3d(-8, false);
-		key_3d_rep = KEY_3D_DELAY;
+		key_3d_rep = key_delay_3d;
 	}
 
 	// Sector height quick changes (1 unit)
 	if (binds.pressed("3d_upfloor") && key_3d_allow)
 	{
 		change_sector_height_3d(1);
-		key_3d_rep = KEY_3D_DELAY;
+		key_3d_rep = key_delay_3d;
 	}
 
 	if (binds.pressed("3d_downfloor") && key_3d_allow)
 	{
 		change_sector_height_3d(-1);
-		key_3d_rep = KEY_3D_DELAY;
+		key_3d_rep = key_delay_3d;
 	}
 
 	if (binds.pressed("3d_upceil") && key_3d_allow)
 	{
 		change_sector_height_3d(1, false);
-		key_3d_rep = KEY_3D_DELAY;
+		key_3d_rep = key_delay_3d;
 	}
 
 	if (binds.pressed("3d_downceil") && key_3d_allow)
 	{
 		change_sector_height_3d(-1, false);
-		key_3d_rep = KEY_3D_DELAY;
+		key_3d_rep = key_delay_3d;
 	}
 
 	if (binds.pressed("3d_upboth") && key_3d_allow)
 	{
 		change_sector_height_3d(1);
 		change_sector_height_3d(1, false);
-		key_3d_rep = KEY_3D_DELAY;
+		key_3d_rep = key_delay_3d;
 	}
 
 	if (binds.pressed("3d_downboth") && key_3d_allow)
 	{
 		change_sector_height_3d(-1);
 		change_sector_height_3d(-1, false);
-		key_3d_rep = KEY_3D_DELAY;
+		key_3d_rep = key_delay_3d;
 	}
 
 	// Texture offset
 	if (binds.pressed("3d_upyoffset") && key_3d_allow)
 	{
 		change_offsets_3d(0, 1);
-		key_3d_rep = KEY_3D_DELAY;
+		key_3d_rep = key_delay_3d;
 	}
 
 	if (binds.pressed("3d_downyoffset") && key_3d_allow)
 	{
 		change_offsets_3d(0, -1);
-		key_3d_rep = KEY_3D_DELAY;
+		key_3d_rep = key_delay_3d;
 	}
 
 	if (binds.pressed("3d_upxoffset") && key_3d_allow)
 	{
 		change_offsets_3d(1, 0);
-		key_3d_rep = KEY_3D_DELAY;
+		key_3d_rep = key_delay_3d;
 	}
 
 	if (binds.pressed("3d_downxoffset") && key_3d_allow)
 	{
 		change_offsets_3d(-1, 0);
-		key_3d_rep = KEY_3D_DELAY;
+		key_3d_rep = key_delay_3d;
 	}
 
 	// Texture offset x8
 	if (binds.pressed("3d_upyoffset8") && key_3d_allow)
 	{
 		change_offsets_3d(0, 8);
-		key_3d_rep = KEY_3D_DELAY;
+		key_3d_rep = key_delay_3d;
 	}
 
 	if (binds.pressed("3d_downyoffset8") && key_3d_allow)
 	{
 		change_offsets_3d(0, -8);
-		key_3d_rep = KEY_3D_DELAY;
+		key_3d_rep = key_delay_3d;
 	}
 
 	if (binds.pressed("3d_upxoffset8") && key_3d_allow)
 	{
 		change_offsets_3d(8, 0);
-		key_3d_rep = KEY_3D_DELAY;
+		key_3d_rep = key_delay_3d;
 	}
 
 	if (binds.pressed("3d_downxoffset8") && key_3d_allow)
 	{
 		change_offsets_3d(-8, 0);
-		key_3d_rep = KEY_3D_DELAY;
+		key_3d_rep = key_delay_3d;
 	}
 
 	if (binds.pressed("3d_toggle_hilight"))
@@ -652,13 +653,13 @@ bool keys_3d()
 	if (binds.pressed("3d_upthingangle") && key_3d_allow)
 	{
 		change_thing_angle_3d(45);
-		key_3d_rep = KEY_3D_DELAY;
+		key_3d_rep = key_delay_3d;
 	}
 
 	if (binds.pressed("3d_downthingangle") && key_3d_allow)
 	{
 		change_thing_angle_3d(-45);
-		key_3d_rep = KEY_3D_DELAY;
+		key_3d_rep = key_delay_3d;
 	}
 
 	// Change thing z height
@@ -667,25 +668,25 @@ bool keys_3d()
 		if (binds.pressed("3d_upthingz8") && key_3d_allow)
 		{
 			change_thing_z_3d(8);
-			key_3d_rep = KEY_3D_DELAY;
+			key_3d_rep = key_delay_3d;
 		}
 
 		if (binds.pressed("3d_downthingz8") && key_3d_allow)
 		{
 			change_thing_z_3d(-8);
-			key_3d_rep = KEY_3D_DELAY;
+			key_3d_rep = key_delay_3d;
 		}
 
 		if (binds.pressed("3d_upthingz") && key_3d_allow)
 		{
 			change_thing_z_3d(1);
-			key_3d_rep = KEY_3D_DELAY;
+			key_3d_rep = key_delay_3d;
 		}
 
 		if (binds.pressed("3d_downthingz") && key_3d_allow)
 		{
 			change_thing_z_3d(-1);
-			key_3d_rep = KEY_3D_DELAY;
+			key_3d_rep = key_delay_3d;
 		}
 	}
 
