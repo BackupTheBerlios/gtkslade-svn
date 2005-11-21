@@ -410,28 +410,69 @@ GdkPixbuf* Texture::get_pbuf_scale_fit(int w, int h, float scaling, GdkInterpTyp
 }
 */
 
-Texture* get_texture(string name, int type)
+Texture* search_textures(string name, int type, bool mix)
+{
+	
+
+	return NULL;
+}
+
+Texture* search_flats(string name, int type, bool mix)
+{
+	
+
+	return NULL;
+}
+
+Texture* get_texture(string name, int type, bool force)
 {
 	if (name == "-")
 		return blank_tex;
 
-	// Search textures
-	if (type == 0 || type == TEXTURES_WALLS || (type == TEXTURES_FLATS && mix_tex))
+	bool mix = mix_tex;
+	if (force)
+		mix = false;
+
+	if (type == TEXTURES_WALLS || type == 0)
 	{
-		for (int a = 0; a < textures.size(); a++)
+		if (type == 0 || type == TEXTURES_WALLS || (type == TEXTURES_FLATS && mix))
 		{
-			if (textures[a]->name == name)
-				return textures[a];
+			for (int a = 0; a < textures.size(); a++)
+			{
+				if (textures[a]->name == name)
+					return textures[a];
+			}
+		}
+
+		if (type == 0 || type == TEXTURES_FLATS || (type == TEXTURES_WALLS && mix))
+		{
+			for (int a = 0; a < flats.size(); a++)
+			{
+				if (flats[a]->name == name)
+					return flats[a];
+			}
 		}
 	}
 
-	// Search flats
-	if (type == 0 || type == TEXTURES_FLATS || (type == TEXTURES_WALLS && mix_tex))
+
+	if (type == TEXTURES_FLATS)
 	{
-		for (int a = 0; a < flats.size(); a++)
+		if (type == 0 || type == TEXTURES_FLATS || (type == TEXTURES_WALLS && mix))
 		{
-			if (flats[a]->name == name)
-				return flats[a];
+			for (int a = 0; a < flats.size(); a++)
+			{
+				if (flats[a]->name == name)
+					return flats[a];
+			}
+		}
+
+		if (type == 0 || type == TEXTURES_WALLS || (type == TEXTURES_FLATS && mix))
+		{
+			for (int a = 0; a < textures.size(); a++)
+			{
+				if (textures[a]->name == name)
+					return textures[a];
+			}
 		}
 	}
 
@@ -664,7 +705,9 @@ void load_textures_lump(Wad* wad, Lump *lump)
 	{
 		double prog = (double)t / (double)n_tex;
 
-		if (t % 10 == 0)
+		int inter = (n_tex / 20);
+		if (inter == 0) inter = 1;
+		if (t % inter == 0)
 			splash_progress(prog);
 			//update_progress(prog);
 
@@ -685,7 +728,7 @@ void load_textures_lump(Wad* wad, Lump *lump)
 		fread(&height, 2, 1, fp);
 
 		// Add texture
-		Texture *tex = get_texture(texname, 1);
+		Texture *tex = get_texture(texname, 1, true);
 		if (tex->name == "_notex")
 		{
 			tex = new Texture();
@@ -795,7 +838,7 @@ void load_flats_wad(Wad* wad)
 			BYTE p = 0;
 
 			// Create the texture
-			Texture *tex = get_texture(wad->directory[lump]->Name(), 2);
+			Texture *tex = get_texture(wad->directory[lump]->Name(), 2, true);
 			if (tex->name == "_notex")
 			{
 				tex = new Texture();
@@ -928,7 +971,10 @@ void load_sprites()
 
 	for (int s = 0; s < spritenames.size(); s++)
 	{
-		if (s % 5 == 0)
+		int inter = (spritenames.size() / 20);
+		if (inter == 0) inter = 1;
+
+		if (s % inter == 0)
 			splash_progress((float)s / (float)spritenames.size());
 			//update_progress((float)s / (float)spritenames.size());
 
@@ -1008,10 +1054,12 @@ void load_tx_textures()
 			int end = wad->tx[END];
 			if (end == -1)
 				end = wad->num_lumps;
+			int inter = (end - wad->tx[START]) / 20;
+			if (inter == 0) inter = 1;
 
 			while (!done)
 			{
-				if ((lump - wad->tx[START]) % 10)
+				if ((lump - wad->tx[START]) % inter == 0)
 				{
 					double prog = float(lump - wad->tx[START]) / float(end - wad->tx[START]);
 					splash_progress(prog);

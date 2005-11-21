@@ -536,17 +536,21 @@ void draw_things()
 		thing_type_t* ttype = map.things[t]->ttype;
 		if (!ttype) ttype = get_thing_type(-1);
 
+		// Setup the radius
+		int r = (ttype->radius * zoom) / MAJOR_UNIT;
+		if (ttype->radius == -1) r = 8;
+		
+		
+		// Don't draw if it's out of the visible area
+		rect_t t_rect(s_x(map.things[t]->x), s_y(-map.things[t]->y), r*2, r*2, RECT_CENTER);
+		if (t_rect.x2() < 0 || t_rect.x1() > vid_width || t_rect.y2() < 0 || t_rect.y1() > vid_height)
+			continue;
+
 		// Setup the colour
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		colour.set(ttype->colour);
 
-		// Setup the radius
-		int r = (ttype->radius * zoom) / MAJOR_UNIT;
-		if (ttype->radius == -1) r = 8;
-
 		// Draw thing
-		rect_t t_rect(s_x(map.things[t]->x), s_y(-map.things[t]->y), r*2, r*2, RECT_CENTER);
-
 		if (thing_sprites)
 		{
 			Texture* tex = get_texture(ttype->spritename, 3);

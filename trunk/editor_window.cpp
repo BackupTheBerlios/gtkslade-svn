@@ -608,6 +608,8 @@ static void menu_action(GtkAction *action)
 		line_correct_references();
 	else
 		message_box("Menu action not implemented", GTK_MESSAGE_INFO);
+
+	force_map_redraw(true, true);
 }
 
 /*

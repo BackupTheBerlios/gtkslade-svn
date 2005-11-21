@@ -12,6 +12,7 @@
 #include "checks.h"
 #include "console.h"
 #include "console_window.h"
+#include "splash.h"
 
 // VARIABLES ----------------------------- >>
 Map map;
@@ -186,11 +187,13 @@ bool Map::open(Wad *wad, string mapname)
 	name = mapname;
 
 	// << ---- Read Vertices ---- >>
+	splash("Loading Vertices");
 	lump = wad->get_lump("VERTEXES", offset);
 
 	if (!lump)
 	{
 		printf("Map has no VERTEXES lump\n");
+		splash_hide();
 		return false;
 	}
 
@@ -208,17 +211,16 @@ bool Map::open(Wad *wad, string mapname)
 		verts[i] = new vertex_t;
 		fread(&verts[i]->x, 2, 1, fp);
 		fread(&verts[i]->y, 2, 1, fp);
-		//verts[i]->hilighted = false;
-		//verts[i]->selected = false;
-		//verts[i]->moving = false;
 	}
 
 	// << ---- Read sides ---- >>
+	splash("Loading Sides");
 	lump = wad->get_lump("SIDEDEFS", offset);
 
 	if (!lump)
 	{
 		printf("Map has no SIDEDEFS lump\n");
+		splash_hide();
 		return false;
 	}
 
@@ -255,11 +257,14 @@ bool Map::open(Wad *wad, string mapname)
 	}
 
 	// << ---- Read Lines ---- >>
+	splash("Loading Lines");
+	int max_vert = 0;
 	lump = wad->get_lump("LINEDEFS", offset);
 
 	if (!lump)
 	{
 		printf("Map has no LINEDEFS lump\n");
+		splash_hide();
 		return false;
 	}
 
@@ -305,6 +310,11 @@ bool Map::open(Wad *wad, string mapname)
 				if (s2 != -1)
 					lines[i]->side2 = us2;
 			}
+
+			if (lines[i]->vertex1 > max_vert)
+				max_vert = lines[i]->vertex1;
+			if (lines[i]->vertex2 > max_vert)
+				max_vert = lines[i]->vertex2;
 		}
 	}
 	else
@@ -342,16 +352,23 @@ bool Map::open(Wad *wad, string mapname)
 					lines[i]->side2 = us2;
 			}
 
-			//printf("%d %d\n", lines[i]->vertex1, lines[i]->vertex2);
+			if (lines[i]->vertex1 > max_vert)
+				max_vert = lines[i]->vertex1;
+			if (lines[i]->vertex2 > max_vert)
+				max_vert = lines[i]->vertex2;
 		}
 	}
 
+	n_verts = max_vert + 1;
+
 	// << ---- Read sectors ---- >>
+	splash("Loading Sectors");
 	lump = wad->get_lump("SECTORS", offset);
 
 	if (!lump)
 	{
 		printf("Map has no SECTORS lump\n");
+		splash_hide();
 		return false;
 	}
 
@@ -390,11 +407,13 @@ bool Map::open(Wad *wad, string mapname)
 	}
 
 	// << ---- Read Things ---- >>
+	splash("Loading Things");
 	lump = wad->get_lump("THINGS", offset);
 
 	if (!lump)
 	{
 		printf("Map has no THINGS lump\n");
+		splash_hide();
 		return false;
 	}
 
@@ -470,21 +489,26 @@ bool Map::open(Wad *wad, string mapname)
 			behavior = new Lump(0, 0, "BEHAVIOR");
 	}
 
+	splash("Removing Unused Vertices");
 	remove_free_verts();
 
+	splash("Checking Lines");
 	if (check_lines())
 		popup_console();
 
+	splash("Checking Sides");
 	if (check_sides())
 		popup_console();
 
 	// Set thing colours/radii/angle
+	splash("Init Thing Data");
 	for (int a = 0; a < n_things; a++)
 		things[a]->ttype = get_thing_type(things[a]->type);
 
 	init_map();
 	opened = true;
 
+	splash_hide();
 	return true;
 }
 

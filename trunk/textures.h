@@ -61,7 +61,7 @@ public:
 };
 
 void load_textures();
-Texture* get_texture(string name, int type = 0);
+Texture* get_texture(string name, int type = 0, bool force = false);
 void init_textures();
 void load_flats();
 void load_sprites();

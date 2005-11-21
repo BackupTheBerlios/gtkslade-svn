@@ -802,8 +802,14 @@ void setup_ssector(int ssect)
 
 void setup_3d_things()
 {
+	int inter = (map.n_things / 20);
+	if (inter == 0) inter = 1;
+
 	for (int a = 0; a < map.n_things; a++)
 	{
+		if (a % inter == 0)
+			splash_progress((float)a / (float)map.n_things);
+
 		thing3d_t* t = new thing3d_t();
 		t->parent_sector = determine_sector(map.things[a]->x, map.things[a]->y);
 		t->sprite = get_texture(map.things[a]->ttype->spritename, 3);
@@ -860,9 +866,11 @@ void setup_3d_data()
 	{
 		// Setup walls
 		splash("Setup Walls");
+		int inter = (map.n_lines / 20);
+		if (inter == 0) inter = 1;
 		for (int a = 0; a < map.n_lines; a++)
 		{
-			if (a % 10 == 0)
+			if (a % inter == 0)
 				splash_progress((double)a / (double)map.n_lines);
 
 			setup_3d_line(a);
@@ -875,9 +883,11 @@ void setup_3d_data()
 	{
 		// Setup subsectors
 		splash("Setup Flats");
+		int inter = (n_gl_ssects / 20);
+		if (inter == 0) inter = 1;
 		for (int a = 0; a < n_gl_ssects; a++)
 		{
-			if (a % 10 == 0)
+			if (a % inter == 0)
 				splash_progress((double)a / (double)n_gl_ssects);
 
 			setup_ssector(a);

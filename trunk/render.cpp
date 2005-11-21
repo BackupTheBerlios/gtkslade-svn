@@ -25,6 +25,7 @@ CVAR(Bool, render_fog, true, CVAR_SAVE)
 CVAR(Bool, render_fullbright, false, CVAR_SAVE)
 CVAR(Bool, render_wireframe, false, 0)
 CVAR(Bool, render_hilight, true, CVAR_SAVE)
+CVAR(Bool, render_testinfo, false, CVAR_SAVE)
 CVAR(Int, render_things, 2, CVAR_SAVE)
 
 rgba_t col_3d_crosshair(100, 180, 255, 180);
@@ -609,12 +610,12 @@ void render_3d_view()
 		trans_walls[a]->draw();
 	}
 
+	glEnable(GL_ALPHA_TEST);
+	glDepthMask(GL_TRUE);
 	render_3d_things(false);
 	render_3d_things(true);
 
-	glDepthMask(GL_TRUE);
 	glDisable(GL_ALPHA_TEST);
-
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	// Draw hilighted wallrect/flatpoly
@@ -664,10 +665,13 @@ void render_3d_view()
 	}
 
 	// Test info
-	int bottom = draw_3d_area->allocation.height;
-	draw_text(0, bottom - 10, rgba_t(255, 255, 255, 255), 0, "Wallrects: %d (%d)", wallrects.size(), wall_count);
-	draw_text(0, bottom - 20, rgba_t(255, 255, 255, 255), 0, "Flatpolys: %d (%d)", flatpolys.size(), flat_count);
-	draw_text(0, bottom - 32, rgba_t(255, 255, 255, 255), 0, "Things: %d (%d)", things_3d.size(), thing_count);
+	if (render_testinfo)
+	{
+		int bottom = draw_3d_area->allocation.height;
+		draw_text(0, bottom - 10, rgba_t(255, 255, 255, 255), 0, "Wallrects: %d (%d)", wallrects.size(), wall_count);
+		draw_text(0, bottom - 20, rgba_t(255, 255, 255, 255), 0, "Flatpolys: %d (%d)", flatpolys.size(), flat_count);
+		draw_text(0, bottom - 32, rgba_t(255, 255, 255, 255), 0, "Things: %d (%d)", things_3d.size(), thing_count);
+	}
 }
 
 void add_3d_message(string message)

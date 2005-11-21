@@ -10,6 +10,9 @@ Goes in bottom-up order
 ': Note
 
 [21/11/05]
+~ Greatly improved map loading speed (especially for large maps)
+* Things in 3d mode could be drawn wrong when translucent walls were in view
+* Fixed a few things with mixing flats/textures
 ~ Right clicking no longer begins an item move (it doesn't start until the mouse is moved while right click is held)
 + Added 'Correct Sector References' to the edit->line menu
 + Added 3d mode options to the preferences dialog

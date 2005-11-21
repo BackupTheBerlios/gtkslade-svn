@@ -27,6 +27,8 @@ extern GdkGLContext *glcontext;
 extern rgba_t col_selbox;
 extern rgba_t col_selbox_line;
 
+extern bool mix_tex;
+
 void scroll_to_selected_texture(GtkWidget* w)
 {
 	int width = (w->allocation.width / browser_columns);
@@ -330,13 +332,13 @@ string open_texture_browser(bool tex, bool flat, bool sprite, string init_tex, b
 	{
 		tex_names.push_back("-");
 
-		if (tex)
+		if (tex || mix_tex)
 		{
 			for (int a = 0; a < textures.size(); a++)
 				tex_names.push_back(textures[a]->name);
 		}
 
-		if (flat)
+		if (flat || mix_tex)
 		{
 			for (int a = 0; a < flats.size(); a++)
 				tex_names.push_back(flats[a]->name);
