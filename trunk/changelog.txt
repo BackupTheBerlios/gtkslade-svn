@@ -9,6 +9,27 @@ Goes in bottom-up order
 ~: Changed
 ': Note
 
+[24/11/05]
++ Added ability to set the resolution for 3d mode (windows only for now)
+
+[23/11/05]
+* Fixed the gtk warnings when opening dialogs that had texture boxes
+* Added checks so that flats can't be selected from the wrong side
+~ Wads are now reloaded every time the wad manager is opened in case an external program has modified them
++ Line merging now works much better, still a few problems with it though
++ Copy+Paste works with sectors and lines (I don't see any point in being able to copy+paste vertices)
++ Added a key to cancel a paste (Escape by default)
++ Added simple copy/paste (things only so far)
+
+[22/11/05]
+* Fixed some problems with upper/lower textures within sloped sectors
++ Added functionality to the 'New Map' button on the wad manager window
+* Sometimes the map/grid lists wouldn't update correctly (casing them to disappear at certain times)
+* PNG files missing an alpha channel wouldn't load correctly
+* Starting 3d mode with no map open would crash
++ Added option to invert the mouse Y axis in 3d mode
++ Gravity in 3d mode is now toggleable
+
 [21/11/05]
 ~ A message is now shown if a hexen format map is loaded when a non-hexen format game is selected
 * Textures weren't reloading properly (I wasn't clearing the PNAMES data)

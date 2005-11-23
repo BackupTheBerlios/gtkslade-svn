@@ -228,14 +228,40 @@ GtkWidget* setup_side_edit(int side)
 	GtkWidget *hbox = gtk_hbox_new(true, 0);
 	gtk_container_add(GTK_CONTAINER(frame), hbox);
 
+	/*
 	delete sdat->tbox_upper;
 	delete sdat->tbox_middle;
 	delete sdat->tbox_lower;
+	*/
+
+	if (!sdat->tbox_upper)
+		sdat->tbox_upper = new tex_box_t("", 1, 2.0f, rgba_t(180, 180, 180, 255, 0));
+	else
+	{
+		sdat->tbox_upper->setup_widget();
+		sdat->tbox_upper->change_texture("", 1, 2.0f, false);
+	}
+
+	if (!sdat->tbox_lower)
+		sdat->tbox_lower = new tex_box_t("", 1, 2.0f, rgba_t(180, 180, 180, 255, 0));
+	else
+	{
+		sdat->tbox_lower->setup_widget();
+		sdat->tbox_lower->change_texture("", 1, 2.0f, false);
+	}
+
+	if (!sdat->tbox_middle)
+		sdat->tbox_middle = new tex_box_t("", 1, 2.0f, rgba_t(180, 180, 180, 255, 0));
+	else
+	{
+		sdat->tbox_middle->setup_widget();
+		sdat->tbox_middle->change_texture("", 1, 2.0f, false);
+	}
 
 	// Upper tex
 	GtkWidget *vbox = gtk_vbox_new(false, 0);
 	gtk_container_set_border_width(GTK_CONTAINER(vbox), 4);
-	sdat->tbox_upper = new tex_box_t("", 1, 2.0f, rgba_t(180, 180, 180, 255, 0));
+	//sdat->tbox_upper = new tex_box_t("", 1, 2.0f, rgba_t(180, 180, 180, 255, 0));
 	sdat->tbox_upper->set_size(96, 96);
 	gtk_box_pack_start(GTK_BOX(vbox), sdat->tbox_upper->widget, true, true, 0);
 	GtkWidget *entry = gtk_entry_new();
@@ -253,7 +279,7 @@ GtkWidget* setup_side_edit(int side)
 	// Middle tex
 	vbox = gtk_vbox_new(false, 0);
 	gtk_container_set_border_width(GTK_CONTAINER(vbox), 4);
-	sdat->tbox_middle = new tex_box_t("", 1, 2.0f, rgba_t(180, 180, 180, 255, 0));
+	//sdat->tbox_middle = new tex_box_t("", 1, 2.0f, rgba_t(180, 180, 180, 255, 0));
 	sdat->tbox_middle->set_size(96, 96);
 	gtk_box_pack_start(GTK_BOX(vbox), sdat->tbox_middle->widget, true, true, 0);
 	entry = gtk_entry_new();
@@ -271,7 +297,7 @@ GtkWidget* setup_side_edit(int side)
 	// Lower tex
 	vbox = gtk_vbox_new(false, 0);
 	gtk_container_set_border_width(GTK_CONTAINER(vbox), 4);
-	sdat->tbox_lower = new tex_box_t("", 1, 2.0f, rgba_t(180, 180, 180, 255, 0));
+	//sdat->tbox_lower = new tex_box_t("", 1, 2.0f, rgba_t(180, 180, 180, 255, 0));
 	sdat->tbox_lower->set_size(96, 96);
 	gtk_box_pack_start(GTK_BOX(vbox), sdat->tbox_lower->widget, true, true, 0);
 	entry = gtk_entry_new();

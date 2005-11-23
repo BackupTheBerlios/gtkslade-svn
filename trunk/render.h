@@ -11,6 +11,12 @@
 #define PART_FLOOR	0
 #define PART_CEIL	1
 
+// Wallrect flags
+#define WRECT_SKY	0x01
+
+// Flatpoly flags
+#define FPOLY_SKY	0x01
+
 struct wallrect_t
 {
 	// Parent info
@@ -22,8 +28,7 @@ struct wallrect_t
 	// Draw info
 	Texture*			tex;
 	vector<point3_t>	verts;
-	//rgba_t				col;
-	BYTE				light;
+	BYTE				flags;
 
 	wallrect_t();
 	~wallrect_t();
@@ -38,11 +43,11 @@ struct flatpoly_t
 	BYTE	part;			// 0 = floor, 1 = ceiling
 
 	// Draw info
-	GLuint				tex;
+	//GLuint				tex;
+	Texture*			tex;
 	vector<point3_t>	verts;
 	vector<bool>		lines;
-	//rgba_t				col;
-	BYTE				light;
+	BYTE				flags;
 
 	flatpoly_t();
 	~flatpoly_t();
@@ -79,7 +84,7 @@ struct ssect3d_t
 	bool visible;
 };
 
-void setup_wallrect(wallrect_t *wall);
+bool setup_wallrect(wallrect_t *wall);
 void setup_flatpoly(flatpoly_t *poly, int ssector);
 void setup_sector(int s);
 void setup_3d_line(int line);
@@ -88,4 +93,3 @@ void setup_3d_data();
 void setup_specials_3d(int sector = -1);
 void setup_slopes_3d(int sector = -1);
 float plane_height(plane_t plane, float x, float y);
-void add_3d_message(string message);

@@ -14,3 +14,4 @@ void change_thing_angle_3d(int amount);
 void change_thing_z_3d(int amount);
 void auto_align_x_3d();
 void reset_offsets_3d();
+void add_3d_message(string message);

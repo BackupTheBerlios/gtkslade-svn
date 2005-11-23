@@ -239,6 +239,9 @@ void open_wad_click()
 
 void close_wad_click()
 {
+	if (map.opened)
+		return;
+
 	wads.close_wad(selected_wad->path);
 	populate_wad_list();
 	populate_map_list(wads.get_iwad());
@@ -246,6 +249,9 @@ void close_wad_click()
 
 void close_all_click()
 {
+	if (map.opened)
+		return;
+
 	wads.close_all();
 	populate_wad_list();
 }
@@ -257,7 +263,10 @@ void begin_mapedit()
 	load_sprites();
 
 	if (map.zdoom)
+	{
 		load_tx_textures();
+		load_hirestex_textures();
+	}
 
 	game_changed = false;
 	allow_tex_load = true;
@@ -460,6 +469,22 @@ void maps_list_activated(GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewCo
 	g_free(mapname);
 }
 
+void new_map_clicked(GtkWidget *widget, gpointer data)
+{
+	string mapname = str_upper(entry_box("Enter Map Name"));
+
+	if (mapname != "")
+	{
+		if (valid_map_names.size() == 0 || vector_exists(valid_map_names, mapname))
+		{
+			selected_wad->available_maps.push_back(mapname);
+			populate_map_list(selected_wad);
+		}
+		else
+			message_box("Invalid map name!", GTK_MESSAGE_ERROR);
+	}
+}
+
 void setup_map_list(GtkWidget *box)
 {
 	// Setup the list model
@@ -486,6 +511,7 @@ void setup_map_list(GtkWidget *box)
 
 	// Setup the button
 	GtkWidget *button = gtk_button_new_with_label("New Map");
+	g_signal_connect(G_OBJECT(button), "clicked", G_CALLBACK(new_map_clicked), NULL);
 	gtk_box_pack_start(GTK_BOX(vbox), button, false, false, 0);
 
 	// Setup the frame
@@ -536,6 +562,7 @@ void open_main_window()
 		gtk_widget_show_all(window);
 		*/
 
+	wads.reload_wads();
 	gtk_window_set_position(GTK_WINDOW(wad_manager_window), GTK_WIN_POS_CENTER);
 	gtk_widget_show_all(wad_manager_window);
 	gtk_window_present(GTK_WINDOW(wad_manager_window));

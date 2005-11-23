@@ -60,6 +60,7 @@ void Map::create(string mapname)
 	n_lines = n_sides = n_verts = n_sectors = n_things = 0;
 	opened = true;
 
+	changed = 255;
 	init_map();
 }
 
@@ -115,6 +116,7 @@ void Map::close()
 
 	n_lines = n_sides = n_verts = n_sectors = n_things = 0;
 	opened = false;
+	changed = 0;
 }
 
 // Map::open: Opens a map from an open wadfile
@@ -144,18 +146,21 @@ bool Map::open(Wad *wad, string mapname)
 			index++;
 
 			if (index == wad->num_lumps)
+			{
+				index--;
 				done = true;
-			else if (strncmp(wad->directory[index]->Name().c_str(), "THINGS", 6) == 0 ||
-				strncmp(wad->directory[index]->Name().c_str(), "LINEDEFS", 8) == 0 ||
-				strncmp(wad->directory[index]->Name().c_str(), "SIDEDEFS", 8) == 0 ||
-				strncmp(wad->directory[index]->Name().c_str(), "VERTEXES", 8) == 0 ||
-				strncmp(wad->directory[index]->Name().c_str(), "SEGS", 4) == 0 ||
-				strncmp(wad->directory[index]->Name().c_str(), "SSECTORS", 8) == 0 ||
-				strncmp(wad->directory[index]->Name().c_str(), "NODES", 5) == 0 ||
-				strncmp(wad->directory[index]->Name().c_str(), "SECTORS", 7) == 0 ||
-				strncmp(wad->directory[index]->Name().c_str(), "REJECT", 6) == 0 ||
-				strncmp(wad->directory[index]->Name().c_str(), "SCRIPTS", 7) == 0 ||
-				strncmp(wad->directory[index]->Name().c_str(), "BLOCKMAP", 8) == 0)
+			}
+			else if (!strncmp(wad->directory[index]->Name().c_str(), "THINGS", 6) ||
+				!strncmp(wad->directory[index]->Name().c_str(), "LINEDEFS", 8) ||
+				!strncmp(wad->directory[index]->Name().c_str(), "SIDEDEFS", 8) ||
+				!strncmp(wad->directory[index]->Name().c_str(), "VERTEXES", 8) ||
+				!strncmp(wad->directory[index]->Name().c_str(), "SEGS", 4) ||
+				!strncmp(wad->directory[index]->Name().c_str(), "SSECTORS", 8) ||
+				!strncmp(wad->directory[index]->Name().c_str(), "NODES", 5) ||
+				!strncmp(wad->directory[index]->Name().c_str(), "SECTORS", 7) ||
+				!strncmp(wad->directory[index]->Name().c_str(), "REJECT", 6) ||
+				!strncmp(wad->directory[index]->Name().c_str(), "SCRIPTS", 7) ||
+				!strncmp(wad->directory[index]->Name().c_str(), "BLOCKMAP", 8))
 			{
 				done = false;
 			}

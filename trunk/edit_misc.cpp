@@ -211,28 +211,30 @@ void line_align_y()
 {
 }
 
-void line_correct_references()
+void line_correct_references(int line)
 {
+	if (line != -1)
+	{
+		map.l_setsector(line, 1, get_side_sector(line, 1));
+		map.l_setsector(line, 2, get_side_sector(line, 2));
+
+		return;
+	}
+
 	if (edit_mode != 1)
 		return;
 
 	if (selected_items.size() == 0 && hilight_item != -1)
 	{
-		if (map.l_getside(hilight_item, 1))
-			map.l_getside(hilight_item, 1)->sector = get_side_sector(hilight_item, 1);
-
-		if (map.l_getside(hilight_item, 2))
-			map.l_getside(hilight_item, 2)->sector = get_side_sector(hilight_item, 2);
+		map.l_setsector(hilight_item, 1, get_side_sector(hilight_item, 1));
+		map.l_setsector(hilight_item, 2, get_side_sector(hilight_item, 2));
 	}
 	else if (selected_items.size() > 0)
 	{
 		for (int a = 0; a < selected_items.size(); a++)
 		{
-			if (map.l_getside(selected_items[a], 1))
-				map.l_getside(selected_items[a], 1)->sector = get_side_sector(selected_items[a], 1);
-
-			if (map.l_getside(selected_items[a], 2))
-				map.l_getside(selected_items[a], 2)->sector = get_side_sector(selected_items[a], 2);
+			map.l_setsector(selected_items[a], 1, get_side_sector(selected_items[a], 1));
+			map.l_setsector(selected_items[a], 2, get_side_sector(selected_items[a], 2));
 		}
 	}
 }

@@ -137,7 +137,7 @@ flatpoly_t::~flatpoly_t()
 
 void flatpoly_t::draw()
 {
-	if (tex) glBindTexture(GL_TEXTURE_2D, tex);
+	if (tex) glBindTexture(GL_TEXTURE_2D, tex->get_gl_id());
 	glBegin(GL_TRIANGLE_FAN);
 
 	for (int a = 0; a < verts.size(); a++)
@@ -194,32 +194,34 @@ thing3d_t::thing3d_t()
 
 float plane_height(plane_t plane, float x, float y)
 {
-	return ((plane.a * x) + (plane.b * y) + plane.d) / plane.c;
+	return ((-plane.a * x) + (-plane.b * y) + plane.d) / plane.c;
 }
 
 void set_light(rgba_t col, int light)
 {
-	if (render_fullbright && col.r == col.g && col.r == col.b)
+	if ((render_fullbright || light == 255) && col.r == col.g && col.r == col.b)
 	{
+		glDisable(GL_FOG);
 		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 		return;
 	}
 
 	if (render_fog)
 	{
-		glColor4f(col.fr(), col.fg(), col.fb(), col.fa());
-		//glFogf(GL_FOG_DENSITY, 1.0f - light/500.0f);
-		glFogf(GL_FOG_END, ((light/255.0f) * (light/255.0f) * 40.0f));
+		glEnable(GL_FOG);
+		glFogf(GL_FOG_END, ((light/200.0f) * (light/200.0f) * 40.0f));
 	}
 	else
 	{
-		// If we have a non-coloured light, darken it a bit to closer resemble
-		// the depth-fogged light level (still not very accurate, but oh well)
-		if (col.r == col.g && col.r == col.b)
-			glColor4f(col.fr()*col.fr(), col.fg()*col.fg(), col.fb()*col.fb(), col.fa());
-		else
-			glColor4f(col.fr(), col.fg(), col.fb(), col.fa());
+		glDisable(GL_FOG);
 	}
+
+	// If we have a non-coloured light, darken it a bit to 
+	// closer resemble the software renderer light level
+	if (col.r == col.g && col.r == col.b)
+		glColor4f(col.fr()*(col.fr()*1.3f), col.fg()*(col.fg()*1.3f), col.fb()*(col.fb()*1.3f), col.fa());
+	else
+		glColor4f(col.fr(), col.fg(), col.fb(), col.fa());
 }
 
 rgba_t sector_col(int sector)
@@ -548,7 +550,12 @@ void render_3d_view()
 				else
 				{
 					rgba_t col = sector_col(lines_3d[a].rects[b]->sector);
-					set_light(col, lines_3d[a].rects[b]->light);
+
+					if (lines_3d[a].rects[b]->flags & WRECT_SKY)
+						set_light(col, 255);
+					else
+						set_light(col, map.sectors[lines_3d[a].rects[b]->sector]->light);
+
 					lines_3d[a].rects[b]->draw();
 				}
 			}
@@ -582,7 +589,12 @@ void render_3d_view()
 					glCullFace(GL_FRONT);
 
 				sector_info[ssects_3d[a].flats[b]->parent_sector].visible = true;
-				set_light(sector_col(ssects_3d[a].flats[b]->parent_sector), ssects_3d[a].flats[b]->light);
+
+				if (ssects_3d[a].flats[b]->flags & FPOLY_SKY)
+					set_light(sector_col(ssects_3d[a].flats[b]->parent_sector), 255);
+				else
+					set_light(sector_col(ssects_3d[a].flats[b]->parent_sector), map.sectors[ssects_3d[a].flats[b]->parent_sector]->light);
+				
 				ssects_3d[a].flats[b]->draw();
 			}
 		}
@@ -606,7 +618,7 @@ void render_3d_view()
 			glDepthMask(GL_FALSE);
 		}
 
-		set_light(col, trans_walls[a]->light);
+		set_light(col, map.sectors[trans_walls[a]->sector]->light);
 		trans_walls[a]->draw();
 	}
 

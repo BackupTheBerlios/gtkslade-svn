@@ -184,8 +184,8 @@ void open_prefs_dialog()
 													GTK_DIALOG_MODAL,
 													GTK_STOCK_OK,
 													GTK_RESPONSE_ACCEPT,
-													GTK_STOCK_CANCEL,
-													GTK_RESPONSE_REJECT,
+	//												GTK_STOCK_CANCEL,
+	//												GTK_RESPONSE_REJECT,
 													NULL);
 
 	gtk_container_add(GTK_CONTAINER(GTK_DIALOG(dialog)->vbox), setup_prefs_dialog());
@@ -193,7 +193,7 @@ void open_prefs_dialog()
 	gtk_window_set_default_size(GTK_WINDOW(dialog), 400, 400);
 	gtk_widget_show_all(dialog);
 
-	int response = gtk_dialog_run(GTK_DIALOG(dialog));
+	/*int response = */gtk_dialog_run(GTK_DIALOG(dialog));
 
 	gtk_widget_destroy(dialog);
 	gtk_window_present(GTK_WINDOW(editor_window));

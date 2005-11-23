@@ -64,6 +64,10 @@ void BindList::set_defaults()
 	add("sector_merge", "<Control>j");
 	add("sector_join", "j");
 
+	add("copy", "<Control>c");
+	add("paste", "<Control>v");
+	add("cancel_paste", "Escape");
+
 	add("3d_exit", "q");
 
 	add("3d_forward", "w");

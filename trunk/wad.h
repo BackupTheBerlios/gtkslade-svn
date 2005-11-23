@@ -190,6 +190,16 @@ public:
 		wads = (Wad **)NULL;
 	}
 
+	void reload_wads()
+	{
+		for (int a = 0; a < n_wads; a++)
+		{
+			string path = wads[a]->path;
+			wads[a]->close();
+			wads[a]->open(path);
+		}
+	}
+
 
 	Wad* get_iwad()
 	{

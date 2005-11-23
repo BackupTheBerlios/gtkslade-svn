@@ -8,9 +8,12 @@
 #include "misc.h"
 #include "3dmode.h"
 #include "tex_browser.h"
+#include "editor_window.h"
 
 GtkWidget *draw_3d_area;
 bool run_3d = false;
+
+CVAR(Bool, invert_mouse_3d, false, CVAR_SAVE)
 
 extern GtkWidget *editor_window;
 extern GdkGLConfig *glconfig;
@@ -19,6 +22,11 @@ extern BindList binds;
 extern Camera camera;
 
 EXTERN_CVAR(Float, mouse_speed_3d)
+
+EXTERN_CVAR(Int, vid_width_3d)
+EXTERN_CVAR(Int, vid_height_3d)
+EXTERN_CVAR(Int, vid_bpp_3d)
+EXTERN_CVAR(Int, vid_refresh_3d)
 
 void window3d_render()
 {
@@ -182,6 +190,9 @@ static gboolean motion_3d_event(GtkWidget *widget, GdkEventMotion *event)
 	float angle_x = -(event->x - center_x) * (0.001f * mouse_speed_3d);
 	float angle_y = -(event->y - center_y) * (0.001f * mouse_speed_3d);
 
+	if (invert_mouse_3d)
+		angle_y = -angle_y;
+
 	point3_t axis = cross(camera.view - camera.position, camera.up_vector);
 	axis = axis.normalize();
 
@@ -216,10 +227,47 @@ gboolean button_press_3d_event(GtkWidget *widget, GdkEventButton *event)
 	return false;
 }
 
+#ifdef WIN32
+DEVMODE current_mode;
+#endif
+
+void set_3d_resolution()
+{
+#ifdef WIN32
+	EnumDisplaySettings(0, ENUM_CURRENT_SETTINGS, &current_mode);
+
+	if (vid_width_3d != -1 &&
+		vid_height_3d != -1 &&
+		vid_bpp_3d != -1 &&
+		vid_refresh_3d != -1)
+	{
+		DEVMODE new_mode;
+		new_mode.dmFields = DM_PELSWIDTH|DM_PELSHEIGHT|DM_BITSPERPEL|DM_DISPLAYFREQUENCY;
+		new_mode.dmPelsWidth = vid_width_3d;
+		new_mode.dmPelsHeight = vid_height_3d;
+		new_mode.dmBitsPerPel = vid_bpp_3d;
+		new_mode.dmDisplayFrequency = vid_refresh_3d;
+
+		ChangeDisplaySettings(&new_mode, CDS_FULLSCREEN);
+	}
+#endif
+}
+
+void restore_resolution()
+{
+#ifdef WIN32
+	ChangeDisplaySettings(&current_mode, 0);
+#endif
+}
+
+
 void start_3d_mode()
 {
 	// Setup
 	setup_3d_data();
+
+	// Set resolution
+	set_3d_resolution();
 
 	GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_modal(GTK_WINDOW(window), true);
@@ -292,4 +340,6 @@ void start_3d_mode()
 	}
 
 	gtk_widget_destroy(window);
+	restore_resolution();
+	force_map_redraw(true, true);
 }

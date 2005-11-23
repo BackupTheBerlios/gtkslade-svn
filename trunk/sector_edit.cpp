@@ -223,16 +223,32 @@ GtkWidget* setup_sector_edit()
 		}
 	}
 
-	if (sedit_tbox_floor)
+	//if (sedit_tbox_floor)
+	//{
+		//delete sedit_tbox_floor;
+		//sedit_tbox_floor = NULL;
+	//}
+
+	//if (sedit_tbox_ceil)
+	//{
+		//delete sedit_tbox_ceil;
+		//sedit_tbox_ceil = NULL;
+	//}
+
+	if (!sedit_tbox_floor)
+		sedit_tbox_floor = new tex_box_t(sedit_data.f_tex, 2, 2.0f, rgba_t(180, 180, 255, 0));
+	else
 	{
-		delete sedit_tbox_floor;
-		sedit_tbox_floor = NULL;
+		sedit_tbox_floor->setup_widget();
+		sedit_tbox_floor->change_texture(sedit_data.f_tex, 2, 2.0f, false);
 	}
 
-	if (sedit_tbox_ceil)
+	if (!sedit_tbox_ceil)
+		sedit_tbox_ceil = new tex_box_t(sedit_data.c_tex, 2, 2.0f, rgba_t(180, 180, 255, 0));
+	else
 	{
-		delete sedit_tbox_ceil;
-		sedit_tbox_ceil = NULL;
+		sedit_tbox_ceil->setup_widget();
+		sedit_tbox_ceil->change_texture(sedit_data.c_tex, 2, 2.0f, false);
 	}
 
 	GtkWidget* main_vbox = gtk_vbox_new(false, 0);
@@ -250,7 +266,7 @@ GtkWidget* setup_sector_edit()
 	GtkWidget *entry = gtk_entry_new();
 
 	// Texture box
-	sedit_tbox_floor = new tex_box_t(sedit_data.f_tex, 2, 2.0f, rgba_t(180, 180, 180, 255, 0));
+	//sedit_tbox_floor = new tex_box_t(sedit_data.f_tex, 2, 2.0f, rgba_t(180, 180, 180, 255, 0));
 	sedit_tbox_floor->set_size(128, 128);
 	frame = gtk_aspect_frame_new(NULL, 0.5, 0.5, 1.0, true);
 	gtk_frame_set_shadow_type(GTK_FRAME(frame), GTK_SHADOW_IN);
@@ -292,7 +308,7 @@ GtkWidget* setup_sector_edit()
 	entry = gtk_entry_new();
 
 	// Texture box
-	sedit_tbox_ceil = new tex_box_t(sedit_data.c_tex, 2, 2.0f, rgba_t(180, 180, 180, 255, 0));
+	//sedit_tbox_ceil = new tex_box_t(sedit_data.c_tex, 2, 2.0f, rgba_t(180, 180, 180, 255, 0));
 	sedit_tbox_ceil->set_size(128, 128);
 	frame = gtk_aspect_frame_new(NULL, 0.5, 0.5, 1.0, true);
 	gtk_frame_set_shadow_type(GTK_FRAME(frame), GTK_SHADOW_IN);

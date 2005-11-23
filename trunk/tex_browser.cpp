@@ -2,7 +2,7 @@
 #include "main.h"
 #include "textures.h"
 #include "tex_box.h"
-#include "thing_type.h"
+#include "map.h"
 #include "draw.h"
 #include <gdk/gdkkeysyms.h>
 

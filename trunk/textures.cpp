@@ -283,18 +283,25 @@ bool Texture::load_file(string name, string filename, int filter)
 	rheight = height;
 	bpp = 32;
 
-	log_message("%s: %dx%d\n", name.c_str(), width, height);
+	//log_message("%s: %dx%d\n", name.c_str(), width, height);
+	//log_message("Channels: %d\n", gdk_pixbuf_get_n_channels(pbuf));
+
+	if (gdk_pixbuf_get_n_channels(pbuf) == 3)
+	{
+		GdkPixbuf *pb2 = gdk_pixbuf_add_alpha(pbuf, false, 0, 0, 0);
+		g_object_unref(pbuf);
+		pbuf = pb2;
+	}
 
 	free(data);
 	data = (BYTE*)malloc(width * height * 4);
-	//data = (BYTE *)realloc(data, width * height * 4);
 
 	int size = gdk_pixbuf_get_rowstride(pbuf) * (height - 1);
 	size += width * ((gdk_pixbuf_get_n_channels(pbuf) * gdk_pixbuf_get_bits_per_sample(pbuf) + 7) / 8);
 
 	memset(data, 0, width * height * 4);
 	memcpy(data, gdk_pixbuf_get_pixels(pbuf), size);
-	//memset(data, 180, width * height * 4);
+
 
 	g_object_unref(pbuf);
 
@@ -989,7 +996,7 @@ void load_sprites()
 	console_print("Done");
 }
 
-void load_tx_texture(Wad* wad, long index)
+Texture* load_tx_texture(Wad* wad, long index)
 {
 	// Get lump
 	Lump* lump = wad->directory[index];
@@ -1002,9 +1009,12 @@ void load_tx_texture(Wad* wad, long index)
 		data[6] == 26 && data[7] == 10)
 	{
 		// Write lump content to file
+		/*
 		FILE *fp = fopen("sladetemp", "wb");
 		fwrite(lump->Data(), lump->Size(), 1, fp);
 		fclose(fp);
+		*/
+		lump->DumpToFile("sladetemp");
 
 		// If texture doesn't exist, create it
 		Texture* tex = get_texture(lump->Name(), 1);
@@ -1018,6 +1028,7 @@ void load_tx_texture(Wad* wad, long index)
 		tex->load_file(lump->Name(), "sladetemp", tex_filter);
 		
 		remove("sladetemp");
+		return tex;
 	}
 	else // Normal doom format patch
 	{
@@ -1026,7 +1037,7 @@ void load_tx_texture(Wad* wad, long index)
 		short height = *p;
 
 		if (width < 0 || height < 0)
-			return;
+			return NULL;
 
 		Texture* tex = get_texture(lump->Name(), 1);
 		if (tex->name == "_notex")
@@ -1037,17 +1048,19 @@ void load_tx_texture(Wad* wad, long index)
 
 		tex->setup(lump->Name(), 8, width, height, true);
 		add_patch_to_tex(0, 0, wad, lump, tex);
+
+		return tex;
 	}
 }
 
 void load_tx_textures()
 {
-	splash("Loading TX_ Textures");
-
 	for (DWORD w = 0; w < wads.n_wads; w++)
 	{
 		if (wads.get_wad(w)->tx[START] != -1)
 		{
+			splash("Loading TX_ Textures");
+
 			Wad* wad = wads.get_wad(w);
 			bool done = false;
 			long lump = wad->tx[START] + 1;
@@ -1074,4 +1087,49 @@ void load_tx_textures()
 			}
 		}
 	}
+}
+
+void load_hirestex_textures()
+{
+	Wad* hr_wad = wads.get_wad_with_lump("HIRESTEX");
+	
+	if (!hr_wad)
+		return;
+
+	splash("Loading HIRESTEX Textures");
+
+	Tokenizer tz;
+	hr_wad->get_lump("HIRESTEX", 0)->DumpToFile("sladetemp");
+	tz.open_file("sladetemp", 0, 0);
+	string token = tz.get_token();
+
+	while (token != "!END")
+	{
+		if (token == "define")
+		{
+			string lump = tz.get_token();
+			int width = tz.get_integer();
+			int height = tz.get_integer();
+
+			long index = hr_wad->get_lump_index(lump);
+			log_message("%s %d %d %d\n", lump.c_str(), width, height, index);
+
+			if (index >= 0)
+			{
+				Texture* tex = load_tx_texture(hr_wad, index);
+
+				if (tex)
+				{
+					tex->width = width;
+					tex->height = height;
+				}
+				else
+					log_message("Failed loading texture\n");
+			}
+		}
+
+		token = tz.get_token();
+	}
+
+	remove("sladetemp");
 }

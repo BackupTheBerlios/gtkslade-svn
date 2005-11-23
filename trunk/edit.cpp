@@ -10,6 +10,7 @@
 #include "mathstuff.h"
 #include "camera.h"
 #include "render.h"
+#include "edit_misc.h"
 
 // VARIABLES ----------------------------- >>
 float	zoom = 16;			// Zoom level (pixels per 32 map units)
@@ -912,6 +913,7 @@ void create_sector()
 	clear_selection();
 	selected_items.push_back(sector);
 	edit_mode = 2;
+	get_hilight_item(mouse.x, mouse.y);
 	//map_changelevel(3);
 	map.change_level(MC_NODE_REBUILD);
 }
@@ -1002,7 +1004,7 @@ bool check_overlapping_lines(vector<int> lines)
 					map.lines[l]->vertex2 == map.lines[l2]->vertex2)
 					return true;
 
-				if (map.lines[l]->vertex1 == map.lines[l2]->vertex1 &&
+				if (map.lines[l]->vertex1 == map.lines[l2]->vertex2 &&
 					map.lines[l]->vertex2 == map.lines[l2]->vertex1)
 					return true;
 
@@ -1018,7 +1020,8 @@ bool check_overlapping_lines(vector<int> lines)
 
 // merge_overlapping_lines: Merges any overlapping lines (only if they are in the list given)
 // --------------------------------------------------------------------------------------- >>
-void merge_overlapping_lines(vector<int> lines)
+vector<linedef_t*> merge_lines;
+bool merge_overlapping_lines(vector<int> lines)
 {
 	for (DWORD a = 0; a < lines.size(); a++)
 	{
@@ -1026,55 +1029,38 @@ void merge_overlapping_lines(vector<int> lines)
 
 		for (DWORD l = 0; l < map.n_lines; l++)
 		{
-			if (l != l2)
+			if (l == l2)
+				continue;
+
+			if (map.lines[l]->vertex1 == map.lines[l2]->vertex1 &&
+				map.lines[l]->vertex2 == map.lines[l2]->vertex2)
 			{
-				if (map.lines[l]->vertex1 == map.lines[l2]->vertex1 &&
-					map.lines[l]->vertex2 == map.lines[l2]->vertex2)
-				{
-					int sector1 = get_side_sector(l, 1);
-					int sector2 = get_side_sector(l, 2);
+				merge_lines.push_back(map.lines[l]);
+				map.delete_line(l2);
+				return true;
+			}
 
-					if (sector1 != -1)
-						map.l_setsector(l, 1, sector1);
-					if (sector2 != -1)
-						map.l_setsector(l, 2, sector2);
-
-					map.delete_line(l2);
-					break;
-				}
-
-				if (map.lines[l]->vertex1 == map.lines[l2]->vertex1 &&
-					map.lines[l]->vertex2 == map.lines[l2]->vertex1)
-				{
-					int sector1 = get_side_sector(l, 1);
-					int sector2 = get_side_sector(l, 2);
-
-					if (sector1 != -1)
-						map.l_setsector(l, 1, sector1);
-					if (sector2 != -1)
-						map.l_setsector(l, 2, sector2);
-
-					map.delete_line(l2);
-					break;
-				}
-
-				/*
-				if (check_vertex_split(map.lines[l]->vertex1) != -1 &&
-					map.lines[l]->vertex1 != map.lines[l2]->vertex1 &&
-					map.lines[l]->vertex1 != map.lines[l2]->vertex2)
-					lines->add(map.l_split(l2, map.lines[l]->vertex1), true);
-
-				if (check_vertex_split(map.lines[l]->vertex2) != -1 &&
-					map.lines[l]->vertex2 != map.lines[l2]->vertex1 &&
-					map.lines[l]->vertex2 != map.lines[l2]->vertex2)
-					lines->add(map.l_split(l2, map.lines[l]->vertex2), true);
-					*/
+			if (map.lines[l]->vertex1 == map.lines[l2]->vertex2 &&
+				map.lines[l]->vertex2 == map.lines[l2]->vertex1)
+			{
+				merge_lines.push_back(map.lines[l]);
+				map.delete_line(l2);
+				return true;
 			}
 		}
 	}
 
+	for (int a = 0; a < map.n_lines; a++)
+	{
+		if (vector_exists(merge_lines, map.lines[a]))
+			line_correct_references(a);
+	}
+
+	merge_lines.clear();
+
 	map.change_level(MC_NODE_REBUILD);
-	//map_changelevel(3);
+	
+	return false;
 }
 
 void change_edit_mode(int mode)

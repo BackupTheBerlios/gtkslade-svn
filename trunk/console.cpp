@@ -33,12 +33,19 @@ string qdb[] = {
 	"Subliminal (kill) messaging (your) is (parents) awesome!",
 	"Yeah it's a map editor, what of it?",
 	"Installing Gator...",
-	"Formatting C:\...",
+	"Formatting C:/...",
 	"Remember that when you reach for the stars, they are too far away, so it's hopeless.",
 	"http://slade.mancubus.net -- FREE PORN!!",
 	"You're trying to say you like DOS better than me right? (Press Y to quit)",
 	"I've hidden some pr0n somewhere in the SLADE resources, find it and win a prize!",
 	"\"splash hide\" in the console to hide this, by the way.",
+	"<SoM> you should call it SLAID || <rf`> slaid gets you laid",
+	"<Bloodshedder> you've got it made with slade",
+	"SLADE: it slices, it dices, it makes julian fries!",
+	"SLADE: this slogan isn't cliched",
+	"SLADE: more popular than dennis quaid"
+	"SLADE: If you were a map editor, it would use you",
+	"SLADE: coming to your aid",
 };
 int p_q = 0;
 int n_quotes = sizeof(qdb) / sizeof(string);
@@ -46,6 +53,7 @@ int n_quotes = sizeof(qdb) / sizeof(string);
 // External Variables -------------------- >>
 extern vector<Texture*>	textures;
 extern vector<Texture*>	flats;
+extern bool dev_log;
 
 void console_prevcommand()
 {
@@ -87,7 +95,7 @@ void init_console()
 	setup_console_window();
 
 	console_print("<< ------------------------------------------------------------------ >>\n");
-	console_print("<< S.L.A.D.E. -- \"SlayeR's LeetAss Doom Editor\" (v1.0 beta)           >>\n");
+	console_print("<< S.L.A.D.E. -- \"SlayeR's LeetAss Doom Editor\" (v1.0)                >>\n");
 	console_print("<< ------------------------------------------------------------------ >>\n");
 	console_print("<< By Simon \"SlayeR\" Judd, 2005                                       >>\n");
 	console_print("<< web: \"http://slade.mancubus.net\" email: \"slayer@mancubus.net\"      >>\n");
@@ -106,6 +114,8 @@ void console_print(string message)
 	GtkTextIter end;
 	gtk_text_buffer_get_end_iter(console_log, &end);
 	gtk_text_buffer_insert(console_log, &end, message.c_str(), -1);
+
+	log_message((char*)message.c_str());
 }
 
 // console_parsecommand: Parses the current console command
@@ -211,7 +221,7 @@ void console_parsecommand()
 	if (token == "dump_textures")
 	{
 		for (int a = 0; a < textures.size(); a++)
-			console_print(textures[a]->name);
+			console_print(parse_string("%s, %dx%d", textures[a]->name.c_str(), textures[a]->width, textures[a]->height));
 
 		parsed = true;
 	}

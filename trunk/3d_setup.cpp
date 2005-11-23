@@ -28,7 +28,7 @@ extern DWORD		n_gl_ssects;
 
 extern int map_changed;
 
-void setup_wallrect(wallrect_t *wall)
+bool setup_wallrect(wallrect_t *wall)
 {
 	wall->verts.clear();
 
@@ -58,7 +58,8 @@ void setup_wallrect(wallrect_t *wall)
 	if (wall->sector == -1)
 		wall->sector = side1->sector;
 
-	wall->light = map.sectors[wall->sector]->light;
+	//wall->light = map.sectors[wall->sector]->light;
+	wall->flags = 0;
 
 	if (wall->part == PART_MIDDLE)
 	{
@@ -81,24 +82,29 @@ void setup_wallrect(wallrect_t *wall)
 			t_c.br.set(side1->x_offset + rect.length(), side1->y_offset + (c-f));
 		}
 
-		float z = plane_height(c_plane, x1, y1);
-		float s_m = (float(c * SCALE_3D) - z) / (tex->height * SCALE_3D);
-		wall->verts.push_back(point3_t(x1, y1, z,
+		float z1 = plane_height(c_plane, x1, y1);
+		float z2 = plane_height(c_plane, x2, y2);
+		float z3 = plane_height(f_plane, x2, y2);
+		float z4 = plane_height(f_plane, x1, y1);
+
+		//float z = plane_height(c_plane, x1, y1);
+		float s_m = (float(c * SCALE_3D) - z1) / (tex->height * SCALE_3D);
+		wall->verts.push_back(point3_t(x1, y1, z1,
 			(float)t_c.x1() / (float)tex->width, ((float)t_c.y1() / (float)tex->height) + s_m));
 
-		z = plane_height(c_plane, x2, y2);
-		s_m = (float(c * SCALE_3D) - z) / (tex->height * SCALE_3D);
-		wall->verts.push_back(point3_t(x2, y2, z,
+		//z = plane_height(c_plane, x2, y2);
+		s_m = (float(c * SCALE_3D) - z2) / (tex->height * SCALE_3D);
+		wall->verts.push_back(point3_t(x2, y2, z2,
 			(float)t_c.x2() / (float)tex->width, ((float)t_c.y1() / (float)tex->height) + s_m));
 
-		z = plane_height(f_plane, x2, y2);
-		s_m = (float(f * SCALE_3D) - z) / (tex->height * SCALE_3D);
-		wall->verts.push_back(point3_t(x2, y2, z,
+		//z = plane_height(f_plane, x2, y2);
+		s_m = (float(f * SCALE_3D) - z3) / (tex->height * SCALE_3D);
+		wall->verts.push_back(point3_t(x2, y2, z3,
 			(float)t_c.x2() / (float)tex->width, ((float)t_c.y2() / (float)tex->height) + s_m));
 
-		z = plane_height(f_plane, x1, y1);
-		s_m = (float(f * SCALE_3D) - z) / (tex->height * SCALE_3D);
-		wall->verts.push_back(point3_t(x1, y1, z,
+		//z = plane_height(f_plane, x1, y1);
+		s_m = (float(f * SCALE_3D) - z4) / (tex->height * SCALE_3D);
+		wall->verts.push_back(point3_t(x1, y1, z4,
 			(float)t_c.x1() / (float)tex->width, ((float)t_c.y2() / (float)tex->height) + s_m));
 
 		wall->tex = tex;
@@ -118,7 +124,8 @@ void setup_wallrect(wallrect_t *wall)
 		if (map.sectors[side1->sector]->c_tex == "F_SKY1" &&
 			map.sectors[side2->sector]->c_tex == "F_SKY1")
 		{
-			wall->light = 255;
+			wall->flags |= WRECT_SKY;
+			//wall->light = 255;
 			tex = get_texture("SKY1", 1);
 		}
 
@@ -133,24 +140,32 @@ void setup_wallrect(wallrect_t *wall)
 			t_c.br.set(side1->x_offset + rect.length(), tex->height + side1->y_offset);
 		}
 
-		float z = plane_height(c_plane, x1, y1);
-		float s_m = (float(c * SCALE_3D) - z) / (tex->height * SCALE_3D);
-		wall->verts.push_back(point3_t(x1, y1, z,
+		float z1 = plane_height(c_plane, x1, y1);
+		float z2 = plane_height(c_plane, x2, y2);
+		float z3 = plane_height(f_plane, x2, y2);
+		float z4 = plane_height(f_plane, x1, y1);
+
+		if (z1 < z4 || z2 < z3)
+			return false;
+
+		//float z = plane_height(c_plane, x1, y1);
+		float s_m = (float(c * SCALE_3D) - z1) / (tex->height * SCALE_3D);
+		wall->verts.push_back(point3_t(x1, y1, z1,
 			(float)t_c.x1() / (float)tex->width, ((float)t_c.y1() / (float)tex->height) + s_m));
 
-		z = plane_height(c_plane, x2, y2);
-		s_m = (float(c * SCALE_3D) - z) / (tex->height * SCALE_3D);
-		wall->verts.push_back(point3_t(x2, y2, z,
+		//z = plane_height(c_plane, x2, y2);
+		s_m = (float(c * SCALE_3D) - z2) / (tex->height * SCALE_3D);
+		wall->verts.push_back(point3_t(x2, y2, z2,
 			(float)t_c.x2() / (float)tex->width, ((float)t_c.y1() / (float)tex->height) + s_m));
 
-		z = plane_height(f_plane, x2, y2);
-		s_m = (float(f * SCALE_3D) - z) / (tex->height * SCALE_3D);
-		wall->verts.push_back(point3_t(x2, y2, z,
+		//z = plane_height(f_plane, x2, y2);
+		s_m = (float(f * SCALE_3D) - z3) / (tex->height * SCALE_3D);
+		wall->verts.push_back(point3_t(x2, y2, z3,
 			(float)t_c.x2() / (float)tex->width, ((float)t_c.y2() / (float)tex->height) + s_m));
 
-		z = plane_height(f_plane, x1, y1);
-		s_m = (float(f * SCALE_3D) - z) / (tex->height * SCALE_3D);
-		wall->verts.push_back(point3_t(x1, y1, z,
+		//z = plane_height(f_plane, x1, y1);
+		s_m = (float(f * SCALE_3D) - z4) / (tex->height * SCALE_3D);
+		wall->verts.push_back(point3_t(x1, y1, z4,
 			(float)t_c.x1() / (float)tex->width, ((float)t_c.y2() / (float)tex->height) + s_m));
 
 		wall->tex = tex;
@@ -180,24 +195,32 @@ void setup_wallrect(wallrect_t *wall)
 			t_c.br.set(side1->x_offset + rect.length(), side1->y_offset + (c-f));
 		}
 
-		float z = plane_height(c_plane, x1, y1);
-		float s_m = (float(c * SCALE_3D) - z) / (tex->height * SCALE_3D);
-		wall->verts.push_back(point3_t(x1, y1, z,
+		float z1 = plane_height(c_plane, x1, y1);
+		float z2 = plane_height(c_plane, x2, y2);
+		float z3 = plane_height(f_plane, x2, y2);
+		float z4 = plane_height(f_plane, x1, y1);
+
+		if (z1 < z4 || z2 < z3)
+			return false;
+
+		//float z = plane_height(c_plane, x1, y1);
+		float s_m = (float(c * SCALE_3D) - z1) / (tex->height * SCALE_3D);
+		wall->verts.push_back(point3_t(x1, y1, z1,
 			(float)t_c.x1() / (float)tex->width, ((float)t_c.y1() / (float)tex->height) + s_m));
 
-		z = plane_height(c_plane, x2, y2);
-		s_m = (float(c * SCALE_3D) - z) / (tex->height * SCALE_3D);
-		wall->verts.push_back(point3_t(x2, y2, z,
+		//z = plane_height(c_plane, x2, y2);
+		s_m = (float(c * SCALE_3D) - z2) / (tex->height * SCALE_3D);
+		wall->verts.push_back(point3_t(x2, y2, z2,
 			(float)t_c.x2() / (float)tex->width, ((float)t_c.y1() / (float)tex->height) + s_m));
 
-		z = plane_height(f_plane, x2, y2);
-		s_m = (float(f * SCALE_3D) - z) / (tex->height * SCALE_3D);
-		wall->verts.push_back(point3_t(x2, y2, z,
+		//z = plane_height(f_plane, x2, y2);
+		s_m = (float(f * SCALE_3D) - z3) / (tex->height * SCALE_3D);
+		wall->verts.push_back(point3_t(x2, y2, z3,
 			(float)t_c.x2() / (float)tex->width, ((float)t_c.y2() / (float)tex->height) + s_m));
 
-		z = plane_height(f_plane, x1, y1);
-		s_m = (float(f * SCALE_3D) - z) / (tex->height * SCALE_3D);
-		wall->verts.push_back(point3_t(x1, y1, z,
+		//z = plane_height(f_plane, x1, y1);
+		s_m = (float(f * SCALE_3D) - z4) / (tex->height * SCALE_3D);
+		wall->verts.push_back(point3_t(x1, y1, z4,
 			(float)t_c.x1() / (float)tex->width, ((float)t_c.y2() / (float)tex->height) + s_m));
 
 		wall->tex = tex;
@@ -249,6 +272,8 @@ void setup_wallrect(wallrect_t *wall)
 			(float)t_c.x1() / (float)tex->width, (float)t_c.y2() / (float)tex->height));
 		wall->tex = tex;
 	}
+
+	return true;
 }
 
 void setup_3d_line(int line)
@@ -277,7 +302,7 @@ void setup_3d_line(int line)
 	{
 		floor1 = map.sectors[side->sector]->f_height;
 		ceil1 = map.sectors[side->sector]->c_height;
-		light = map.sectors[side->sector]->light;
+		//light = map.sectors[side->sector]->light;
 
 		// Middle
 		side = map.l_getside(line, 2);
@@ -287,15 +312,17 @@ void setup_3d_line(int line)
 			mid->line = line;
 			mid->side = 1;
 			mid->part = PART_MIDDLE;
-			mid->light = light;
-			setup_wallrect(mid);
-			ldat->rects.push_back(mid);
+			//mid->light = light;
+			if (setup_wallrect(mid))
+				ldat->rects.push_back(mid);
+			else
+				delete mid;
 		}
 
 		if (side)
 		{
-			floor2 = map.sectors[side->sector]->f_height;
-			ceil2 = map.sectors[side->sector]->c_height;
+			//floor2 = map.sectors[side->sector]->f_height;
+			//ceil2 = map.sectors[side->sector]->c_height;
 
 			// Middle trans
 			if (map.l_getside(line, 1)->tex_middle != "-")
@@ -304,33 +331,39 @@ void setup_3d_line(int line)
 				mid->line = line;
 				mid->side = 1;
 				mid->part = PART_TRANS;
-				mid->light = light;
-				setup_wallrect(mid);
-				ldat->rects.push_back(mid);
+				//mid->light = light;
+				if (setup_wallrect(mid))
+					ldat->rects.push_back(mid);
+				else
+					delete mid;
 			}
 
 			// Upper
-			if (ceil1 > ceil2)
+			//if (ceil1 > ceil2)
 			{
 				wallrect_t *upper = new wallrect_t();
 				upper->line = line;
 				upper->side = 1;
 				upper->part = PART_UPPER;
-				upper->light = light;
-				setup_wallrect(upper);
-				ldat->rects.push_back(upper);
+				//upper->light = light;
+				if (setup_wallrect(upper))
+					ldat->rects.push_back(upper);
+				else
+					delete upper;
 			}
 
 			// Lower
-			if (floor2 > floor1)
+			//if (floor2 > floor1)
 			{
 				wallrect_t *lower = new wallrect_t();
 				lower->line = line;
 				lower->side = 1;
 				lower->part = PART_LOWER;
-				lower->light = light;
-				setup_wallrect(lower);
-				ldat->rects.push_back(lower);
+				//lower->light = light;
+				if (setup_wallrect(lower))
+					ldat->rects.push_back(lower);
+				else
+					delete lower;
 			}
 		}
 	}
@@ -349,33 +382,39 @@ void setup_3d_line(int line)
 			mid->line = line;
 			mid->side = 2;
 			mid->part = PART_TRANS;
-			mid->light = light;
-			setup_wallrect(mid);
-			ldat->rects.push_back(mid);
+			//mid->light = light;
+			if (setup_wallrect(mid))
+				ldat->rects.push_back(mid);
+			else
+				delete mid;
 		}
 
 		// Upper
-		if (ceil2 > ceil1)
+		//if (ceil2 > ceil1)
 		{
 			wallrect_t *upper = new wallrect_t();
 			upper->line = line;
 			upper->side = 2;
 			upper->part = PART_UPPER;
-			upper->light = light;
-			setup_wallrect(upper);
-			ldat->rects.push_back(upper);
+			//upper->light = light;
+			if (setup_wallrect(upper))
+				ldat->rects.push_back(upper);
+			else
+				delete upper;
 		}
 
 		// Lower
-		if (floor1 > floor2)
+		//if (floor1 > floor2)
 		{
 			wallrect_t *lower = new wallrect_t();
 			lower->line = line;
 			lower->side = 2;
 			lower->part = PART_LOWER;
-			lower->light = light;
-			setup_wallrect(lower);
-			ldat->rects.push_back(lower);
+			//lower->light = light;
+			if (setup_wallrect(lower))
+				ldat->rects.push_back(lower);
+			else
+				delete lower;
 		}
 	}
 
@@ -671,6 +710,7 @@ void setup_sector(int s)
 
 void setup_flatpoly(flatpoly_t *poly, int ssector)
 {
+	poly->flags = 0;
 	poly->verts.clear();
 	int startseg = gl_ssects[ssector].startseg;
 	int endseg = startseg + gl_ssects[ssector].n_segs;
@@ -705,15 +745,12 @@ void setup_flatpoly(flatpoly_t *poly, int ssector)
 		tex = get_texture(map.sectors[poly->parent_sector]->c_tex, 2);
 
 	if (tex->name != "F_SKY1")
-	{
-		poly->tex = tex->get_gl_id();
-		poly->light = map.sectors[poly->parent_sector]->light;
-	}
+		poly->tex = tex;
 	else
 	{
 		tex = get_texture("SKY1", 1);
-		poly->light = 255;
-		poly->tex = tex->get_gl_id();
+		poly->tex = tex;
+		poly->flags |= FPOLY_SKY;
 	}
 
 	float x, y, z, u, v;
@@ -906,6 +943,13 @@ void setup_3d_data()
 		setup_3d_things();
 
 		map.changed = (map.changed & ~MC_THINGS);
+	}
+
+	for (int a = 0; a < map.n_sectors; a++)
+	{
+		log_message("Sector %d: f (%1.2f, %1.2f, %1.2f) c (%1.2f, %1.2f, %1.2f)\n", a,
+				sector_info[a].f_plane.a, sector_info[a].f_plane.b, sector_info[a].f_plane.c,
+				sector_info[a].c_plane.a, sector_info[a].c_plane.b, sector_info[a].c_plane.c);
 	}
 
 	splash_hide();

@@ -762,7 +762,10 @@ void line_drawbox()
 // ------------------------------------------------------------------ >>
 void line_undrawpoint()
 {
-	ldraw_points.remove(ldraw_points.get_last());
+	if (sel_box.x1() != -1)
+		ldraw_points.clear();
+	else
+		ldraw_points.remove(ldraw_points.get_last());
 
 	if (ldraw_points.n_points == 0)
 	{

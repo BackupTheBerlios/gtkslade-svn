@@ -22,6 +22,7 @@
 #include "3dmode.h"
 #include "console.h"
 #include "console_window.h"
+#include "copypaste.h"
 
 CVAR(Float, move_speed_3d, 0.3f, CVAR_SAVE)
 CVAR(Float, mouse_speed_3d, 1.0f, CVAR_SAVE)
@@ -33,10 +34,10 @@ extern Map map;
 
 extern int xoff, yoff, edit_mode, hilight_item;
 extern float zoom;
-extern bool line_draw;
+extern bool line_draw, paste_mode;
 extern point2_t mouse;
 extern rect_t sel_box;
-
+extern Clipboard clipboard;
 extern Camera camera;
 
 EXTERN_CVAR(Bool, render_fog)
@@ -418,6 +419,26 @@ void keys_edit()
 		binds.clear("open_console");
 		popup_console();
 	}
+
+	if (binds.pressed("copy"))
+	{
+		binds.clear("copy");
+		clipboard.Copy();
+	}
+
+	if (binds.pressed("paste"))
+	{
+		binds.clear("paste");
+		paste_mode = true;
+		clear_selection();
+	}
+
+	if (binds.pressed("cancel_paste"))
+	{
+		binds.clear("cancel_paste");
+		paste_mode = false;
+		force_map_redraw(true, false);
+	}
 }
 
 //#define KEY_3D_DELAY 7
@@ -487,6 +508,17 @@ bool keys_3d()
 
 		if (render_things > 3)
 			render_things = 0;
+	}
+
+	if (binds.pressed("3d_toggle_gravity"))
+	{
+		binds.clear("3d_toggle_gravity");
+		camera.gravity = !camera.gravity;
+
+		if (camera.gravity)
+			add_3d_message("Gravity ON");
+		else
+			add_3d_message("Gravity OFF");
 	}
 
 	// Sector height quick changes (8 units)

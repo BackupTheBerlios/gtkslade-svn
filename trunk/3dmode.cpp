@@ -12,6 +12,7 @@
 #include "tex_browser.h"
 #include "misc.h"
 #include "edit_misc.h"
+#include "3dmode.h"
 
 float grav = 0.01f;
 
@@ -80,7 +81,7 @@ float dist_ray_plane(point3_t r_o, point3_t r_v, plane_t plane)
     float cos_a;
     float delta_d;
 
-	point3_t p_normal(-plane.a, -plane.b, plane.c);
+	point3_t p_normal(plane.a, plane.b, plane.c);
 
     cos_a = dot_product(r_v, p_normal.normalize());
 
@@ -213,6 +214,21 @@ void determine_hilight()
 				plane = sector_info[poly->parent_sector].c_plane;
 			else
 				plane = sector_info[poly->parent_sector].f_plane;
+
+			// Check side of plane
+			float h = plane_height(plane, camera.position.x, camera.position.y);
+
+			if (poly->part == PART_CEIL)
+			{
+				if (camera.position.z > h)
+					continue;
+			}
+
+			if (poly->part == PART_FLOOR)
+			{
+				if (camera.position.z < h)
+					continue;
+			}
 
 			float dist = dist_ray_plane(camera.position, direction, plane);
 			if (dist <= min_dist && dist > 0.0f)

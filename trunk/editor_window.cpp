@@ -24,6 +24,7 @@
 #include "edit_misc.h"
 #include "tex_browser.h"
 #include "checks.h"
+#include "copypaste.h"
 
 // Variables ------------------------------ >>
 GtkWidget	*editor_window = NULL;
@@ -43,12 +44,14 @@ int vid_height;
 
 bool thing_quickangle = false;
 bool items_moving = false;
+bool paste_mode = false;
 
 // External Variables --------------------- >>
 extern Map map;
 extern int hilight_item, edit_mode;
 extern BindList binds;
 extern bool line_draw;
+extern Clipboard clipboard;
 
 // init_opengl: Initialises OpenGL
 // ---------------------------- >>
@@ -144,7 +147,21 @@ void render_map()
 // ----------------------------------------------------------------- >>
 gboolean expose_event(GtkWidget *widget, GdkEventExpose *event, gpointer user_data)
 {
-	render_map();
+	//render_map();
+
+	GdkGLDrawable *gldrawable = gtk_widget_get_gl_drawable(widget);
+
+	if (!gdk_gl_drawable_gl_begin(gldrawable, glcontext))
+		return false;
+
+	draw_map();
+
+	if (gdk_gl_drawable_is_double_buffered(gldrawable))
+		gdk_gl_drawable_swap_buffers(gldrawable);
+	else
+		glFlush();
+
+	gdk_gl_drawable_gl_end(gldrawable);
 
 	return false;
 }
@@ -153,13 +170,21 @@ gboolean expose_event(GtkWidget *widget, GdkEventExpose *event, gpointer user_da
 // ------------------------------------------------ >>
 void force_map_redraw(bool map, bool grid)
 {
+	GdkGLDrawable *gldrawable = gtk_widget_get_gl_drawable(map_area);
+
+	if (!gdk_gl_drawable_gl_begin(gldrawable, glcontext))
+		return;
+
 	if (grid)
 		update_grid();
 
 	if (map)
 		update_map();
 
-	render_map();
+	gdk_gl_drawable_gl_end(gldrawable);
+
+	gdk_window_invalidate_rect(map_area->window, &map_area->allocation, false);
+	//render_map();
 }
 
 // configure_event: Called when the map area is resized or initialised
@@ -175,9 +200,9 @@ gboolean configure_event(GtkWidget *widget, GdkEventConfigure *event)
 	vid_width = widget->allocation.width;
 	vid_height = widget->allocation.height;
 	init_opengl();
-	update_map();
-	update_grid();
-	render_map();
+	//update_map();
+	//update_grid();
+	//render_map();
 
 	gdk_gl_drawable_gl_end (gldrawable);
 
@@ -242,10 +267,10 @@ static gboolean motion_notify_event(GtkWidget *widget, GdkEventMotion *event)
 	}
 	else
 	{
-		if (line_draw)
+		if (line_draw || paste_mode)
 			redraw_map = true;
 
-		if (!thing_quickangle)
+		if (!thing_quickangle && !paste_mode)
 		{
 			int old_hilight = hilight_item;
 			get_hilight_item(x, y);
@@ -282,6 +307,13 @@ static gboolean button_press_event(GtkWidget *widget, GdkEventButton *event)
 					line_drawpoint();
 					redraw_map = true;
 				}
+				else if (paste_mode)
+				{
+					paste_mode = false;
+					clipboard.Paste();
+					redraw_map = true;
+					update_map = true;
+				}
 				else
 				{
 					select_item();
@@ -298,13 +330,6 @@ static gboolean button_press_event(GtkWidget *widget, GdkEventButton *event)
 				line_undrawpoint();
 				redraw_map = true;
 			}
-			/*
-			else
-			{
-				add_move_items();
-				redraw_map = update_map = true;
-			}
-			*/
 		}
 	}
 
@@ -424,18 +449,6 @@ static gboolean destroy(GtkWidget *widget, gpointer data)
 }
 
 // MENU STUFF
-void file_save()
-{
-	map.add_to_wad(edit_wad);
-	edit_wad->save(true);
-
-	map.changed = (map.changed & ~MC_SAVE_NEEDED);
-	string title = gtk_window_get_title(GTK_WINDOW(editor_window));
-	if (g_str_has_suffix(title.c_str(), "*"))
-		title.erase(title.size() - 1, 1);
-	gtk_window_set_title(GTK_WINDOW(editor_window), title.c_str());
-}
-
 void file_saveas()
 {
 	GtkWidget *dialog = gtk_file_chooser_dialog_new("Save Wad",
@@ -467,6 +480,23 @@ void file_saveas()
 	}
 
 	gtk_widget_destroy(dialog);
+}
+
+void file_save()
+{
+	if (!edit_wad->locked)
+	{
+		map.add_to_wad(edit_wad);
+		edit_wad->save(true);
+	}
+	else
+		file_saveas();
+
+	map.changed = (map.changed & ~MC_SAVE_NEEDED);
+	string title = gtk_window_get_title(GTK_WINDOW(editor_window));
+	if (g_str_has_suffix(title.c_str(), "*"))
+		title.erase(title.size() - 1, 1);
+	gtk_window_set_title(GTK_WINDOW(editor_window), title.c_str());
 }
 
 void file_close()
@@ -557,7 +587,10 @@ static void menu_action(GtkAction *action)
 	else if (act == "ModeThings")
 		change_edit_mode(3);
 	else if (act == "Mode3d")
-		start_3d_mode();
+	{
+		if (map.opened)
+			start_3d_mode();
+	}
 	else if (act == "ShowConsole")
 		popup_console();
 	else if (act == "ShowScriptEditor")
@@ -834,6 +867,8 @@ void setup_editor_window()
 	g_signal_connect(G_OBJECT(editor_window), "delete_event", G_CALLBACK(destroy), NULL);
 	gtk_box_pack_start(GTK_BOX(main_vbox), map_area, true, true, 0);
 
+	GTK_WIDGET_SET_FLAGS(map_area, GTK_CAN_FOCUS);
+
 	// Setup widgets that need to share the context
 	gtk_widget_realize(map_area);
 	glcontext = gtk_widget_get_gl_context(map_area);
@@ -854,8 +889,13 @@ bool open_map(Wad* wad, string mapname)
 {
 	if (wad)
 	{
-		if (!map.open(wad, mapname))
-			return false;
+		if (!wad->get_lump(mapname, 0))
+			map.create(mapname);
+		else
+		{
+			if (!map.open(wad, mapname))
+				return false;
+		}
 
 		gtk_window_set_title(GTK_WINDOW(editor_window), parse_string("SLADE (%s, %s)", wad->path.c_str(), mapname.c_str()).c_str());
 	}

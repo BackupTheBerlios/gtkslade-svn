@@ -12,6 +12,7 @@
 #include "edit.h"
 #include "edit_move.h"
 #include "textures.h"
+#include "copypaste.h"
 
 // Variables ------------------------------ >>
 rgba_t	col_hilight(255, 255, 0, 160, 1);
@@ -77,7 +78,9 @@ extern rect_t sel_box;
 extern point2_t mouse;
 extern bool line_draw;
 extern bool thing_quickangle;
+extern bool paste_mode;
 extern movelist_t move_list;
+extern Clipboard clipboard;
 
 void setup_font()
 {
@@ -115,7 +118,7 @@ void draw_point(int x, int y, int size, rgba_t col)
 
 // draw_line: Draws a line from a rect's top left to it's bottom right
 // ---------------------------------------------------------------- >>
-void draw_line(rect_t rect, rgba_t col, bool aa, bool side_indicator = false)
+void draw_line(rect_t rect, rgba_t col, bool aa, bool side_indicator)
 {
 	glDisable(GL_TEXTURE_2D);
 
@@ -524,14 +527,104 @@ void draw_sectors()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
+bool draw_thing(thing_t *thing, bool moving, bool selected)
+{
+	rgba_t colour;
+
+	// Get thing type definition (for colour, radius and sprite)
+	thing_type_t* ttype = thing->ttype;
+	if (!ttype) ttype = get_thing_type(-1);
+
+	// Setup the radius
+	int r = (ttype->radius * zoom) / MAJOR_UNIT;
+	if (ttype->radius == -1) r = 8;
+
+
+	// Don't draw if it's out of the visible area
+	rect_t t_rect(s_x(thing->x), s_y(-thing->y), r*2, r*2, RECT_CENTER);
+	if (t_rect.x2() < 0 || t_rect.x1() > vid_width || t_rect.y2() < 0 || t_rect.y1() > vid_height)
+		return false;
+
+	// Setup the colour
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	colour.set(ttype->colour);
+
+	// Draw thing
+	if (thing_sprites)
+	{
+		Texture* tex = get_texture(ttype->spritename, 3);
+		int width = (tex->width * zoom) / MAJOR_UNIT;
+		int height = (tex->height * zoom) / MAJOR_UNIT;
+		draw_texture(s_x(thing->x) - (width / 2),
+			s_y(-thing->y) - (height / 2),
+			width, height, tex->name, 3, COL_WHITE);
+	}
+	else
+		draw_texture(t_rect.x1(), t_rect.y1(), t_rect.width(), t_rect.height(), "_thing", 0, colour);
+
+	// Draw the angle (if needed)
+	point2_t p(s_x(thing->x), s_y(-thing->y));
+	if (ttype->show_angle || thing_force_angle)
+	{
+		int x2, y2;
+
+		// east
+		if (thing->angle == 0)			{ x2 = p.x + r; y2 = p.y; }
+		// northeast
+		else if (thing->angle == 45)	{ x2 = p.x + (r*0.75); y2 = p.y - (r*0.75); }
+		// north
+		else if (thing->angle == 90)	{ x2 = p.x; y2 = p.y - r; }
+		// northwest
+		else if (thing->angle == 135)	{ x2 = p.x - (r*0.75); y2 = p.y - (r*0.75); }
+		// west
+		else if (thing->angle == 180)	{ x2 = p.x - r; y2 = p.y; }
+		// southwest
+		else if (thing->angle == 225)	{ x2 = p.x - (r*0.75); y2 = p.y + (r*0.75); }
+		// south
+		else if (thing->angle == 270)	{ x2 = p.x; y2 = p.y + r; }
+		// southeast
+		else if (thing->angle == 315)	{ x2 = p.x + (r*0.75); y2 = p.y + (r*0.75); }
+		// Invalid angle
+		else	{ x2 = p.x; y2 = p.y; }
+
+		glLineWidth(2.0f);
+		glEnable(GL_POINT_SMOOTH);
+
+		if (thing_sprites)
+		{
+			draw_point(p.x, p.y, 8 * zoom / MAJOR_UNIT, COL_WHITE);
+			draw_line(rect_t(p.x, p.y, x2, y2), rgba_t(255, 255, 255, 200), line_aa);
+		}
+		else
+			draw_line(rect_t(p.x, p.y, x2, y2), rgba_t(0, 0, 0, 200), line_aa);
+
+		glLineWidth(1.0f);
+	}
+
+	// Draw moving hilight
+	if (moving)
+	{
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+		r += 4;
+		draw_rect(rect_t(s_x(thing->x), s_y(-thing->y), r*2, r*2, RECT_CENTER), col_moving, true);
+	}
+	else if (selected) // Draw selected hilight
+	{
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+		r += 4;
+		draw_rect(rect_t(s_x(thing->x), s_y(-thing->y), r*2, r*2, RECT_CENTER), col_selection, true);
+	}
+
+	return true;
+}
+
 // draw_things: Draws the map things
 // ------------------------------ >>
 void draw_things()
 {
-	rgba_t colour;
-
 	for (DWORD t = 0; t < map.n_things; t++)
 	{
+		/*
 		// Get thing type definition (for colour, radius and sprite)
 		thing_type_t* ttype = map.things[t]->ttype;
 		if (!ttype) ttype = get_thing_type(-1);
@@ -601,30 +694,26 @@ void draw_things()
 
 			glLineWidth(1.0f);
 		}
+		*/
 
-		if (thing_quickangle)
+		bool selected = false;
+		if (vector_exists(selected_items, t))
+			selected = true;
+
+		if (draw_thing(map.things[t], move_list.exists(t), selected))
 		{
-			glLineStipple(4, 0xAAAA);
-			glEnable(GL_LINE_STIPPLE);
+			point2_t p(s_x(map.things[t]->x), s_y(-map.things[t]->y));
 
-			if (vector_exists(selected_items, t) || hilight_item == t)
-				draw_line(rect_t(p.x, p.y, mouse.x, mouse.y), col_linedraw, line_aa);
+			if (thing_quickangle)
+			{
+				glLineStipple(4, 0xAAAA);
+				glEnable(GL_LINE_STIPPLE);
 
-			glDisable(GL_LINE_STIPPLE);
-		}
+				if (vector_exists(selected_items, t) || hilight_item == t)
+					draw_line(rect_t(p.x, p.y, mouse.x, mouse.y), col_linedraw, line_aa);
 
-		// Draw moving hilight
-		if (move_list.exists(t))
-		{
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-			r += 4;
-			draw_rect(rect_t(s_x(map.things[t]->x), s_y(-map.things[t]->y), r*2, r*2, RECT_CENTER), col_moving, true);
-		}
-		else if (vector_exists(selected_items, t)) // Draw selected hilight
-		{
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-			r += 4;
-			draw_rect(rect_t(s_x(map.things[t]->x), s_y(-map.things[t]->y), r*2, r*2, RECT_CENTER), col_selection, true);
+				glDisable(GL_LINE_STIPPLE);
+			}
 		}
 	}
 }
@@ -945,6 +1034,9 @@ void draw_map()
 				draw_rect(sel_box, col_selbox, true);
 				draw_rect(sel_box, col_selbox_line, false);
 			}
+
+			if (paste_mode)
+				clipboard.DrawPaste();
 		}
 	}
 }

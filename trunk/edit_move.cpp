@@ -256,35 +256,37 @@ void clear_move_items()
 	bool merge = false;
 
 	// Vertices
+	/*
 	if (edit_mode == 0)
 	{
 		for (DWORD v = 0; v < map.n_verts; v++)
 		{
 			if (MOVING(v))
 			{
-				int split_line = check_vertex_split(v);
-				
-				if (split_line != -1)
-					map.l_split(split_line, v);
-
 				if (!map.v_checkspot(map.verts[v]->x, map.verts[v]->y))
 				{
 					map.v_mergespot(map.verts[v]->x, map.verts[v]->y);
 					merge = true;
 				}
+
+				int split_line = check_vertex_split(v);
+				
+				if (split_line != -1)
+					map.l_split(split_line, v);
 			}
 		}
 	}
+	*/
 	
-	// Lines
-	if (edit_mode == 1)
+	// Check for overlapping/split lines
+	if (edit_mode != 3)
 	{
 		vector<int> moving_lines;
 
 		// Get a list of the moving lines
 		for (DWORD l = 0; l < map.n_lines; l++)
 		{
-			if (MOVING(map.lines[l]->vertex1) && MOVING(map.lines[l]->vertex2))
+			if (MOVING(map.lines[l]->vertex1) || MOVING(map.lines[l]->vertex2))
 				vector_add_nodup(moving_lines, l);
 		}
 
@@ -306,11 +308,29 @@ void clear_move_items()
 				map.l_split(split_line, map.lines[line]->vertex2);
 		}
 
+		// Get the list of the moving lines again
+		moving_lines.clear();
+		for (DWORD l = 0; l < map.n_lines-1; l++)
+		{
+			if (MOVING(map.lines[l]->vertex1) || MOVING(map.lines[l]->vertex2))
+				vector_add_nodup(moving_lines, l);
+		}
+
 		// Check if we have any overlapping lines, if so merge them
 		if (check_overlapping_lines(moving_lines))
 		{
 			make_backup(true, true, false, false, false);
-			merge_overlapping_lines(moving_lines);
+			
+			while (merge_overlapping_lines(moving_lines))
+			{
+				// Get the list of the moving lines again
+				moving_lines.clear();
+				for (DWORD l = 0; l < map.n_lines-1; l++)
+				{
+					if (MOVING(map.lines[l]->vertex1) || MOVING(map.lines[l]->vertex2))
+						vector_add_nodup(moving_lines, l);
+				}
+			}
 		}
 	}
 	

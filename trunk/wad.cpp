@@ -165,6 +165,8 @@ long Wad::get_lump_index(string name)
 	{
 		if (str_upper(directory[l]->Name()) == str_upper(name))
 			return l;
+		//else
+		//	log_message("\"%s\" != \"%s\"\n", str_upper(directory[l]->Name()).c_str(), str_upper(name).c_str());
 	}
 
 	return -1;
@@ -294,6 +296,12 @@ void copy_file(string input, string output)
 // ------------------------------------------------------------------------ >>
 void Wad::save(bool nodes)
 {
+	if (locked)
+	{
+		message_box("Saving to the IWAD is disallowed. Use 'Save As' instead.", GTK_MESSAGE_INFO);
+		return;
+	}
+
 	string bakfile = path + ".bak";
 	printf("%s\n%s\n", path.c_str(), bakfile.c_str());
 

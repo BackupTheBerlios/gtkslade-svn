@@ -19,6 +19,7 @@
 
 // Variables ----------------------------- >>
 CVAR(String, col_config, "Default", CVAR_SAVE)
+bool dev_log = false;
 
 // External Variables -------------------- >>
 extern WadList wads;
@@ -133,7 +134,6 @@ string file_browser(string extension, string folder)
 	{
 		gchar* p = g_get_current_dir();
 		string path = p;
-		//free(p);
 		path += folder;
 		gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(dialog), path.c_str());
 	}
@@ -252,10 +252,16 @@ void setup_icons()
 
 int main(int argc, char *argv[])
 {
+#ifdef DEBUG
 	gtk_init(&argc, &argv);
+	gtk_gl_init(&argc, &argv);
+#else
+	gtk_init(NULL, NULL);
+	gtk_gl_init(NULL, NULL);
+#endif
+
 	setup_splash();
 	splash("Starting up...");
-	//gtk_gl_init(&argc, &argv);
 
 	// Init logfile
 	FILE* f = fopen("slade.log", "wt");

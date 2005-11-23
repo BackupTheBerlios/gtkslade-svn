@@ -111,10 +111,10 @@ struct plane_t
 		point3_t v1 = p3 - p1;
 		point3_t v2 = p2 - p1;
 		point3_t normal = cross(v1.normalize(), v2.normalize());
-		normal = normal.normalize();
+		normal.set(normal.normalize());
 
-		a = -normal.x;
-		b = -normal.y;
+		a = normal.x;
+		b = normal.y;
 		c = normal.z;
 		d = (normal.x * p1.x) + (normal.y * p1.y) + (normal.z * p1.z);
 	}

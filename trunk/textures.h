@@ -66,6 +66,7 @@ void init_textures();
 void load_flats();
 void load_sprites();
 void load_tx_textures();
+void load_hirestex_textures();
 
 #define TEXTURES_WALLS		1
 #define	TEXTURES_FLATS		2

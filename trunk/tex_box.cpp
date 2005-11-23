@@ -2,6 +2,7 @@
 #include "main.h"
 #include "textures.h"
 #include "tex_box.h"
+#include "map.h"
 #include "draw.h"
 
 //vector<tex_box_t*> tboxes;
@@ -114,6 +115,11 @@ tex_box_t::tex_box_t(string texture, BYTE textype, float scale, rgba_t back_colo
 
 void tex_box_t::setup_widget()
 {
+	widget = gtk_drawing_area_new();
+	gtk_widget_set_gl_capability(widget, glconfig, glcontext, TRUE, GDK_GL_RGBA_TYPE);
+	g_signal_connect(G_OBJECT(widget), "expose-event", G_CALLBACK(tbox_expose_event), (gpointer)this);
+	g_signal_connect(G_OBJECT(widget), "configure-event", G_CALLBACK(tbox_configure_event), (gpointer)this);
+	g_signal_connect_after(G_OBJECT(widget), "realize", G_CALLBACK(tbox_realize_event), (gpointer)this);
 	//g_signal_connect(G_OBJECT(widget), "expose-event", G_CALLBACK(tbox_expose_event), (gpointer)this);
 }
 
