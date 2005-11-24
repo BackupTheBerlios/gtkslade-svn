@@ -206,6 +206,9 @@ void load_main_config()
 
 		if (token == "recent_wads")
 			load_recent_wads(&mr);
+		
+		if (token == "window_props")
+			load_window_properties(&mr);
 
 		token = mr.get_token();
 	}
@@ -220,6 +223,7 @@ void save_main_config()
 	save_game_iwads(fp);
 	binds.save(fp);
 	save_recent_wads(fp);
+	save_window_properties(fp);
 	fclose(fp);
 }
 

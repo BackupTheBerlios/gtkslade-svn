@@ -22,6 +22,7 @@ public:
 	void set(string key);
 	void unset(string key);
 	bool pressed(string name);
+	void press(string name);
 	void clear(string name);
 	void clear_all();
 	void change(string name, string key);

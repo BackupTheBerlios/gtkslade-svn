@@ -25,6 +25,7 @@
 #include "tex_browser.h"
 #include "checks.h"
 #include "copypaste.h"
+#include "version.h"
 
 // Variables ------------------------------ >>
 GtkWidget	*editor_window = NULL;
@@ -45,6 +46,13 @@ int vid_height;
 bool thing_quickangle = false;
 bool items_moving = false;
 bool paste_mode = false;
+
+// Window properties
+int ew_width = -1;
+int ew_height = -1;
+int ew_x = 0;
+int ew_y = 0;
+bool ew_fullscreen = true;
 
 // External Variables --------------------- >>
 extern Map map;
@@ -200,9 +208,8 @@ gboolean configure_event(GtkWidget *widget, GdkEventConfigure *event)
 	vid_width = widget->allocation.width;
 	vid_height = widget->allocation.height;
 	init_opengl();
-	//update_map();
-	//update_grid();
-	//render_map();
+	
+	force_map_redraw(true, true);
 
 	gdk_gl_drawable_gl_end (gldrawable);
 
@@ -443,6 +450,9 @@ static gboolean destroy(GtkWidget *widget, gpointer data)
 			return true;
 	}
 
+	gtk_window_get_size(GTK_WINDOW(editor_window), &ew_width, &ew_height);
+	gtk_window_get_position(GTK_WINDOW(editor_window), &ew_x, &ew_y);
+
     gtk_main_quit();
 
 	return false;
@@ -602,7 +612,7 @@ static void menu_action(GtkAction *action)
 		gtk_show_about_dialog(GTK_WINDOW(editor_window),
 								"name", "SLADE",
 								"comments", "by Simon 'SlayeR' Judd, 2005",
-								"version", "1.0 beta",
+								"version", __SLADEVERS,
 								"website", "http://slade.mancubus.net",
 								NULL);
 	}
@@ -793,6 +803,59 @@ gboolean tbar_keypress(GtkWidget *widget, GdkEventKey *event, gpointer data)
 	return true;
 }
 
+void save_window_properties(FILE* fp)
+{
+	fprintf(fp, "window_props\n{\n");
+	fprintf(fp, "\twidth %d\n", ew_width);
+	fprintf(fp, "\theight %d\n", ew_height);
+	fprintf(fp, "\tx_pos %d\n", ew_x);
+	fprintf(fp, "\ty_pos %d\n", ew_y);
+	fprintf(fp, "\tmax %d\n", ew_fullscreen);
+	fprintf(fp, "}\n\n");
+}
+
+void load_window_properties(Tokenizer *tz)
+{
+	tz->check_token("{");
+
+	string token = tz->get_token();
+	while (token != "}")
+	{
+		if (token == "width")
+			ew_width = tz->get_integer();
+		if (token == "height")
+			ew_height = tz->get_integer();
+		if (token == "x_pos")
+			ew_x = tz->get_integer();
+		if (token == "y_pos")
+			ew_y = tz->get_integer();
+		if (token == "max")
+			ew_fullscreen = tz->get_bool();
+
+		token = tz->get_token();
+	}
+}
+
+gboolean editor_state_event(GtkWidget *widget, GdkEventWindowState *event, gpointer data)
+{
+	if (event->new_window_state & GDK_WINDOW_STATE_MAXIMIZED)
+		ew_fullscreen = 1;
+	else
+		ew_fullscreen = 0;
+
+	return false;
+}
+
+gboolean editor_scroll_event(GtkWidget *widget, GdkEventScroll *event, gpointer user_data)
+{
+	if (event->direction == GDK_SCROLL_UP)
+		view_zoom(true);
+	else if (event->direction = GDK_SCROLL_DOWN)
+		view_zoom(false);
+
+	return false;
+}
+
 // setup_editor_window: Sets up the main editor window
 // ------------------------------------------------ >>
 void setup_editor_window()
@@ -865,6 +928,8 @@ void setup_editor_window()
 	g_signal_connect(G_OBJECT(editor_window), "key-release-event", G_CALLBACK(key_release_event), NULL);
 	g_signal_connect_after(G_OBJECT(map_area), "realize", G_CALLBACK (realize_main), NULL);
 	g_signal_connect(G_OBJECT(editor_window), "delete_event", G_CALLBACK(destroy), NULL);
+	g_signal_connect(G_OBJECT(editor_window), "window-state-event", G_CALLBACK(editor_state_event), NULL);
+	g_signal_connect(G_OBJECT(map_area), "scroll-event", G_CALLBACK(editor_scroll_event), NULL);
 	gtk_box_pack_start(GTK_BOX(main_vbox), map_area, true, true, 0);
 
 	GTK_WIDGET_SET_FLAGS(map_area, GTK_CAN_FOCUS);
@@ -879,7 +944,14 @@ void setup_editor_window()
 	gtk_box_pack_start(GTK_BOX(main_vbox), infobar, false, false, 0);
 	change_infobar_page();
 
-	gtk_window_maximize(GTK_WINDOW(editor_window));
+	if (ew_fullscreen)
+		gtk_window_maximize(GTK_WINDOW(editor_window));
+	else
+	{
+		gtk_window_move(GTK_WINDOW(editor_window), ew_x, ew_y);
+		gtk_window_resize(GTK_WINDOW(editor_window), ew_width, ew_height);
+	}
+
 	gtk_widget_show_all(editor_window);
 }
 

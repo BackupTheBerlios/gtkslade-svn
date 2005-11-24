@@ -51,9 +51,6 @@ using std::string;
 // Editor stuff
 #define MAJOR_UNIT 32
 
-// Version string
-#define __SLADEVERS	"v1.1 beta"
-
 // Program includes
 #include "structs.h"
 #include "tokenizer.h"

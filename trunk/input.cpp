@@ -76,6 +76,26 @@ void edit_item()
 		open_thing_edit();
 }
 
+void view_zoom(bool in)
+{
+	if (in)
+	{
+		zoom *= 1.2f;
+
+		if (zoom > 1024)
+			zoom = 1024;
+	}
+	else
+	{
+		zoom *= 0.8f;
+
+		if (zoom < 1)
+			zoom = 1;
+	}
+
+	force_map_redraw(true, true);
+}
+
 // keys_edit: Keys for the 2d editor
 // ------------------------------ >>
 void keys_edit()
@@ -113,25 +133,11 @@ void keys_edit()
 
 	// Zoom in
 	if (binds.pressed("view_zoomin"))
-	{
-		zoom *= 1.2f;
+		view_zoom(true);
 
-		if (zoom > 1024)
-			zoom = 1024;
-
-		force_map_redraw(true, true);
-	}
-	
 	// Zoom out
 	if (binds.pressed("view_zoomout"))
-	{
-		zoom *= 0.8f;
-
-		if (zoom < 1)
-			zoom = 1;
-
-		force_map_redraw(true, true);
-	}
+		view_zoom(false);
 
 	// Center view on mouse
 	if (binds.pressed("view_mousecenter"))

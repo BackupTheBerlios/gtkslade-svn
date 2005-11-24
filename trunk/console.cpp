@@ -13,6 +13,7 @@
 #include "tex_browser.h"
 #include "editor_window.h"
 #include "splash.h"
+#include "version.h"
 
 // Variables ----------------------------- >>
 GtkTextBuffer	*console_log;
@@ -94,8 +95,11 @@ void init_console()
 	console_log = gtk_text_buffer_new(NULL);
 	setup_console_window();
 
+	string line = "<< S.L.A.D.E. -- \"SlayeR's LeetAss Doom Editor\" (";
+	line += __SLADEVERS;
+	line += ")               >>\n";
 	console_print("<< ------------------------------------------------------------------ >>\n");
-	console_print("<< S.L.A.D.E. -- \"SlayeR's LeetAss Doom Editor\" (v1.0)                >>\n");
+	console_print(line);
 	console_print("<< ------------------------------------------------------------------ >>\n");
 	console_print("<< By Simon \"SlayeR\" Judd, 2005                                       >>\n");
 	console_print("<< web: \"http://slade.mancubus.net\" email: \"slayer@mancubus.net\"      >>\n");

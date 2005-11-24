@@ -10,6 +10,10 @@ Goes in bottom-up order
 ': Note
 
 [24/11/05]
+~ Console and about dialog now show the correct versions :P
++ Mouse scroll to zoom in and out
++ Window properties are now saved to slade.cfg
+* The map wasn't being redrawn properly when the editor window was resized
 + Added ability to set the resolution for 3d mode (windows only for now)
 
 [23/11/05]

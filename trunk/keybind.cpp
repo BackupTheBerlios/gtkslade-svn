@@ -205,6 +205,20 @@ void BindList::clear(string name)
 	}
 }
 
+// press: 'Presses' a bind (wether the key is pressed or not)
+// ------------------------------------------------------- >>
+void BindList::press(string name)
+{
+	for (int a = 0; a < keys.size(); a++)
+	{
+		if (keys[a].name == name)
+		{
+			keys[a].pressed = true;
+			return;
+		}
+	}
+}
+
 // clear_all: Clears all binds
 // ------------------------ >>
 void BindList::clear_all()
