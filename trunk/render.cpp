@@ -326,6 +326,12 @@ void render_3d_things(bool boxes)
 				continue;
 			}
 
+			if (map.things[a]->ttype->hanging)
+			{
+				f += h - (shrink*2);
+				h = -h;
+			}
+
 			// Draw floor box
 			if (render_things >= 2)
 			{

@@ -14,6 +14,7 @@
 #include "struct_3d.h"
 #include "mathstuff.h"
 #include "textures.h"
+#include "info_bar.h"
 
 // Variables ----------------------------- >>
 
@@ -152,6 +153,46 @@ void sector_merge(bool remove_lines)
 	force_map_redraw(true, false);
 	//map_changelevel(3);
 	map.change_level(MC_NODE_REBUILD);
+}
+
+void sector_changelight(int amount)
+{
+	if (edit_mode != 2 || (selected_items.size() == 0 && hilight_item == -1))
+		return;
+
+	make_backup(false, false, false, true, false);
+
+	vector<int> sectors;
+
+	// Get sectors to change
+	if (selected_items.size() == 0)
+		sectors.push_back(hilight_item);
+	else
+	{
+		for (int a = 0; a < selected_items.size(); a++)
+			sectors.push_back(selected_items[a]);
+	}
+
+	// Change light levels
+	for (int a = 0; a < sectors.size(); a++)
+	{
+		int light = map.sectors[sectors[a]]->light;
+
+		if (light == 255)
+			light = 256;
+
+		light += amount;
+
+		if (light < 0)
+			light = 0;
+		if (light > 255)
+			light = 255;
+
+		map.sectors[sectors[a]]->light = light;
+	}
+
+	if (hilight_item != -1)
+		update_sector_info_bar(hilight_item);
 }
 
 // LINES

@@ -1,3 +1,3 @@
 
 // Version string
-#define __SLADEVERS	"v1.01"
+#define __SLADEVERS	"v1.02"

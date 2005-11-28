@@ -201,7 +201,7 @@ void load_main_config()
 		if (token == "iwads")
 			load_game_iwads(&mr);
 
-		if (token == "binds")
+		if (token == "key_binds")
 			binds.load(&mr);
 
 		if (token == "recent_wads")
@@ -275,22 +275,30 @@ int main(int argc, char *argv[])
 
 	init_console();
 	setup_icons();
+
+	log_message("Init textures...\n");
 	init_textures();
 
+	log_message("Loading colour configurations...\n");
 	load_colour_configs();
 	string ccfg = col_config;
 	set_colour_config(ccfg);
 
+	log_message("Setup editor window...\n");
 	setup_editor_window();
+	log_message("Setup wad manager window...\n");
+
+	splash_hide();
+
 	setup_main_window();
+	log_message("Init OK.\n");
+
 	open_main_window();
 
 	// Setup gl font
 	//font_list = glGenLists(256);
 	//PangoFontDescription *font_desc = pango_font_description_from_string("Monospace 10");
 	//gdk_gl_font_use_pango_font(font_desc, 0, 255, font_list);
-
-	splash_hide();
 
 	gtk_main();
 	

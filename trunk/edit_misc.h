@@ -8,3 +8,4 @@ void line_align_x();
 void line_correct_references(int line = -1);
 void line_auto_align_x(int line, int offset, int side, string tex, int texwidth, vector<int> *processed_lines);
 void line_paint_tex(int line, int side, string otex, string ntex, vector<int> *processed_lines);
+void sector_changelight(int amount);

@@ -8,6 +8,7 @@ extern int edit_mode;
 
 EXTERN_CVAR(Bool, grid_dashed)
 EXTERN_CVAR(Bool, grid_64grid)
+EXTERN_CVAR(Bool, edit_snap_grid)
 EXTERN_CVAR(Bool, thing_sprites)
 EXTERN_CVAR(Bool, thing_force_angle)
 EXTERN_CVAR(Bool, line_aa)
@@ -27,6 +28,12 @@ void cbox_grid_64grid_click(GtkWidget *widget, gpointer data)
 	GtkToggleButton *tb = GTK_TOGGLE_BUTTON(widget);
 	grid_64grid = gtk_toggle_button_get_active(tb);
 	force_map_redraw(false, true);
+}
+
+void cbox_snap_grid_click(GtkWidget *widget, gpointer data)
+{
+	GtkToggleButton *tb = GTK_TOGGLE_BUTTON(widget);
+	edit_snap_grid = gtk_toggle_button_get_active(tb);
 }
 
 void cbox_thing_sprites_click(GtkWidget *widget, gpointer data)
@@ -96,6 +103,12 @@ GtkWidget* setup_visual_prefs()
 	gtk_box_pack_start(GTK_BOX(vbox), check_button, false, false, 0);
 	g_signal_connect(G_OBJECT(check_button), "toggled", G_CALLBACK(cbox_grid_64grid_click), NULL);
 	if (grid_64grid)
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(check_button), true);
+
+	check_button = gtk_check_button_new_with_label("Snap to grid");
+	gtk_box_pack_start(GTK_BOX(vbox), check_button, false, false, 0);
+	g_signal_connect(G_OBJECT(check_button), "toggled", G_CALLBACK(cbox_snap_grid_click), NULL);
+	if (edit_snap_grid)
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(check_button), true);
 
 	check_button = gtk_check_button_new_with_label("Show things as sprites");

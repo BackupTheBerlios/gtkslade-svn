@@ -9,6 +9,22 @@ Goes in bottom-up order
 ~: Changed
 ': Note
 
+[28/11/05]
++ Added sort by usage frequency for the texture browser (browser_sort cvar, 0: alphabetic, 1: usage freq)
++ Updated the input preferences dialog for the new system
+~ 'Floor Boxes' for hanging things in 3d mode are now drawn on the ceiling
++ Mouse buttons are now configurable ;)
+~ Changed how key modifiers are handled ready for adding mouse buttons to the input system
+* Line drawing 'over' vertices now works correctly (draw points are added at vertices)
++ Added input controls to increase/decrease sector(s) light level in 2d mode
+* The map wasn't redrawn when changing the edit mode using the "change_mode" key
+
+[26/11/05]
++ Added a snap to grid toggle
++ Added a simple status bar
+* Fixed a few issues with the splash window at startup
+~ The splash window is now destroyed when closed rather than hidden
+
 [24/11/05]
 ~ Console and about dialog now show the correct versions :P
 + Mouse scroll to zoom in and out

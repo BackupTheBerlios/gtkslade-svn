@@ -16,6 +16,7 @@ GtkWidget *browse_vscroll;
 GtkWidget *browser_dialog;
 
 CVAR(Int, browser_columns, 6, CVAR_SAVE)
+CVAR(Int, browser_sort, 1, CVAR_SAVE)
 
 extern GtkWidget *editor_window;
 extern vector<Texture*> textures;
@@ -28,6 +29,8 @@ extern rgba_t col_selbox;
 extern rgba_t col_selbox_line;
 
 extern bool mix_tex;
+
+extern Map map;
 
 void scroll_to_selected_texture(GtkWidget* w)
 {
@@ -225,7 +228,7 @@ static gboolean browser_click_event(GtkWidget *widget, GdkEventButton *event)
 	return false;
 }
 
-gboolean browser_key_event(GtkWidget *widget, GdkEventKey *event)
+gboolean browser_key_event(GtkWidget *widget, GdkEventKey *event, gpointer data)
 {
 	char key = gdk_keyval_name(event->keyval)[0];
 
@@ -236,24 +239,54 @@ gboolean browser_key_event(GtkWidget *widget, GdkEventKey *event)
 			index = a;
 	}
 
+	bool done = false;
+
 	if (event->keyval == GDK_Return)
 		gtk_dialog_response(GTK_DIALOG(browser_dialog), GTK_RESPONSE_ACCEPT);
 
 	if (event->keyval == GDK_Up && index - browser_columns >= 0)
+	{
 		index -= browser_columns;
+		done = true;
+	}
 
 	if (event->keyval == GDK_Left && index > 0)
+	{
 		index--;
+		done = true;
+	}
 
 	if (event->keyval == GDK_Right && index < tex_names.size() - 1)
+	{
 		index++;
+		done = true;
+	}
 
 	if (event->keyval == GDK_Down && index < tex_names.size() - browser_columns)
+	{
 		index += browser_columns;
+		done = true;
+	}
 
-	selected_tex = tex_names[index];
-	scroll_to_selected_texture(widget);
-	gdk_window_invalidate_rect(widget->window, &widget->allocation, false);
+	if (event->keyval == GDK_BackSpace)
+	{
+		string search = gtk_entry_get_text(GTK_ENTRY(data));
+		gtk_entry_set_text(GTK_ENTRY(data), search.substr(0, search.size() - 1).c_str());
+		done = true;
+	}
+
+	if (done)
+	{
+		selected_tex = tex_names[index];
+		scroll_to_selected_texture(widget);
+		gdk_window_invalidate_rect(widget->window, &widget->allocation, false);
+	}
+	else
+	{
+		string search = gtk_entry_get_text(GTK_ENTRY(data));
+		search += event->string;
+		gtk_entry_set_text(GTK_ENTRY(data), search.c_str());
+	}
 
 	return true;
 }
@@ -296,7 +329,6 @@ GtkWidget* setup_texture_browser()
 	g_signal_connect(G_OBJECT(draw_area), "configure-event", G_CALLBACK(browser_configure_event), NULL);
 	g_signal_connect(G_OBJECT(draw_area), "button_press_event", G_CALLBACK(browser_click_event), NULL);
 	g_signal_connect(G_OBJECT(draw_area), "scroll-event", G_CALLBACK(browser_scroll_event), NULL);
-	g_signal_connect(G_OBJECT(draw_area), "key_press_event", G_CALLBACK(browser_key_event), NULL);
 
 	gtk_box_pack_start(GTK_BOX(hbox), draw_area, true, true, 0);
 
@@ -317,6 +349,8 @@ GtkWidget* setup_texture_browser()
 	gtk_box_pack_start(GTK_BOX(vbox), entry, false, false, 0);
 
 	gtk_widget_grab_focus(draw_area);
+
+	g_signal_connect(G_OBJECT(draw_area), "key_press_event", G_CALLBACK(browser_key_event), entry);
 
 	return hbox;
 }
@@ -344,8 +378,56 @@ string open_texture_browser(bool tex, bool flat, bool sprite, string init_tex, b
 				tex_names.push_back(flats[a]->name);
 		}
 
-		// Sort alphabetically for now
-		sort(tex_names.begin(), tex_names.end());
+		// Sort alphabetically
+		if (browser_sort == 0)
+			sort(tex_names.begin(), tex_names.end());
+
+		// Sort by use
+		else if (browser_sort == 1)
+		{
+			table_t used_textures;
+			sort(tex_names.begin(), tex_names.end());
+
+			// Add all textures to table
+			for (DWORD t = 0; t < tex_names.size(); t++)
+				used_textures.add(tex_names[t], 0);
+
+			// Get texture use frequencies
+			if (tex || mix_tex)
+			{
+				for (DWORD s = 0; s < map.n_sides; s++)
+				{
+					if (map.sides[s]->tex_lower != "-")
+						used_textures.increment(map.sides[s]->tex_lower, 1);
+
+					if (map.sides[s]->tex_upper != "-")
+						used_textures.increment(map.sides[s]->tex_upper, 1);
+
+					if (map.sides[s]->tex_middle != "-")
+						used_textures.increment(map.sides[s]->tex_middle, 1);
+				}
+			}
+
+			if (flat || mix_tex)
+			{
+				for (DWORD s = 0; s < map.n_sectors; s++)
+				{
+					if (map.sectors[s]->f_tex != "-")
+						used_textures.increment(map.sectors[s]->f_tex, 1);
+
+					if (map.sectors[s]->c_tex != "-")
+						used_textures.increment(map.sectors[s]->c_tex, 1);
+				}
+			}
+
+			// Sort textures by frequency
+			used_textures.sort_by_values(false);
+
+			// Re-populate browser texture list in frequency order
+			tex_names.clear();
+			for (int t = 0; t < used_textures.n_rows; t++)
+				tex_names.push_back(used_textures.rows[t]->name);
+		}
 	}
 	else
 	{

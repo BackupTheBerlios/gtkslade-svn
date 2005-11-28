@@ -142,17 +142,10 @@ gboolean window3d_configure_event(GtkWidget *widget, GdkEventConfigure *event, g
 // -------------------------------------------- >>
 gboolean key_3d_press_event(GtkWidget *widget, GdkEventKey *event, gpointer data)
 {
-	int n_entries = 0;
-	guint *vals = 0;
+	guint keyval = get_keyval(event);
 
-	gdk_keymap_get_entries_for_keycode(gdk_keymap_get_default(),
-										event->hardware_keycode,
-										NULL,
-										&vals,
-										&n_entries);
-
-	string key = gtk_accelerator_name(vals[0], (GdkModifierType)event->state);
-	binds.set(key);
+	string key = gdk_keyval_name(keyval);
+	binds.set(key, (GdkModifierType)event->state);
 
 	return false;
 }
@@ -161,17 +154,10 @@ gboolean key_3d_press_event(GtkWidget *widget, GdkEventKey *event, gpointer data
 // ----------------------------------------------- >>
 gboolean key_3d_release_event(GtkWidget *widget, GdkEventKey *event, gpointer data)
 {
-	int n_entries = 0;
-	guint *vals = 0;
+	guint keyval = get_keyval(event);
 
-	gdk_keymap_get_entries_for_keycode(gdk_keymap_get_default(),
-										event->hardware_keycode,
-										NULL,
-										&vals,
-										&n_entries);
-
-	string key = gtk_accelerator_name(vals[0], (GdkModifierType)event->state);
-	binds.unset(key);
+	string key = gdk_keyval_name(keyval);
+	binds.unset(key, (GdkModifierType)event->state);
 
 	return false;
 }
@@ -209,20 +195,22 @@ gboolean button_press_3d_event(GtkWidget *widget, GdkEventButton *event)
 {
 	if (event->type == GDK_BUTTON_PRESS)
 	{
-		if (event->button == 1)
-			change_texture_3d(false);
-
-		if (event->button == 2)
-			copy_texture_3d();
-
-		if (event->button == 3)
-			paste_texture_3d(false);
+		string key = parse_string("Mouse%d", event->button);
+		binds.set(key, (GdkModifierType)event->state, NULL);
 	}
 
 	reset = true;
 	int center_x = (draw_3d_area->allocation.width * 0.5);
 	int center_y = (draw_3d_area->allocation.height * 0.5);
 	set_cursor(center_x, center_y);
+
+	return false;
+}
+
+gboolean button_release_3d_event(GtkWidget *widget, GdkEventButton *event)
+{
+	string key = parse_string("Mouse%d", event->button);
+	binds.unset(key, (GdkModifierType)event->state, NULL);
 
 	return false;
 }
@@ -296,6 +284,7 @@ void start_3d_mode()
 	g_signal_connect(G_OBJECT(draw_3d_area), "key_release_event", G_CALLBACK(key_3d_release_event), NULL);
 	g_signal_connect(G_OBJECT(draw_3d_area), "motion_notify_event", G_CALLBACK(motion_3d_event), NULL);
 	g_signal_connect(G_OBJECT(draw_3d_area), "button_press_event", G_CALLBACK(button_press_3d_event), NULL);
+	g_signal_connect(G_OBJECT(draw_3d_area), "button_release_event", G_CALLBACK(button_release_3d_event), NULL);
 
 	gtk_container_add(GTK_CONTAINER(window), draw_3d_area);
 	gtk_widget_show_all(window);

@@ -13,6 +13,7 @@
 #include "editor_window.h"
 #include "struct_3d.h"
 #include "mathstuff.h"
+#include "edit_move.h"
 
 // Variables ----------------------------- >>
 bool line_draw = false;		// Line drawing currently active?
@@ -24,6 +25,8 @@ numlist_t ldraw_verts;		// Vertices drawn
 extern Map map;
 extern point2_t mouse;
 extern rect_t sel_box;
+extern int hilight_item;
+extern vector<int> selected_items;
 
 // lines_clockwise: Checks if a group of lines are all facing eachother
 // ----------------------------------------------------------------- >>
@@ -196,6 +199,72 @@ void end_linedraw()
 		// If the last 2 points are the same, we have a sector split
 		if (ldraw_points.get_last().equals(ldraw_points.points[ldraw_points.n_points - 2]))
 			split = true;
+
+		// Add any vertices that have been 'drawn over'
+		for (int a = 0; a < ldraw_points.n_points - 1; a++)
+		{
+			vector<int> verts;
+			rect_t line(ldraw_points.points[a], ldraw_points.points[a+1]);
+
+			for (int v = 0; v < map.n_verts; v++)
+			{
+				if (map.verts[v]->x == ldraw_points.points[a].x &&
+					map.verts[v]->y == ldraw_points.points[a].y)
+					continue;
+
+				if (map.verts[v]->x == ldraw_points.points[a+1].x &&
+					map.verts[v]->y == ldraw_points.points[a+1].y)
+					continue;
+
+				if (distance_to_line(line.x1(), line.y1(), line.x2(), line.y2(), map.verts[v]->x, map.verts[v]->y) < 1)
+					verts.push_back(v);
+			}
+
+			if (verts.size() == 0)
+				continue;
+
+			// Sort vertices by distance from the first point
+			if (verts.size() > 1)
+			{
+				bool done = false;
+
+				while (!done)
+				{
+					done = true;
+					for (int b = 0; b < verts.size() - 1; b++)
+					{
+						int d1 = distance(ldraw_points.points[a].x, ldraw_points.points[a].y,
+											map.verts[verts[b]]->x, map.verts[verts[b]]->y);
+
+						int d2 = distance(ldraw_points.points[a].x, ldraw_points.points[a].y,
+											map.verts[verts[b+1]]->x, map.verts[verts[b+1]]->y);
+
+						if (d1 > d2)
+						{
+							int temp = verts[b];
+							verts[b] = verts[b+1];
+							verts[b+1] = temp;
+							done = false;
+						}
+					}
+				}
+			}
+
+			// For easy inserting convert ldraw_points to a vector
+			vector<point2_t> points;
+			for (int b = 0; b < ldraw_points.n_points; b++)
+				points.push_back(ldraw_points.points[b]);
+
+			// Add points at vertices
+			for (int b = 0; b < verts.size(); b++)
+				points.insert(points.begin() + a + b + 1, map.v_getpoint(verts[b]));
+
+			// Rebuild ldraw_points
+			ldraw_points.clear();
+			for (int b = 0; b < points.size(); b++)
+				ldraw_points.add(points[b], false);
+		}
+
 
 		// *** SPLIT SECTOR ***
 		// I'm sure theres a much nicer way to do this, but the method I use actually works,
@@ -707,8 +776,25 @@ void end_linedraw()
 				}
 			}
 
-			if (!new_sector_used)
-				map.delete_sector(new_sector);
+			// Check for any new lines that need to be split
+			for (int a = 0; a < new_lines.n_numbers; a++)
+			{
+				rect_t rect = map.l_getrect(new_lines.numbers[a]);
+
+				for (int v = 0; v < map.n_verts; v++)
+				{
+					int l = check_vertex_split(v);
+					if (new_lines.exists(l))
+					{
+						map.l_split(l, v);
+						selected_items.clear();
+						hilight_item = v;
+						add_move_items();
+						clear_move_items();
+						hilight_item = -1;
+					}
+				}
+			}
 		}
 
 		// Finish up

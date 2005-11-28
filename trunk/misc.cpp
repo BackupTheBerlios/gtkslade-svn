@@ -53,3 +53,17 @@ void set_cursor(int x, int y)
 {
 	gdk_display_warp_pointer(gdk_display_get_default(), gdk_screen_get_default(), x, y);
 }
+
+guint get_keyval(GdkEventKey *event)
+{
+	int n_entries = 0;
+	guint *vals = 0;
+
+	gdk_keymap_get_entries_for_keycode(gdk_keymap_get_default(),
+										event->hardware_keycode,
+										NULL,
+										&vals,
+										&n_entries);
+
+	return vals[0];
+}

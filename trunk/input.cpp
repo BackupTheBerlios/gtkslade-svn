@@ -28,22 +28,29 @@ CVAR(Float, move_speed_3d, 0.3f, CVAR_SAVE)
 CVAR(Float, mouse_speed_3d, 1.0f, CVAR_SAVE)
 CVAR(Int, key_delay_3d, 7, CVAR_SAVE)
 
+#define PRESSED(name) vector_exists(pressed_keys, name)
+#define RELEASED(name) vector_exists(released_keys, name)
+
 // External Variables --------------------- >>
 extern BindList binds;
 extern Map map;
 
 extern int xoff, yoff, edit_mode, hilight_item;
 extern float zoom;
-extern bool line_draw, paste_mode;
-extern point2_t mouse;
+extern bool line_draw, paste_mode, items_moving, thing_quickangle;
+extern point2_t mouse, down_pos;
 extern rect_t sel_box;
 extern Clipboard clipboard;
 extern Camera camera;
+
+extern vector<string> pressed_keys;
+extern vector<string> released_keys;
 
 EXTERN_CVAR(Bool, render_fog)
 EXTERN_CVAR(Bool, render_fullbright)
 EXTERN_CVAR(Bool, render_hilight)
 EXTERN_CVAR(Int, render_things)
+EXTERN_CVAR(Bool, edit_snap_grid)
 
 // cycle_edit_mode: Cycles the edit mode
 // ----------------------------------- >>
@@ -51,6 +58,8 @@ void cycle_edit_mode()
 {
 	if (++edit_mode > 3)
 		edit_mode = 0;
+
+	force_map_redraw(true, true);
 }
 
 // edit_item: When the edit item key is pressed
@@ -60,6 +69,7 @@ void edit_item()
 	if (edit_mode == 0)
 	{
 		create_vertex();
+		force_map_redraw(true, false);
 		return;
 	}
 
@@ -100,47 +110,82 @@ void view_zoom(bool in)
 // ------------------------------ >>
 void keys_edit()
 {
-	if (!map.opened)
+	if (!map.opened || line_draw)
 		return;
 
+	// **** Dragging stuff ****
+
+
+	// Selection box
+	if (sel_box.x1() != -1 && RELEASED("edit_selectbox"))
+	{
+		select_items_box(sel_box);
+		force_map_redraw(true, false);
+		sel_box.set(-1, -1, -1, -1);
+		return;
+	}
+
+	// Moving items
+	if (items_moving && RELEASED("edit_moveitems"))
+	{
+		clear_move_items();
+		force_map_redraw(true, false);
+		items_moving = false;
+		return;
+	}
+
+	// Quick thing angle
+	if (thing_quickangle && RELEASED("thing_quickangle"))
+	{
+		thing_quickangle = false;
+		force_map_redraw(true, false);
+		return;
+	}
+
+
+	if (items_moving || sel_box.x1() != -1)
+		return;
+
+	// **** Other controls ****
+
 	// Scroll up
-	if (binds.pressed("view_up"))
+	if (PRESSED("view_up"))
 	{
 		yoff += ((MAJOR_UNIT / (int)zoom)) + 1;
 		force_map_redraw(true, true);
 	}
 	
 	// Scroll down
-	if (binds.pressed("view_down"))
+	if (PRESSED("view_down"))
 	{
 		yoff -= ((MAJOR_UNIT / (int)zoom)) + 1;
 		force_map_redraw(true, true);
 	}
 
 	// Scroll left
-	if (binds.pressed("view_left"))
+	if (PRESSED("view_left"))
 	{
 		xoff += ((MAJOR_UNIT / (int)zoom)) + 1;
 		force_map_redraw(true, true);
 	}
 	
 	// Scroll right
-	if (binds.pressed("view_right"))
+	if (PRESSED("view_right"))
 	{
 		xoff -= ((MAJOR_UNIT / (int)zoom)) + 1;
 		force_map_redraw(true, true);
 	}
 
 	// Zoom in
-	if (binds.pressed("view_zoomin"))
+	if (PRESSED("view_zoomin"))
 		view_zoom(true);
 
 	// Zoom out
-	if (binds.pressed("view_zoomout"))
+	if (PRESSED("view_zoomout"))
 		view_zoom(false);
 
 	// Center view on mouse
-	if (binds.pressed("view_mousecenter"))
+	if (RELEASED("view_mousecenter"))
 	{
 		xoff = -m_x(mouse.x) / MAJOR_UNIT;
 		yoff = -m_y(mouse.y) / MAJOR_UNIT;
@@ -148,55 +193,55 @@ void keys_edit()
 	}
 
 	// Set offsets to 0, 0
-	if (binds.pressed("view_origin"))
+	if (RELEASED("view_origin"))
 	{
 		xoff = yoff = 0;
 		force_map_redraw(true, true);
 	}
 
 	// Vertices mode
-	if (binds.pressed("mode_vertices"))
+	if (RELEASED("mode_vertices"))
 		change_edit_mode(0);
 	
 	// Linedefs mode
-	if (binds.pressed("mode_linedefs"))
+	if (RELEASED("mode_linedefs"))
 		change_edit_mode(1);
 	
 	// Sectors mode
-	if (binds.pressed("mode_sectors"))
+	if (RELEASED("mode_sectors"))
 		change_edit_mode(2);
 	
 	// Things mode
-	if (binds.pressed("mode_things"))
+	if (RELEASED("mode_things"))
 		change_edit_mode(3);
 
 	// Change mode
-	if (binds.pressed("mode_change"))
+	if (RELEASED("mode_change"))
 		cycle_edit_mode();
 
 	// Increase grid size
-	if (binds.pressed("view_increasegrid"))
+	if (RELEASED("view_increasegrid"))
 	{
 		increase_grid();
 		force_map_redraw(false, true);
 	}
 
 	// Decrease grid size
-	if (binds.pressed("view_decreasegrid"))
+	if (RELEASED("view_decreasegrid"))
 	{
 		decrease_grid();
 		force_map_redraw(false, true);
 	}
 
 	// Clear selection
-	if (binds.pressed("edit_clearselection"))
+	if (RELEASED("edit_clearselection"))
 	{
 		clear_selection();
 		force_map_redraw(true);
 	}
 
 	// Delete item
-	if (binds.pressed("edit_deleteitem"))
+	if (RELEASED("edit_deleteitem"))
 	{
 		if (edit_mode == 0)
 			delete_vertex();
@@ -214,7 +259,7 @@ void keys_edit()
 	}
 
 	// Create item
-	if (binds.pressed("edit_createitem"))
+	if (RELEASED("edit_createitem"))
 	{
 		if (edit_mode == 0)
 		{
@@ -246,32 +291,39 @@ void keys_edit()
 		binds.clear("edit_createitem");
 	}
 
+	// Select item
+	if (RELEASED("edit_selectitem"))
+	{
+		select_item();
+		force_map_redraw(true);
+	}
+
 	// Sector height quick changes (8 units)
-	if (binds.pressed("sector_upfloor8"))
+	if (PRESSED("sector_upfloor8"))
 	{
 		if (edit_mode == 2)
 			sector_changeheight(true, 8);
 	}
 
-	if (binds.pressed("sector_downfloor8"))
+	if (PRESSED("sector_downfloor8"))
 	{
 		if (edit_mode == 2)
 			sector_changeheight(true, -8);
 	}
 
-	if (binds.pressed("sector_upceil8"))
+	if (PRESSED("sector_upceil8"))
 	{
 		if (edit_mode == 2)
 			sector_changeheight(false, 8);
 	}
 
-	if (binds.pressed("sector_downceil8"))
+	if (PRESSED("sector_downceil8"))
 	{
 		if (edit_mode == 2)
 			sector_changeheight(false, -8);
 	}
 
-	if (binds.pressed("sector_upboth8"))
+	if (PRESSED("sector_upboth8"))
 	{
 		if (edit_mode == 2)
 		{
@@ -280,7 +332,7 @@ void keys_edit()
 		}
 	}
 
-	if (binds.pressed("sector_downboth8"))
+	if (PRESSED("sector_downboth8"))
 	{
 		if (edit_mode == 2)
 		{
@@ -290,31 +342,31 @@ void keys_edit()
 	}
 
 	// Sector height quick changes (1 unit)
-	if (binds.pressed("sector_upfloor"))
+	if (PRESSED("sector_upfloor"))
 	{
 		if (edit_mode == 2)
 			sector_changeheight(true, 1);
 	}
 
-	if (binds.pressed("sector_downfloor"))
+	if (PRESSED("sector_downfloor"))
 	{
 		if (edit_mode == 2)
 			sector_changeheight(true, -1);
 	}
 
-	if (binds.pressed("sector_upceil"))
+	if (PRESSED("sector_upceil"))
 	{
 		if (edit_mode == 2)
 			sector_changeheight(false, 1);
 	}
 
-	if (binds.pressed("sector_downceil"))
+	if (PRESSED("sector_downceil"))
 	{
 		if (edit_mode == 2)
 			sector_changeheight(false, -1);
 	}
 
-	if (binds.pressed("sector_upboth"))
+	if (PRESSED("sector_upboth"))
 	{
 		if (edit_mode == 2)
 		{
@@ -323,17 +375,30 @@ void keys_edit()
 		}
 	}
 
-	if (binds.pressed("sector_downboth"))
+	if (PRESSED("sector_downboth"))
 	{
 		if (edit_mode == 2)
 		{
 			sector_changeheight(true, -1);
 			sector_changeheight(false, -1);
 		}
+	}
+
+	// Sector light change
+	if (PRESSED("sector_uplight"))
+	{
+		binds.clear("sector_uplight");
+		sector_changelight(16);
+	}
+
+	if (PRESSED("sector_downlight"))
+	{
+		binds.clear("sector_downlight");
+		sector_changelight(-16);
 	}
 
 	// Flip line
-	if (binds.pressed("line_flip"))
+	if (RELEASED("line_flip"))
 	{
 		if (edit_mode == 1)
 			line_flip(true, false);
@@ -342,7 +407,7 @@ void keys_edit()
 	}
 
 	// Swap line sides
-	if (binds.pressed("line_swapsides"))
+	if (RELEASED("line_swapsides"))
 	{
 		if (edit_mode == 1)
 			line_flip(false, true);
@@ -351,7 +416,7 @@ void keys_edit()
 	}
 
 	// Flip both line direction and sides
-	if (binds.pressed("line_flipboth"))
+	if (RELEASED("line_flipboth"))
 	{
 		if (edit_mode == 1)
 			line_flip(true, true);
@@ -360,7 +425,7 @@ void keys_edit()
 	}
 
 	// Begin line draw
-	if (binds.pressed("line_begindraw"))
+	if (PRESSED("line_begindraw"))
 	{
 		if (!line_draw)
 			line_draw = true;
@@ -369,7 +434,7 @@ void keys_edit()
 	}
 
 	// Begin rectangle draw
-	if (binds.pressed("line_begindraw_rect"))
+	if (PRESSED("line_begindraw_rect"))
 	{
 		if (!line_draw)
 		{
@@ -381,7 +446,7 @@ void keys_edit()
 	}
 
 	// Undo
-	if (binds.pressed("edit_undo"))
+	if (RELEASED("edit_undo"))
 	{
 		undo();
 		clear_selection();
@@ -393,57 +458,65 @@ void keys_edit()
 	}
 
 	// Edit item
-	if (binds.pressed("edit_edititem"))
+	if (RELEASED("edit_edititem"))
 	{
 		edit_item();
 		binds.clear("edit_edititem");
 	}
 
 	// Merge sectors
-	if (binds.pressed("sector_merge"))
+	if (RELEASED("sector_merge"))
 	{
 		sector_merge(false);
 		binds.clear("sector_merge");
 	}
 
 	// Join sectors
-	if (binds.pressed("sector_join"))
+	if (RELEASED("sector_join"))
 	{
 		sector_merge(true);
 		binds.clear("sector_join");
 	}
 
-	if (binds.pressed("view_3dmode"))
+	if (RELEASED("view_3dmode"))
 	{
 		binds.clear("view_3dmode");
 		binds.clear("3d_exit");
 		start_3d_mode();
 	}
 
-	if (binds.pressed("open_console"))
+	if (RELEASED("open_console"))
 	{
 		binds.clear("open_console");
 		popup_console();
 	}
 
-	if (binds.pressed("copy"))
+	if (RELEASED("copy"))
 	{
 		binds.clear("copy");
 		clipboard.Copy();
 	}
 
-	if (binds.pressed("paste"))
+	if (RELEASED("paste"))
 	{
 		binds.clear("paste");
 		paste_mode = true;
 		clear_selection();
 	}
 
-	if (binds.pressed("cancel_paste"))
+	if (RELEASED("cancel_paste"))
 	{
 		binds.clear("cancel_paste");
 		paste_mode = false;
 		force_map_redraw(true, false);
+	}
+
+	// Toggle grid snap
+	if (RELEASED("edit_gridsnap"))
+	{
+		binds.clear("edit_gridsnap");
+		edit_snap_grid = !edit_snap_grid;
+		force_map_redraw(false, false);
 	}
 }
 
@@ -734,16 +807,36 @@ bool keys_3d()
 		auto_align_x_3d();
 	}
 
-	if (binds.pressed("3d_paste_paint"))
-	{
-		binds.clear("3d_paste_paint");
-		paste_texture_3d(true);
-	}
-
 	if (binds.pressed("3d_reset_offsets"))
 	{
 		binds.clear("3d_reset_offsets");
 		reset_offsets_3d();
+	}
+
+	// Change (browse) texture
+	if (binds.pressed("3d_change_texture"))
+	{
+		binds.clear("3d_change_texture");
+		change_texture_3d(false);
+	}
+
+	// Copy/Paste texture
+	if (binds.pressed("3d_copy_texture"))
+	{
+		binds.clear("3d_copy_texture");
+		copy_texture_3d();
+	}
+
+	if (binds.pressed("3d_paste_texture"))
+	{
+		binds.clear("3d_paste_texture");
+		paste_texture_3d(false);
+	}
+
+	if (binds.pressed("3d_paste_paint"))
+	{
+		binds.clear("3d_paste_paint");
+		paste_texture_3d(true);
 	}
 
 	key_3d_rep--;

@@ -38,6 +38,9 @@ void setup_splash()
 
 void splash(string message)
 {
+	if (!splash_window)
+		setup_splash();
+
 	gtk_progress_bar_set_text(GTK_PROGRESS_BAR(splash_pbar), message.c_str());
 	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(splash_pbar), 0);
 	gtk_window_set_position(GTK_WINDOW(splash_window), GTK_WIN_POS_CENTER);
@@ -48,11 +51,15 @@ void splash(string message)
 
 void splash_hide()
 {
-	gtk_widget_hide(splash_window);
+	gtk_widget_destroy(splash_window);
+	splash_window = NULL;
 }
 
 void splash_progress(double prog)
 {
+	if (!splash_window)
+		return;
+
 	gtk_window_set_position(GTK_WINDOW(splash_window), GTK_WIN_POS_CENTER);
 	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(splash_pbar), prog);
 	wait_gtk_events();

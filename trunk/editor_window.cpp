@@ -26,6 +26,9 @@
 #include "checks.h"
 #include "copypaste.h"
 #include "version.h"
+#include "status_bar.h"
+#include "misc.h"
+#include "undoredo.h"
 
 // Variables ------------------------------ >>
 GtkWidget	*editor_window = NULL;
@@ -35,7 +38,7 @@ GdkPixmap	*pixmap = NULL;
 Wad*		edit_wad = NULL;
 
 rect_t	sel_box(-1, -1, 0, 0, 0);
-point2_t mouse;
+point2_t mouse, down_pos;
 
 GdkGLConfig *glconfig = NULL;
 GdkGLContext *glcontext = NULL;
@@ -46,6 +49,9 @@ int vid_height;
 bool thing_quickangle = false;
 bool items_moving = false;
 bool paste_mode = false;
+
+vector<string> pressed_keys;
+vector<string> released_keys;
 
 // Window properties
 int ew_width = -1;
@@ -192,6 +198,7 @@ void force_map_redraw(bool map, bool grid)
 	gdk_gl_drawable_gl_end(gldrawable);
 
 	gdk_window_invalidate_rect(map_area->window, &map_area->allocation, false);
+	update_status_bar();
 	//render_map();
 }
 
@@ -238,6 +245,62 @@ static gboolean motion_notify_event(GtkWidget *widget, GdkEventMotion *event)
 
 	mouse.set(x, y);
 
+	// Selection box
+	if (sel_box.x1() != -1)
+	{
+		sel_box.br.set(x, y);
+
+		if (line_draw)
+			line_drawbox();
+
+		redraw_map = true;
+	}
+	else
+	{
+		if (binds.pressed("edit_selectbox"))
+		{
+			sel_box.tl.set(down_pos);
+			sel_box.br.set(down_pos);
+			//binds.clear("edit_selectbox");
+		}
+	}
+
+	// Moving items
+	if (items_moving)
+	{
+		move_items();
+		redraw_map = update_map = true;
+	}
+	else
+	{
+		if (binds.pressed("edit_moveitems") && (selection() || hilight_item != -1))
+		{
+			items_moving = true;
+			add_move_items();
+			//binds.clear("edit_moveitems");
+			redraw_map = update_map = true;
+		}
+	}
+
+	// Quick thing angle
+	if (thing_quickangle)
+	{
+		thing_setquickangle();
+		redraw_map = update_map = true;
+	}
+	else
+	{
+		if (binds.pressed("thing_quickangle"))
+		{
+			make_backup(false, false, false, false, true);
+			thing_quickangle = true;
+			thing_setquickangle();
+			redraw_map = update_map = true;
+			//binds.clear("thing_quickangle");
+		}
+	}
+
+	/*
 	if (state & GDK_BUTTON3_MASK)
 	{
 		if (items_moving)
@@ -286,9 +349,24 @@ static gboolean motion_notify_event(GtkWidget *widget, GdkEventMotion *event)
 				redraw_map = true;
 		}
 	}
+	*/
+
+	if (line_draw || paste_mode)
+		redraw_map = true;
+
+	if (!thing_quickangle && !paste_mode && !line_draw && sel_box.x1() == -1)
+	{
+		int old_hilight = hilight_item;
+		get_hilight_item(x, y);
+
+		if (hilight_item != old_hilight)
+			redraw_map = true;
+	}
 
 	if (redraw_map)
 		force_map_redraw(update_map);
+
+	update_status_bar();
 
 	return TRUE;
 }
@@ -300,6 +378,39 @@ static gboolean button_press_event(GtkWidget *widget, GdkEventButton *event)
 	bool redraw_map = false;
 	bool update_map = false;
 
+	if (event->type == GDK_BUTTON_PRESS)
+	{
+		if (line_draw)
+		{
+			if (event->button == 1)
+			{
+				line_drawpoint();
+				redraw_map = true;
+			}
+		}
+		else if (paste_mode)
+		{
+			if (event->button == 1)
+			{
+				paste_mode = false;
+				clipboard.Paste();
+				redraw_map = update_map = true;
+			}
+		}
+		else
+		{
+			down_pos.set(mouse);
+			string key = parse_string("Mouse%d", event->button);
+			binds.set(key, (GdkModifierType)event->state, &pressed_keys);
+			keys_edit();
+			pressed_keys.clear();
+		}
+	}
+
+	if (redraw_map)
+		force_map_redraw(update_map);
+
+	/*
 	// Single click
 	if (event->type == GDK_BUTTON_PRESS)
 	{
@@ -350,9 +461,7 @@ static gboolean button_press_event(GtkWidget *widget, GdkEventButton *event)
 			redraw_map = update_map = true;
 		}
 	}
-
-	if (redraw_map)
-		force_map_redraw(update_map);
+		*/
 
 	return TRUE;
 }
@@ -361,6 +470,15 @@ static gboolean button_press_event(GtkWidget *widget, GdkEventButton *event)
 // ------------------------------------------------------------------ >>
 static gboolean button_release_event(GtkWidget *widget, GdkEventButton *event)
 {
+	if (paste_mode || line_draw)
+		return TRUE;
+
+	string key = parse_string("Mouse%d", event->button);
+	binds.unset(key, (GdkModifierType)event->state, &released_keys);
+	keys_edit();
+	released_keys.clear();
+
+	/*
 	bool redraw_map = false;
 	bool update_map = false;
 
@@ -392,6 +510,7 @@ static gboolean button_release_event(GtkWidget *widget, GdkEventButton *event)
 
 	if (redraw_map)
 		force_map_redraw(update_map);
+		*/
 
 	return TRUE;
 }
@@ -400,20 +519,17 @@ static gboolean button_release_event(GtkWidget *widget, GdkEventButton *event)
 // -------------------------------------------- >>
 gboolean key_press_event(GtkWidget *widget, GdkEventKey *event, gpointer data)
 {
-	int n_entries = 0;
-	guint *vals = 0;
+	//printf("keyval: %d (%s)\nhardware: %d\n", event->keyval, gdk_keyval_name(event->keyval), event->hardware_keycode);
 
-	gdk_keymap_get_entries_for_keycode(gdk_keymap_get_default(),
-										event->hardware_keycode,
-										NULL,
-										&vals,
-										&n_entries);
+	down_pos.set(mouse);
 
-	string key = gtk_accelerator_name(vals[0], (GdkModifierType)event->state);
+	guint keyval = get_keyval(event);
+
+	string key = gdk_keyval_name(keyval);
 	//printf("\"%s\"\n", key.c_str());
-	binds.set(key);
-
+	binds.set(key, (GdkModifierType)event->state, &pressed_keys);
 	keys_edit();
+	pressed_keys.clear();
 
 	return false;
 }
@@ -422,18 +538,14 @@ gboolean key_press_event(GtkWidget *widget, GdkEventKey *event, gpointer data)
 // ----------------------------------------------- >>
 gboolean key_release_event(GtkWidget *widget, GdkEventKey *event, gpointer data)
 {
-	int n_entries = 0;
-	guint *vals = 0;
+	guint keyval = get_keyval(event);
 
-	gdk_keymap_get_entries_for_keycode(gdk_keymap_get_default(),
-										event->hardware_keycode,
-										NULL,
-										&vals,
-										&n_entries);
-
-	string key = gtk_accelerator_name(vals[0], (GdkModifierType)event->state);
+	string key = gdk_keyval_name(keyval);
 	//printf("\"%s\"\n", key.c_str());
-	binds.unset(key);
+
+	binds.unset(key, (GdkModifierType)event->state, &released_keys);
+	keys_edit();
+	released_keys.clear();
 
 	return false;
 }
@@ -951,6 +1063,12 @@ void setup_editor_window()
 		gtk_window_move(GTK_WINDOW(editor_window), ew_x, ew_y);
 		gtk_window_resize(GTK_WINDOW(editor_window), ew_width, ew_height);
 	}
+
+	// Status bar
+	//GtkWidget *frame = gtk_frame_new(NULL);
+	//gtk_frame_set_shadow_type(GTK_FRAME(frame), GTK_SHADOW);
+	gtk_box_pack_start(GTK_BOX(main_vbox), setup_status_bar(), false, false, 0);
+	//gtk_container_add(GTK_CONTAINER(frame), setup_status_bar());
 
 	gtk_widget_show_all(editor_window);
 }

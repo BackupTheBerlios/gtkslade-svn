@@ -41,31 +41,41 @@ void BindList::set_defaults()
 	add("edit_createitem", "Insert");
 	//add("edit_createitem2", "<Shift>Insert");
 	add("edit_deleteitem", "Delete");
-	add("edit_undo", "<Control>z");
+	add("edit_moveitems", "Mouse3");
+	add("edit_selectitem", "Mouse1");
+	add("edit_selectbox", "Mouse1", KMOD_SHIFT);
+	add("edit_undo", "z", KMOD_CTRL);
+	add("edit_gridsnap", "g");
 
 	add("line_flip", "f");
-	add("line_swapsides", "<Control>f");
-	add("line_flipboth", "<Shift><Control>f");
+	add("line_swapsides", "f", KMOD_CTRL);
+	add("line_flipboth", "f", KMOD_SHIFT|KMOD_CTRL);
 	add("line_begindraw", "space");
-	add("line_begindraw_rect", "<Shift>space");
+	add("line_begindraw_rect", "space", KMOD_SHIFT);
 
 	add("sector_upfloor8", "period");
 	add("sector_downfloor8", "comma");
-	add("sector_upceil8", "<Shift>period");
-	add("sector_downceil8", "<Shift>comma");
-	add("sector_upfloor", "<Control>period");
-	add("sector_downfloor", "<Control>comma");
-	add("sector_upceil", "<Shift><Control>period");
-	add("sector_downceil", "<Shift><Control>comma");
-	add("sector_upboth8", "<Alt>period");
-	add("sector_downboth8", "<Alt>comma");
-	add("sector_upboth", "<Control><Alt>period");
-	add("sector_downboth", "<Control><Alt>comma");
-	add("sector_merge", "<Control>j");
+	add("sector_upceil8", "period", KMOD_SHIFT);
+	add("sector_downceil8", "comma", KMOD_SHIFT);
+	add("sector_upfloor", "period", KMOD_CTRL);
+	add("sector_downfloor", "comma", KMOD_CTRL);
+	add("sector_upceil", "period", KMOD_SHIFT|KMOD_CTRL);
+	add("sector_downceil", "comma", KMOD_SHIFT|KMOD_CTRL);
+	add("sector_upboth8", "period", KMOD_ALT);
+	add("sector_downboth8", "comma", KMOD_ALT);
+	add("sector_upboth", "period", KMOD_CTRL|KMOD_ALT);
+	add("sector_downboth", "comma", KMOD_CTRL|KMOD_ALT);
+
+	add("sector_uplight", "apostrophe");
+	add("sector_downlight", "semicolon");
+
+	add("sector_merge", "j", KMOD_CTRL);
 	add("sector_join", "j");
 
-	add("copy", "<Control>c");
-	add("paste", "<Control>v");
+	add("thing_quickangle", "Mouse2");
+
+	add("copy", "c", KMOD_CTRL);
+	add("paste", "v", KMOD_CTRL);
 	add("cancel_paste", "Escape");
 
 	add("3d_exit", "q");
@@ -87,21 +97,21 @@ void BindList::set_defaults()
 
 	add("3d_upceil8", "KP_Add");
 	add("3d_downceil8", "KP_Subtract");
-	add("3d_upceil", "<Control>KP_Add");
-	add("3d_downceil", "<Control>KP_Subtract");
-	add("3d_upfloor8", "<Shift>KP_Add");
-	add("3d_downfloor8", "<Shift>KP_Subtract");
-	add("3d_upfloor", "<Shift><Control>KP_Add");
-	add("3d_downfloor", "<Shift><Control>KP_Subtract");
-	add("3d_upboth8", "<Alt>KP_Add");
-	add("3d_downboth8", "<Alt>KP_Subtract");
-	add("3d_upboth", "<Control><Alt>KP_Add");
-	add("3d_downboth", "<Control><Alt>KP_Subtract");
+	add("3d_upceil", "KP_Add", KMOD_CTRL);
+	add("3d_downceil", "KP_Subtract", KMOD_CTRL);
+	add("3d_upfloor8", "KP_Add", KMOD_SHIFT);
+	add("3d_downfloor8", "KP_Subtract", KMOD_SHIFT);
+	add("3d_upfloor", "KP_Add", KMOD_SHIFT|KMOD_CTRL);
+	add("3d_downfloor", "KP_Subtract", KMOD_SHIFT|KMOD_CTRL);
+	add("3d_upboth8", "KP_Add", KMOD_ALT);
+	add("3d_downboth8", "KP_Subtract", KMOD_ALT);
+	add("3d_upboth", "KP_Add", KMOD_ALT|KMOD_CTRL);
+	add("3d_downboth", "KP_Subtract", KMOD_ALT|KMOD_CTRL);
 
-	add("3d_upyoffset", "<Control>Up");
-	add("3d_downyoffset", "<Control>Down");
-	add("3d_upxoffset", "<Control>Left");
-	add("3d_downxoffset", "<Control>Right");
+	add("3d_upyoffset", "Up", KMOD_CTRL);
+	add("3d_downyoffset", "Down", KMOD_CTRL);
+	add("3d_upxoffset", "Left", KMOD_CTRL);
+	add("3d_downxoffset", "Right", KMOD_CTRL);
 	add("3d_upyoffset8", "Up");
 	add("3d_downyoffset8", "Down");
 	add("3d_upxoffset8", "Left");
@@ -118,29 +128,33 @@ void BindList::set_defaults()
 
 	add("3d_upthingz8", "Up");
 	add("3d_downthingz8", "Down");
-	add("3d_upthingz", "<Control>Up");
-	add("3d_downthingz", "<Control>Down");
+	add("3d_upthingz", "Up", KMOD_CTRL);
+	add("3d_downthingz", "Down", KMOD_CTRL);
 
-	add("3d_align_tex_x", "<Control>a");
-	add("3d_paste_paint", "<Shift>p");
+	add("3d_align_tex_x", "a", KMOD_CTRL);
 	add("3d_reset_offsets", "r");
 
-	/*
-	add("3d_clear_texture", key_id("KEY_DELETE"), 0);
-	*/
+	add("3d_change_texture", "Mouse1");
+	add("3d_copy_texture", "Mouse2");
+	add("3d_paste_texture", "Mouse3");
+	add("3d_paste_paint", "Mouse3", KMOD_SHIFT);
+
+	//add("3d_clear_texture", key_id("KEY_DELETE"), 0);
 
 	add("open_console", "grave");
 }
 
 // add: Adds a key binding to the bind list
 // ------------------------------------- >>
-void BindList::add(string name, string key)
+void BindList::add(string name, string key, BYTE mods)
 {
 	keybind_t newkey;
 	newkey.key = key;
 	newkey.defaultkey = key;
 	newkey.name = name;
 	newkey.pressed = false;
+	newkey.mods = mods;
+	newkey.defaultmods = mods;
 
 	keys.push_back(newkey);
 }
@@ -160,33 +174,79 @@ bool BindList::pressed(string name)
 
 // set: 'Presses' a key
 // ----------------- >>
-void BindList::set(string key)
+void BindList::set(string key, GdkModifierType mods, vector<string> *list)
 {
 	for (int a = 0; a < keys.size(); a++)
 	{
 		if (keys[a].key == key)
 		{
-			keys[a].pressed = true;
-			//printf("Key \"%s\" pressed\n", keys[a].name.c_str());
-			//return;
+			bool pressed = true;
+
+			if (keys[a].mods & KMOD_SHIFT)
+			{
+				if (!(mods & GDK_SHIFT_MASK))
+					pressed = false;
+			}
+			else
+			{
+				if (mods & GDK_SHIFT_MASK)
+					pressed = false;
+			}
+
+			if (keys[a].mods & KMOD_CTRL)
+			{
+				if (!(mods & GDK_CONTROL_MASK))
+					pressed = false;
+			}
+			else
+			{
+				if (mods & GDK_CONTROL_MASK)
+					pressed = false;
+			}
+
+			if (keys[a].mods & KMOD_ALT)
+			{
+				if (!(mods & GDK_MOD1_MASK))
+					pressed = false;
+			}
+			else
+			{
+				if (mods & GDK_MOD1_MASK)
+					pressed = false;
+			}
+
+			keys[a].pressed = pressed;
+
+			if (pressed)
+			{
+				if (list)
+					list->push_back(keys[a].name);
+
+				//printf("Key \"%s\" pressed\n", keys[a].name.c_str());
+			}
 		}
 	}
 }
 
 // unset: 'Releases' a key
 // -------------------- >>
-void BindList::unset(string key)
+void BindList::unset(string key, GdkModifierType mods, vector<string> *list)
 {
-	guint nkey = 0;
-	gtk_accelerator_parse(key.c_str(), &nkey, NULL);
-	string kname = gtk_accelerator_name(nkey, (GdkModifierType)0);
+	//guint nkey = 0;
+	//gtk_accelerator_parse(key.c_str(), &nkey, NULL);
+	//string kname = gtk_accelerator_name(nkey, (GdkModifierType)0);
 
 	for (int a = 0; a < keys.size(); a++)
 	{
-		if (g_str_has_suffix(keys[a].key.c_str(), kname.c_str()))
+		//if (g_str_has_suffix(keys[a].key.c_str(), kname.c_str()))
+		if (keys[a].key == key)
 		{
+			bool prev = keys[a].pressed;
 			//printf("Key \"%s\" released\n", keys[a].name.c_str());
 			keys[a].pressed = false;
+
+			if (list && prev)
+				list->push_back(keys[a].name);
 		}
 	}
 }
@@ -227,6 +287,7 @@ void BindList::clear_all()
 		clear(keys[a].name);
 }
 
+/*
 // get_name: Gets the name of a specific bind
 // --------------------------------------- >>
 string BindList::get_name(int index)
@@ -246,15 +307,19 @@ string BindList::get_bind(int index)
 	else
 		return "";
 }
+*/
 
 // change: Changes a key binding
 // -------------------------- >>
-void BindList::change(string name, string key)
+void BindList::change(string name, string key, BYTE mods)
 {
 	for (int a = 0; a < keys.size(); a++)
 	{
 		if (keys[a].name == name)
+		{
 			keys[a].key = key;
+			keys[a].mods = mods;
+		}
 	}
 }
 
@@ -265,22 +330,27 @@ void BindList::change_default(string name)
 	for (int a = 0; a < keys.size(); a++)
 	{
 		if (keys[a].name == name)
+		{
 			keys[a].key = keys[a].defaultkey;
+			keys[a].mods = keys[a].defaultmods;
+		}
 	}
 }
 
 void BindList::save(FILE* fp)
 {
-	fprintf(fp, "binds\n{\n");
+	fprintf(fp, "key_binds\n{\n");
 
 	for (int a = 0; a < keys.size(); a++)
-		fprintf(fp, "\tkey \"%s\" \"%s\"\n", keys[a].name.c_str(), keys[a].key.c_str());
+		fprintf(fp, "\tkey \"%s\" \"%s\" %d\n", keys[a].name.c_str(), keys[a].key.c_str(), keys[a].mods);
 
 	fprintf(fp, "}\n\n");
 }
 
 void BindList::load(Tokenizer *tz)
 {
+	vector<string> loaded_keys;
+
 	tz->check_token("{");
 
 	string token = tz->get_token();
@@ -290,17 +360,35 @@ void BindList::load(Tokenizer *tz)
 		{
 			string name = tz->get_token();
 			string key = tz->get_token();
+			BYTE mods = tz->get_integer();
 
-			for (int a = 0; a < keys.size(); a++)
+			if (vector_exists(loaded_keys, name))
+				add(name, key, mods);
+			else
 			{
-				if (keys[a].name == name)
+				for (int a = 0; a < keys.size(); a++)
 				{
-					keys[a].key = key;
-					break;
+					if (keys[a].name == name)
+					{
+						keys[a].key = key;
+						keys[a].mods = mods;
+						loaded_keys.push_back(name);
+						break;
+					}
 				}
 			}
 		}
 
 		token = tz->get_token();
 	}
+}
+
+// get_bind: Gets the key of a specific bind
+// -------------------------------------- >>
+keybind_t* BindList::get_bind(int index)
+{
+	if (index < keys.size())
+		return &keys[index];
+	else
+		return NULL;
 }

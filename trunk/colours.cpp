@@ -14,7 +14,6 @@
 vector<col_config_t> colour_configs;
 
 // External Variables --------------------------- >>
-//extern rgba_t col_cursor;
 extern rgba_t col_background;
 extern rgba_t col_hilight;
 extern rgba_t col_selection;

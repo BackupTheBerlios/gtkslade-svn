@@ -38,6 +38,8 @@ vector<int>	select_order;
 
 vector<int>	selected_items;
 
+CVAR(Bool, edit_snap_grid, true, CVAR_SAVE)
+
 // Colours
 rgba_t	col_line_solid(200, 200, 200, 255);
 rgba_t	col_line_2s(110, 120, 130, 255);
@@ -47,7 +49,7 @@ rgba_t	col_line_special(100, 115, 180, 255);
 
 extern int vid_width, vid_height;
 extern Map map;
-extern point2_t mouse;
+extern point2_t mouse, down_pos;
 extern Camera camera;
 
 // increase_grid: Increases the grid size
@@ -74,6 +76,9 @@ void decrease_grid()
 // ------------------------------------------------- >>
 int snap_to_grid(double pos)
 {
+	if (!edit_snap_grid)
+		return pos;
+
 	int upper, lower;
 
 	for (int i = pos; i >= (pos - gridsize); i--)
@@ -533,8 +538,14 @@ int get_side_sector(int line, int side)
 // ---------------------------------------------------------- >>
 void select_item()
 {
+	int old_hl = hilight_item;
+	get_hilight_item(down_pos.x, down_pos.y);
+
 	if (hilight_item == -1)
+	{
+		hilight_item = old_hl;
 		return;
+	}
 
 	if (vector_exists(selected_items, hilight_item))
 	{
@@ -550,6 +561,8 @@ void select_item()
 
 		selected_items.push_back(hilight_item);
 	}
+
+	hilight_item = old_hl;
 }
 
 // select_items_box: Selects items within the selection box
