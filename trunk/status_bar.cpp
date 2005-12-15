@@ -27,7 +27,7 @@ GtkWidget* setup_status_bar()
 	gtk_frame_set_shadow_type(GTK_FRAME(frame), GTK_SHADOW_ETCHED_IN);
 	gtk_box_pack_start(GTK_BOX(m_hbox), frame, true, true, 0);
 
-	status_label_text = gtk_label_new("Status text");
+	status_label_text = gtk_label_new("");
 	gtk_misc_set_alignment(GTK_MISC(status_label_text), 0, 0.5);
 	gtk_container_add(GTK_CONTAINER(frame), status_label_text);
 

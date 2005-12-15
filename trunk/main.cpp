@@ -19,6 +19,7 @@
 
 // Variables ----------------------------- >>
 CVAR(String, col_config, "Default", CVAR_SAVE)
+CVAR(Bool, reopen_wads, true, CVAR_SAVE)
 bool dev_log = false;
 
 // External Variables -------------------- >>
@@ -206,6 +207,9 @@ void load_main_config()
 
 		if (token == "recent_wads")
 			load_recent_wads(&mr);
+
+		if (token == "open_wads" && reopen_wads)
+			load_open_wads(&mr);
 		
 		if (token == "window_props")
 			load_window_properties(&mr);
@@ -223,6 +227,7 @@ void save_main_config()
 	save_game_iwads(fp);
 	binds.save(fp);
 	save_recent_wads(fp);
+	if (reopen_wads) save_open_wads(fp);
 	save_window_properties(fp);
 	fclose(fp);
 }

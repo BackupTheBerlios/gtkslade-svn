@@ -59,7 +59,7 @@ void cycle_edit_mode()
 	if (++edit_mode > 3)
 		edit_mode = 0;
 
-	force_map_redraw(true, true);
+	force_map_redraw(true, false);
 }
 
 // edit_item: When the edit item key is pressed
@@ -69,6 +69,7 @@ void edit_item()
 	if (edit_mode == 0)
 	{
 		create_vertex();
+		get_hilight_item(mouse.x, mouse.y);
 		force_map_redraw(true, false);
 		return;
 	}
@@ -288,6 +289,7 @@ void keys_edit()
 			return;
 		}
 
+		get_hilight_item(mouse.x, mouse.y);
 		binds.clear("edit_createitem");
 	}
 
@@ -385,15 +387,15 @@ void keys_edit()
 	}
 
 	// Sector light change
-	if (PRESSED("sector_uplight"))
+	if (RELEASED("sector_uplight"))
 	{
-		binds.clear("sector_uplight");
+		//binds.clear("sector_uplight");
 		sector_changelight(16);
 	}
 
-	if (PRESSED("sector_downlight"))
+	if (RELEASED("sector_downlight"))
 	{
-		binds.clear("sector_downlight");
+		//binds.clear("sector_downlight");
 		sector_changelight(-16);
 	}
 
@@ -837,6 +839,18 @@ bool keys_3d()
 	{
 		binds.clear("3d_paste_paint");
 		paste_texture_3d(true);
+	}
+
+	if (binds.pressed("3d_copy_side"))
+	{
+		binds.clear("3d_copy_side");
+		copy_side_3d();
+	}
+
+	if (binds.pressed("3d_paste_side"))
+	{
+		binds.clear("3d_paste_side");
+		paste_side_3d();
 	}
 
 	key_3d_rep--;

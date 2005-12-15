@@ -14,6 +14,7 @@ GtkWidget *draw_3d_area;
 bool run_3d = false;
 
 CVAR(Bool, invert_mouse_3d, false, CVAR_SAVE)
+CVAR(Bool, timer_3d, true, CVAR_SAVE)
 
 extern GtkWidget *editor_window;
 extern GdkGLConfig *glconfig;
@@ -314,7 +315,7 @@ void start_3d_mode()
 		gulong ms = 0;
 		g_timer_elapsed(timer, &ms);
 
-		if (ms >= 10000)
+		if (timer_3d && ms >= 10000)
 		{
 			g_timer_start(timer);
 			wait_gtk_events();

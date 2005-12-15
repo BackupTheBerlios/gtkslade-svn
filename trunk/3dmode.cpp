@@ -20,9 +20,10 @@ wallrect_t*	hl_wrect = NULL;
 flatpoly_t* hl_fpoly = NULL;
 thing3d_t*	hl_thing = NULL;
 
-string copy_wtex = "-";
-string copy_ftex = "";
-string copy_ttype = "";
+string		copy_wtex = "-";
+string		copy_ftex = "";
+string		copy_ttype = "";
+sidedef_t*	copy_side = NULL;
 
 extern Camera camera;
 extern Map map;
@@ -719,5 +720,27 @@ void reset_offsets_3d()
 				return;
 			}
 		}
+	}
+}
+
+void copy_side_3d()
+{
+	if (hl_wrect)
+	{
+		if (!copy_side)
+			copy_side = new sidedef_t();
+
+		memcpy(copy_side, map.l_getside(hl_wrect->line, hl_wrect->side), sizeof(sidedef_t));
+		add_3d_message("Copied sidedef data");
+	}
+}
+
+void paste_side_3d()
+{
+	if (hl_wrect && copy_side)
+	{
+		memcpy(map.l_getside(hl_wrect->line, hl_wrect->side), copy_side, sizeof(sidedef_t));
+		setup_3d_line(hl_wrect->line);
+		add_3d_message("Pasted sidedef data");
 	}
 }

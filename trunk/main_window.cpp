@@ -56,6 +56,30 @@ void save_recent_wads(FILE *fp)
 	fprintf(fp, "}\n\n");
 }
 
+void load_open_wads(Tokenizer *tz)
+{
+	tz->check_token("{");
+
+	string token = tz->get_token();
+	while (token != "}")
+	{
+		if (token == "wad")
+			wads.open_wad(tz->get_token());
+
+		token = tz->get_token();
+	}
+}
+
+void save_open_wads(FILE *fp)
+{
+	fprintf(fp, "open_wads\n{\n");
+
+	for (int a = 0; a < wads.n_wads; a++)
+		fprintf(fp, "\twad \"%s\"\n", wads.get_wad(a)->path.c_str());
+
+	fprintf(fp, "}\n\n");
+}
+
 void populate_recent_wads_list()
 {
 	GtkTreeIter iter;

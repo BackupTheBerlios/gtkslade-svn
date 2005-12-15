@@ -74,16 +74,16 @@ DWORD remove_free_verts()
 {
 	DWORD c = 0;
 
-	vector<int> used_verts;
+	vector<vertex_t*> used_verts;
 	for (int a = 0; a < map.n_lines; a++)
 	{
-		vector_add_nodup(used_verts, map.lines[a]->vertex1);
-		vector_add_nodup(used_verts, map.lines[a]->vertex2);
+		vector_add_nodup(used_verts, map.verts[map.lines[a]->vertex1]);
+		vector_add_nodup(used_verts, map.verts[map.lines[a]->vertex2]);
 	}
 
 	for (int a = 0; a < map.n_verts; a++)
 	{
-		if (vector_exists(used_verts, a))
+		if (vector_exists(used_verts, map.verts[a]))
 			continue;
 
 		map.delete_vertex(a);

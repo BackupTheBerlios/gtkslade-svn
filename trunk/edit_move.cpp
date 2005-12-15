@@ -256,7 +256,6 @@ void clear_move_items()
 	bool merge = false;
 
 	// Vertices
-	/*
 	if (edit_mode == 0)
 	{
 		for (DWORD v = 0; v < map.n_verts; v++)
@@ -269,6 +268,9 @@ void clear_move_items()
 					merge = true;
 				}
 
+				if (v >= map.n_verts)
+					continue;
+
 				int split_line = check_vertex_split(v);
 				
 				if (split_line != -1)
@@ -276,7 +278,6 @@ void clear_move_items()
 			}
 		}
 	}
-	*/
 	
 	// Check for overlapping/split lines
 	if (edit_mode != 3)

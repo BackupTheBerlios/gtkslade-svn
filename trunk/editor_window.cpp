@@ -363,7 +363,7 @@ static gboolean motion_notify_event(GtkWidget *widget, GdkEventMotion *event)
 			redraw_map = true;
 	}
 
-	if (redraw_map)
+	//if (redraw_map)
 		force_map_redraw(update_map);
 
 	update_status_bar();
@@ -385,6 +385,12 @@ static gboolean button_press_event(GtkWidget *widget, GdkEventButton *event)
 			if (event->button == 1)
 			{
 				line_drawpoint();
+				redraw_map = true;
+			}
+
+			if (event->button == 2)
+			{
+				line_undrawpoint();
 				redraw_map = true;
 			}
 		}
@@ -761,6 +767,16 @@ static void menu_action(GtkAction *action)
 		line_align_x();
 	else if (act == "CorrectRefs")
 		line_correct_references();
+	else if (act == "SplitLine")
+	{
+		int splits = 2;
+		string ret = entry_box("Enter Number Of Splits:");
+
+		if (ret != "")
+			splits = atoi(ret.c_str());
+
+		line_split(splits);
+	}
 	else
 		message_box("Menu action not implemented", GTK_MESSAGE_INFO);
 
@@ -796,6 +812,7 @@ static GtkActionEntry entries[] = {
 	{ "AlignY", NULL, "Align Textures _Y", NULL, "Align selected wall textures along the y axis", G_CALLBACK(menu_action) },
 	{ "CorrectRefs", NULL, "_Correct Sector References", NULL,
 	  "Attempts to set the correct sector references for the line", G_CALLBACK(menu_action) },
+	{ "SplitLine", NULL, "_Split Line", NULL, "Splits the line into parts", G_CALLBACK(menu_action) },
 
 	// Sector edit menu
 	{ "MergeSectors", NULL, "_Merge Sectors", NULL, "Merge selected sectors", G_CALLBACK(menu_action) },
@@ -854,6 +871,7 @@ static const gchar *ui_info =
 "    <menu action='EditLineMenu'>"
 "     <menuitem action='AlignX'/>"
 "     <menuitem action='CorrectRefs'/>"
+"     <menuitem action='SplitLine'/>"
 //"     <menuitem action='AlignY'/>"
 "    </menu>"
 "    <menu action='EditSectorMenu'>"

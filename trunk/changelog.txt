@@ -9,7 +9,20 @@ Goes in bottom-up order
 ~: Changed
 ': Note
 
+14/12/05]
+* Selecting sectors with the selection box would select single sectors multiple times (the selected items array should never have duplicates)
+* Thing Z height wasn't initialised in the thine edit dialog (so editing a thing with an existing z height reset it to 0)
+
+[12/12/05]
++ Added cvar 'reopen_wads', when true any wads that are open when SLADE is closed will be reopened next time SLADE is run
+* Thing quick angle selection control now only works in things mode (dragging middle click could cause a crash when not in things mode)
+* 'Create Door' in zdoom/hexen mode now sets the repeatable flag and sets the trigger to 'player uses'
+
+[07/12/05]
+* Fixed a problem with remove_unused_verts that could cause more than just the unused vertices to be deleted :P
+
 [28/11/05]
++ Added copy/paste sidedef data in 3d mode
 + Added sort by usage frequency for the texture browser (browser_sort cvar, 0: alphabetic, 1: usage freq)
 + Updated the input preferences dialog for the new system
 ~ 'Floor Boxes' for hanging things in 3d mode are now drawn on the ceiling

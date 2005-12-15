@@ -610,10 +610,12 @@ void select_items_box(rect_t box)
 				&& point_in_rect(x1, y1, x2, y2, map.l_getrect(l).x2(), -map.l_getrect(l).y2()))
 			{
 				if (sector1 != -1)
-					selected_items.push_back(sector1);
+					vector_add_nodup(selected_items, sector1);
+					//selected_items.push_back(sector1);
 
 				if (sector2 != -1)
-					selected_items.push_back(sector2);
+					vector_add_nodup(selected_items, sector2);
+					//selected_items.push_back(sector2);
 			}
 		}
 	}
@@ -817,7 +819,7 @@ void map_changelevel(int level)
 // ------------------------------------------------------------------------------------- >>
 void create_vertex()
 {
-	point2_t point(snap_to_grid(m_x(mouse.x)), snap_to_grid(-m_y(mouse.y)));
+	point2_t point(snap_to_grid(m_x(down_pos.x)), snap_to_grid(-m_y(down_pos.y)));
 
 	if (map.v_checkspot(point.x, point.y))
 	{
@@ -936,7 +938,7 @@ void create_sector()
 void create_thing()
 {
 	make_backup(false, false, false, false, true);
-	map.add_thing(snap_to_grid(m_x(mouse.x)), snap_to_grid(-m_y(mouse.y)), last_thing);
+	map.add_thing(snap_to_grid(m_x(down_pos.x)), snap_to_grid(-m_y(down_pos.y)), last_thing);
 	map.things[map.n_things - 1]->ttype = get_thing_type(last_thing.type);
 	//map_changelevel(2);
 	map.change_level(MC_THINGS);
@@ -1191,6 +1193,9 @@ short get_angle(point2_t origin, point2_t point)
 
 void thing_setquickangle()
 {
+	if (edit_mode != 3)
+		return;
+
 	point2_t m_mouse(m_x(mouse.x), -m_y(mouse.y));
 
 	if (selected_items.size() != 0)

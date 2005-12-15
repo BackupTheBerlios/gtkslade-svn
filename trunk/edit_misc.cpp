@@ -88,6 +88,8 @@ void sector_create_door(string texture)
 						map.lines[l]->type = 12;
 						map.lines[l]->args[1] = 24;
 						map.lines[l]->args[2] = 128;
+						map.lines[l]->set_flag(LINE_REPEATABLE);
+						map.lines[l]->set_trigger(LINE_SPAC_USE);
 					}
 				}
 
@@ -102,6 +104,8 @@ void sector_create_door(string texture)
 						map.lines[l]->type = 12;
 						map.lines[l]->args[1] = 24;
 						map.lines[l]->args[2] = 128;
+						map.lines[l]->set_flag(LINE_REPEATABLE);
+						map.lines[l]->set_trigger(LINE_SPAC_USE);
 					}
 				}
 			}
@@ -170,7 +174,8 @@ void sector_changelight(int amount)
 	else
 	{
 		for (int a = 0; a < selected_items.size(); a++)
-			sectors.push_back(selected_items[a]);
+			vector_add_nodup(sectors, selected_items[a]);
+			//sectors.push_back(selected_items[a]);
 	}
 
 	// Change light levels
@@ -193,6 +198,57 @@ void sector_changelight(int amount)
 
 	if (hilight_item != -1)
 		update_sector_info_bar(hilight_item);
+}
+
+void sector_create(point2_t point)
+{
+	double min_dist = -1;
+	int line = -1;
+
+	for (WORD l = 0; l < map.n_lines; l++)
+	{
+		rect_t r = map.l_getrect(l);
+
+		double dist = distance_to_line(r.x1(), r.y1(), r.x2(), r.y2(), point.x, point.y);
+
+		if (min_dist == -1)
+		{
+			min_dist = dist;
+			line = l;
+		}
+		else if (dist < min_dist)
+		{
+			min_dist = dist;
+			line = l;
+		}
+	}
+
+	if (line == -1)
+		return;
+
+	vector<int> processed_lines;
+	bool done = false;
+	while (!done)
+	{
+		int vertex;
+		if (determine_line_side(line, point.x, point.y))
+			vertex = map.lines[line]->vertex2;
+		else
+			vertex = map.lines[line]->vertex1;
+
+		vector<int> a_lines;
+		a_lines = map.v_getattachedlines(vertex);
+		
+
+		// Get line with lowest angle from the current line
+		for (int a = 0; a < a_lines.size(); a++)
+		{
+			if (a_lines[a] == line)
+				continue;
+
+			point3_t l_ray2;
+		}
+	}
 }
 
 // LINES
@@ -372,4 +428,51 @@ void line_paint_tex(int line, int side, string otex, string ntex, vector<int> *p
 				line_paint_tex(a_lines.numbers[a], 2, otex, ntex, processed_lines);
 		}
 	}
+}
+
+void line_split(int splits)
+{
+	if (selected_items.size() == 0 && hilight_item == -1)
+		return;
+
+	make_backup(true, true, true, false, false);
+
+	if (selected_items.size() == 0)
+	{
+		rect_t rect = map.l_getrect(hilight_item);
+
+		float x_split = float(rect.x2() - rect.x1()) / (float)splits;
+		float y_split = float(rect.y2() - rect.y1()) / (float)splits;
+
+		for (int a = 1; a < splits; a++)
+		{
+			int x = rect.x1() + int(a * x_split);
+			int y = rect.y1() + int(a * y_split);
+
+			int v = map.add_vertex(x, y);
+			map.l_split(hilight_item, v);
+		}
+	}
+	else
+	{
+		for (int a = 0; a < selected_items.size(); a++)
+		{
+			rect_t rect = map.l_getrect(selected_items[a]);
+
+			float x_split = float(rect.x2() - rect.x1()) / (float)splits;
+			float y_split = float(rect.y2() - rect.y1()) / (float)splits;
+
+			int line = selected_items[a];
+			for (int a = 1; a < splits; a++)
+			{
+				int x = rect.x1() + int(a * x_split);
+				int y = rect.y1() + int(a * y_split);
+
+				int v = map.add_vertex(x, y);
+				line = map.l_split(line, v);
+			}
+		}
+	}
+
+	force_map_redraw(true, false);
 }

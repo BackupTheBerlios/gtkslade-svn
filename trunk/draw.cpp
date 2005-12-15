@@ -26,8 +26,10 @@ rgba_t	col_background(0, 0, 0, 255, 0);
 rgba_t	col_selbox(0, 140, 220, 100, 1);
 rgba_t	col_selbox_line(100, 180, 220, 200, 1);
 rgba_t	col_linedraw(0, 200, 0, 255, 0);
+rgba_t	col_crosshair(255, 255, 0, 100, 1);
 
 CVAR(Float, line_size, 1.5, CVAR_SAVE)
+CVAR(Int, crosshair_2d, 0, CVAR_SAVE)
 CVAR(Bool, thing_sprites, false, CVAR_SAVE)
 CVAR(Bool, thing_force_angle, false, CVAR_SAVE)
 CVAR(Bool, grid_dashed, false, CVAR_SAVE)
@@ -1000,6 +1002,28 @@ void update_map()
 	glEndList();
 }
 
+void draw_crosshair()
+{
+	int x = s_x(snap_to_grid(m_x(mouse.x)));
+	int y = s_y(snap_to_grid(m_y(mouse.y)));
+
+	glLineWidth(2.0f);
+
+	if (crosshair_2d == 1)
+	{
+		draw_line(rect_t(x, 0, x, vid_height), col_crosshair, false, false);
+		draw_line(rect_t(0, y, vid_width, y), col_crosshair, false, false);
+	}
+
+	if (crosshair_2d == 2)
+	{
+		draw_line(rect_t(x, y-8, x, y+8), col_crosshair, false, false);
+		draw_line(rect_t(x-8, y, x+8, y), col_crosshair, false, false);
+	}
+
+	glLineWidth(1.0f);
+}
+
 // draw_map: Draws the map
 // -------------------- >>
 void draw_map()
@@ -1011,6 +1035,8 @@ void draw_map()
 	{
 		glCallList(grid_list);
 		glCallList(map_list);
+
+		draw_crosshair();
 
 		if (line_draw)
 			draw_drawlines();

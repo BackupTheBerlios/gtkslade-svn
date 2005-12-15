@@ -201,6 +201,7 @@ void end_linedraw()
 			split = true;
 
 		// Add any vertices that have been 'drawn over'
+		bool verts_added = false;
 		for (int a = 0; a < ldraw_points.n_points - 1; a++)
 		{
 			vector<int> verts;
@@ -217,7 +218,10 @@ void end_linedraw()
 					continue;
 
 				if (distance_to_line(line.x1(), line.y1(), line.x2(), line.y2(), map.verts[v]->x, map.verts[v]->y) < 1)
+				{
 					verts.push_back(v);
+					verts_added = true;
+				}
 			}
 
 			if (verts.size() == 0)
@@ -777,21 +781,24 @@ void end_linedraw()
 			}
 
 			// Check for any new lines that need to be split
-			for (int a = 0; a < new_lines.n_numbers; a++)
+			if (verts_added)
 			{
-				rect_t rect = map.l_getrect(new_lines.numbers[a]);
-
-				for (int v = 0; v < map.n_verts; v++)
+				for (int a = 0; a < new_lines.n_numbers; a++)
 				{
-					int l = check_vertex_split(v);
-					if (new_lines.exists(l))
+					rect_t rect = map.l_getrect(new_lines.numbers[a]);
+
+					for (int v = 0; v < map.n_verts; v++)
 					{
-						map.l_split(l, v);
-						selected_items.clear();
-						hilight_item = v;
-						add_move_items();
-						clear_move_items();
-						hilight_item = -1;
+						int l = check_vertex_split(v);
+						if (new_lines.exists(l) && l != -1)
+						{
+							map.l_split(l, v);
+							selected_items.clear();
+							hilight_item = v;
+							add_move_items();
+							clear_move_items();
+							hilight_item = -1;
+						}
 					}
 				}
 			}

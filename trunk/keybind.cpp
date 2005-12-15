@@ -139,6 +139,9 @@ void BindList::set_defaults()
 	add("3d_paste_texture", "Mouse3");
 	add("3d_paste_paint", "Mouse3", KMOD_SHIFT);
 
+	add("3d_copy_side", "c", KMOD_CTRL);
+	add("3d_paste_side", "v", KMOD_CTRL);
+
 	//add("3d_clear_texture", key_id("KEY_DELETE"), 0);
 
 	add("open_console", "grave");

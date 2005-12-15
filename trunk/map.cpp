@@ -947,6 +947,8 @@ int Map::l_split(int l, int vertex)
 	lines[new_line]->side1 = side1;
 	lines[new_line]->side2 = side2;
 
+	change_level(MC_LINES|MC_NODE_REBUILD);
+
 	return new_line;
 }
 

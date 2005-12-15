@@ -211,6 +211,7 @@ GtkWidget* setup_thing_edit()
 		tedit_data.type = map.things[hilight_item]->type;
 		tedit_data.tid = map.things[hilight_item]->tid;
 		tedit_data.special = map.things[hilight_item]->special;
+		tedit_data.zheight = map.things[hilight_item]->z;
 		memcpy(tedit_data.args, map.things[hilight_item]->args, 5);
 	}
 	else
@@ -219,6 +220,7 @@ GtkWidget* setup_thing_edit()
 		tedit_data.type = map.things[selected_items[0]]->type;
 		tedit_data.tid = map.things[selected_items[0]]->tid;
 		tedit_data.special = map.things[selected_items[0]]->special;
+		tedit_data.zheight = map.things[selected_items[0]]->z;
 		memcpy(tedit_data.args, map.things[selected_items[0]]->args, 5);
 
 		for (int a = 0; a < selected_items.size(); a++)
