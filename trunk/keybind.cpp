@@ -52,6 +52,7 @@ void BindList::set_defaults()
 	add("line_flipboth", "f", KMOD_SHIFT|KMOD_CTRL);
 	add("line_begindraw", "space");
 	add("line_begindraw_rect", "space", KMOD_SHIFT);
+	add("line_correctrefs", "s", KMOD_CTRL|KMOD_SHIFT);
 
 	add("sector_upfloor8", "period");
 	add("sector_downfloor8", "comma");

@@ -13,6 +13,7 @@
 #include "edit_move.h"
 #include "textures.h"
 #include "copypaste.h"
+#include "action_special.h"
 
 // Variables ------------------------------ >>
 rgba_t	col_hilight(255, 255, 0, 160, 1);
@@ -539,7 +540,7 @@ bool draw_thing(thing_t *thing, bool moving, bool selected)
 
 	// Setup the radius
 	int r = (ttype->radius * zoom) / MAJOR_UNIT;
-	if (ttype->radius == -1) r = 8;
+	if (ttype->radius == -1) r = (8 * zoom) / MAJOR_UNIT;
 
 
 	// Don't draw if it's out of the visible area
@@ -626,78 +627,6 @@ void draw_things()
 {
 	for (DWORD t = 0; t < map.n_things; t++)
 	{
-		/*
-		// Get thing type definition (for colour, radius and sprite)
-		thing_type_t* ttype = map.things[t]->ttype;
-		if (!ttype) ttype = get_thing_type(-1);
-
-		// Setup the radius
-		int r = (ttype->radius * zoom) / MAJOR_UNIT;
-		if (ttype->radius == -1) r = 8;
-		
-		
-		// Don't draw if it's out of the visible area
-		rect_t t_rect(s_x(map.things[t]->x), s_y(-map.things[t]->y), r*2, r*2, RECT_CENTER);
-		if (t_rect.x2() < 0 || t_rect.x1() > vid_width || t_rect.y2() < 0 || t_rect.y1() > vid_height)
-			continue;
-
-		// Setup the colour
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		colour.set(ttype->colour);
-
-		// Draw thing
-		if (thing_sprites)
-		{
-			Texture* tex = get_texture(ttype->spritename, 3);
-			int width = (tex->width * zoom) / MAJOR_UNIT;
-			int height = (tex->height * zoom) / MAJOR_UNIT;
-			draw_texture(s_x(map.things[t]->x) - (width / 2),
-						s_y(-map.things[t]->y) - (height / 2),
-						width, height, tex->name, 3, COL_WHITE);
-		}
-		else
-			draw_texture(t_rect.x1(), t_rect.y1(), t_rect.width(), t_rect.height(), "_thing", 0, colour);
-
-		// Draw the angle (if needed)
-		point2_t p(s_x(map.things[t]->x), s_y(-map.things[t]->y));
-		if (map.things[t]->ttype->show_angle || thing_force_angle)
-		{
-			int x2, y2;
-
-			// east
-			if (map.things[t]->angle == 0)			{ x2 = p.x + r; y2 = p.y; }
-			// northeast
-			else if (map.things[t]->angle == 45)	{ x2 = p.x + (r*0.75); y2 = p.y - (r*0.75); }
-			// north
-			else if (map.things[t]->angle == 90)	{ x2 = p.x; y2 = p.y - r; }
-			// northwest
-			else if (map.things[t]->angle == 135)	{ x2 = p.x - (r*0.75); y2 = p.y - (r*0.75); }
-			// west
-			else if (map.things[t]->angle == 180)	{ x2 = p.x - r; y2 = p.y; }
-			// southwest
-			else if (map.things[t]->angle == 225)	{ x2 = p.x - (r*0.75); y2 = p.y + (r*0.75); }
-			// south
-			else if (map.things[t]->angle == 270)	{ x2 = p.x; y2 = p.y + r; }
-			// southeast
-			else if (map.things[t]->angle == 315)	{ x2 = p.x + (r*0.75); y2 = p.y + (r*0.75); }
-			// Invalid angle
-			else	{ x2 = p.x; y2 = p.y; }
-
-			glLineWidth(2.0f);
-			glEnable(GL_POINT_SMOOTH);
-
-			if (thing_sprites)
-			{
-				draw_point(p.x, p.y, 8 * zoom / MAJOR_UNIT, COL_WHITE);
-				draw_line(rect_t(p.x, p.y, x2, y2), rgba_t(255, 255, 255, 200), line_aa);
-			}
-			else
-				draw_line(rect_t(p.x, p.y, x2, y2), rgba_t(0, 0, 0, 200), line_aa);
-
-			glLineWidth(1.0f);
-		}
-		*/
-
 		bool selected = false;
 		if (vector_exists(selected_items, t))
 			selected = true;
@@ -789,6 +718,14 @@ void draw_tagged()
 	{
 		int tag = map.lines[hilight_item]->sector_tag;
 
+		if (map.hexen)
+		{
+			action_special_t* spec = get_special(map.lines[hilight_item]->type);
+
+			if (spec->arg_tag > 0 && spec->arg_tag < 6)
+				tag = map.lines[hilight_item]->args[spec->arg_tag - 1];
+		}
+
 		if (tag == 0)
 			return;
 
@@ -831,7 +768,17 @@ void draw_tagged()
 
 		for(DWORD l = 0; l < map.n_lines; l++)
 		{
-			if (map.lines[l]->sector_tag == tag)
+			int stag = map.lines[l]->sector_tag;
+
+			if (map.hexen)
+			{
+				action_special_t* spec = get_special(map.lines[l]->type);
+
+				if (spec->arg_tag > 0 && spec->arg_tag < 6)
+					stag = map.lines[l]->args[spec->arg_tag - 1];
+			}
+
+			if (stag == tag)
 			{
 				rect_t rect = map.l_getsrect(l);
 				rect_t rect2;

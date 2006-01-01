@@ -426,6 +426,9 @@ void keys_edit()
 		force_map_redraw(true);
 	}
 
+	if (RELEASED("line_correctrefs"))
+		line_correct_references();
+
 	// Begin line draw
 	if (PRESSED("line_begindraw"))
 	{

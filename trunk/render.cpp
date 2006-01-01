@@ -275,6 +275,13 @@ void render_3d_things(bool boxes)
 			if (map.hexen && map.things[a]->type != 9500 && map.things[a]->type != 9501)
 				f += (map.things[a]->z * SCALE_3D);
 
+			if (map.things[a]->ttype->radius == -1)
+			{
+				r = 4 * SCALE_3D;
+				h = 8 * SCALE_3D;
+				f -= 4 * SCALE_3D;
+			}
+
 			float x1 = x - camera.strafe.x * r;
 			float y1 = y - camera.strafe.y * r;
 			float x2 = x + camera.strafe.x * r;

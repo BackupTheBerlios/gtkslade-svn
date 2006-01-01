@@ -9,7 +9,13 @@ Goes in bottom-up order
 ~: Changed
 ': Note
 
-14/12/05]
+[15/12/05]
+~ Arg type dialog now creates multiple columns if there are more than 15 values (needed for the long spawn ID list)
+~ Updated zdoom config with spawn IDs
+* Tagged sector/line pairs now work with hexen-format maps
++ Added a key shortcut to correct a line's sector references (ctrl+shift+s by default)
+
+[14/12/05]
 * Selecting sectors with the selection box would select single sectors multiple times (the selected items array should never have duplicates)
 * Thing Z height wasn't initialised in the thine edit dialog (so editing a thing with an existing z height reset it to 0)
 

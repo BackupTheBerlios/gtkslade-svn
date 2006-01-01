@@ -46,9 +46,11 @@ int open_arg_value_dialog(int val, argtype_t *at)
 	GtkWidget *values_frame = gtk_frame_new("Values");
 	gtk_container_set_border_width(GTK_CONTAINER(values_frame), 4);
 	gtk_box_pack_start(GTK_BOX(main_vbox), values_frame, false, false, 0);
+	GtkWidget *values_hbox = gtk_hbox_new(false, 0);
+	gtk_container_add(GTK_CONTAINER(values_frame), values_hbox);
 	GtkWidget *values_vbox = gtk_vbox_new(false, 0);
 	gtk_container_set_border_width(GTK_CONTAINER(values_vbox), 4);
-	gtk_container_add(GTK_CONTAINER(values_frame), values_vbox);
+	gtk_box_pack_start(GTK_BOX(values_hbox), values_vbox, false, false, 0);
 
 	GtkWidget *flags_frame = gtk_frame_new("Flags");
 	gtk_container_set_border_width(GTK_CONTAINER(flags_frame), 4);
@@ -59,6 +61,7 @@ int open_arg_value_dialog(int val, argtype_t *at)
 	if (at->has_flags)
 		gtk_box_pack_start(GTK_BOX(main_vbox), flags_frame, false, false, 0);
 
+	int rows = 0;
 	GtkWidget *radgroup = gtk_radio_button_new(NULL);
 	for (int a = 0; a < at->values.size(); a++)
 	{
@@ -71,6 +74,15 @@ int open_arg_value_dialog(int val, argtype_t *at)
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button), true);
 
 			gtk_box_pack_start(GTK_BOX(values_vbox), button, false, false, 0);
+
+			rows++;
+			if (rows == 15)
+			{
+				values_vbox = gtk_vbox_new(false, 0);
+				gtk_container_set_border_width(GTK_CONTAINER(values_vbox), 4);
+				gtk_box_pack_start(GTK_BOX(values_hbox), values_vbox, false, false, 0);
+				rows = 0;
+			}
 		}
 		else
 		{

@@ -127,10 +127,18 @@ void determine_hilight()
 			if (map.things[t]->z != 0 && map.hexen)
 				f_height += map.things[t]->z;
 
-			float x1 = (map.things[t]->x - camera.strafe.x * (things_3d[t]->sprite->width / 2)) * SCALE_3D;
-			float y1 = (map.things[t]->y - camera.strafe.y * (things_3d[t]->sprite->width / 2)) * SCALE_3D;
-			float x2 = (map.things[t]->x + camera.strafe.x * (things_3d[t]->sprite->width / 2)) * SCALE_3D;
-			float y2 = (map.things[t]->y + camera.strafe.y * (things_3d[t]->sprite->width / 2)) * SCALE_3D;
+			int r = things_3d[t]->sprite->width / 2;
+			if (map.things[t]->ttype->radius == -1)
+			{
+				r = 4;
+				height = 8;
+				f_height -= 4;
+			}
+
+			float x1 = (map.things[t]->x - camera.strafe.x * r) * SCALE_3D;
+			float y1 = (map.things[t]->y - camera.strafe.y * r) * SCALE_3D;
+			float x2 = (map.things[t]->x + camera.strafe.x * r) * SCALE_3D;
+			float y2 = (map.things[t]->y + camera.strafe.y * r) * SCALE_3D;
 
 			float dist = line_intersect(camera.position, camera.view, x1, y1, x2, y2);
 
@@ -739,7 +747,9 @@ void paste_side_3d()
 {
 	if (hl_wrect && copy_side)
 	{
+		int sector_ref = map.l_getside(hl_wrect->line, hl_wrect->side)->sector;
 		memcpy(map.l_getside(hl_wrect->line, hl_wrect->side), copy_side, sizeof(sidedef_t));
+		map.l_getside(hl_wrect->line, hl_wrect->side)->sector = sector_ref;
 		setup_3d_line(hl_wrect->line);
 		add_3d_message("Pasted sidedef data");
 	}
